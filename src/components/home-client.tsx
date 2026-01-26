@@ -133,36 +133,36 @@ function HomeContent() {
 
     return (
         <AuroraBackground>
-            <div className="relative z-10 w-full min-h-screen min-h-dvh flex flex-col">
+            <div className="relative z-10 w-full h-dvh flex flex-col overflow-hidden">
 
                 {/* 헤더 - 언어 선택 */}
-                <header className="flex justify-end p-4 md:p-6 lg:p-8">
+                <header className="flex justify-end p-4 shrink-0">
                     <LanguageSelector currentLang={lang} onSelect={(l) => router.push(`/?lang=${l}`)} />
                 </header>
 
                 {/* 메인 콘텐츠 */}
-                <main className="flex-1 flex items-center justify-center px-4 pb-8 md:px-8 lg:px-16">
+                <main className="flex-1 flex flex-col items-center justify-evenly px-4 pb-6 md:px-8 lg:px-16 min-h-0">
 
                     {/* 
             모바일: 세로 스택
             데스크탑(lg+): 가로 2분할 (텍스트 왼쪽, 이미지 오른쪽)
           */}
                     <div className="w-full max-w-6xl mx-auto
-                         flex flex-col lg:flex-row items-center 
-                         gap-8 lg:gap-16">
+                         flex flex-col lg:flex-row items-center justify-between
+                         h-full max-h-full gap-4 lg:gap-16">
 
                         {/* ===== 왼쪽: 텍스트 + CTA ===== */}
                         <div className="w-full lg:w-1/2 
                            flex flex-col items-center lg:items-start 
                            text-center lg:text-left
-                           gap-6">
+                           gap-3 shrink-0">
 
                             {/* 타이틀 */}
                             <motion.h1
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5 }}
-                                className={`text-4xl sm:text-5xl lg:text-6xl xl:text-7xl 
+                                className={`text-3xl sm:text-5xl lg:text-6xl xl:text-7xl 
                            font-bold leading-tight tracking-tight
                            ${isKorean ? 'font-korean' : 'font-serif'}`}
                             >
@@ -181,7 +181,7 @@ function HomeContent() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.1 }}
-                                className={`text-base sm:text-lg lg:text-xl text-white/60 leading-relaxed whitespace-pre-line
+                                className={`text-sm sm:text-lg lg:text-xl text-white/60 leading-relaxed whitespace-pre-line
                            max-w-md
                            ${isKorean ? 'font-korean' : ''}`}
                             >
@@ -220,12 +220,12 @@ function HomeContent() {
                         </div>
 
                         {/* ===== 오른쪽: 이미지 ===== */}
-                        <div className="w-full max-w-sm sm:max-w-md lg:w-1/2 lg:max-w-none">
+                        <div className="w-full max-w-sm sm:max-w-md lg:w-1/2 lg:max-w-none flex-1 min-h-0 flex items-center justify-center">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.1, duration: 0.6 }}
-                                className="relative w-full aspect-[4/5]"
+                                className="relative w-full h-full max-h-[50vh] lg:max-h-none aspect-[4/5]"
                             >
                                 {/* 글로우 */}
                                 <div className="absolute -inset-4 lg:-inset-6 bg-gradient-to-br from-purple-500/30 via-pink-500/25 to-indigo-500/30 
@@ -252,12 +252,12 @@ function HomeContent() {
                                 </div>
                             </motion.div>
 
-                            {/* CTA 버튼 - 모바일에서만 여기 표시 */}
+                            {/* CTA 버튼 - 모바일에서만 여기 표시 (이미지 위로 겹치거나 하단 고정) */}
                             <motion.div
                                 initial={{ opacity: 0, y: 12 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3 }}
-                                className="lg:hidden mt-8"
+                                className="lg:hidden absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-xs z-20"
                             >
                                 <Link href={`/test?lang=${lang}`} className="group block relative">
                                     <div className="absolute -inset-[2px] rounded-full overflow-hidden">
@@ -282,13 +282,8 @@ function HomeContent() {
                                 </Link>
                             </motion.div>
                         </div>
-
                     </div>
                 </main>
-
-                {/* 하단 여백 */}
-                <div className="h-6 lg:h-8" />
-
             </div>
         </AuroraBackground>
     );

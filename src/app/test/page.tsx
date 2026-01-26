@@ -99,7 +99,7 @@ function TestContent() {
 
     return (
         <AuroraBackground>
-            <div className="flex flex-col min-h-screen w-full relative z-10">
+            <div className="flex flex-col h-dvh w-full relative z-10 overflow-hidden">
                 {/* Progress Bar (Top Fixed) */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
                     <motion.div
@@ -111,7 +111,7 @@ function TestContent() {
                 </div>
 
                 {/* Header Navigation */}
-                <div className="flex items-center justify-between p-6">
+                <div className="flex items-center justify-between p-4 shrink-0">
                     <button
                         onClick={handleBack}
                         className="text-white/50 hover:text-white transition-colors p-2 -ml-2 rounded-full hover:bg-white/5"
@@ -124,7 +124,7 @@ function TestContent() {
                 </div>
 
                 {/* Question Area - Maximize fit within viewport */}
-                <div className="flex-1 flex flex-col justify-center max-w-[1600px] mx-auto w-full px-4 md:px-8 pb-6 overflow-hidden min-h-0">
+                <div className="flex-1 flex flex-col max-w-[1600px] mx-auto w-full px-4 md:px-8 pb-4 min-h-0">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentIndex}
@@ -135,14 +135,13 @@ function TestContent() {
                             className="flex flex-col h-full justify-center"
                         >
                             {/* Question Title - Compact on desktop */}
-                            <div className="mb-6 md:mb-8 text-center md:text-left shrink-0">
-                                <h2 className={`text-2xl md:text-4xl lg:text-5xl font-bold leading-tight break-keep ${lang === 'ko' ? 'font-korean' : 'font-serif'}`}>
+                            <div className="mb-4 md:mb-8 text-center md:text-left shrink-0">
+                                <h2 className={`text-xl md:text-3xl lg:text-5xl font-bold leading-tight break-keep ${lang === 'ko' ? 'font-korean' : 'font-serif'}`}>
                                     {currentText}
                                 </h2>
                             </div>
 
-                            {/* Options Grid - 4 Columns on Desktop to fit height, 2 on mobile */}
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full h-full max-h-[65vh]">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
                                 {shuffledOptions.map((option, idx) => (
                                     <motion.button
                                         key={option.id}
@@ -150,9 +149,9 @@ function TestContent() {
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ delay: 0.05 * idx, duration: 0.3 }}
                                         onClick={() => handleAnswer(option.id)}
-                                        className="group relative w-full h-full aspect-[3/4] overflow-hidden rounded-2xl border border-white/10 bg-black/20 hover:border-pink-500/50 transition-all duration-300 focus:outline-none flex flex-col"
+                                        className="group relative w-full aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-black/20 hover:border-pink-500/50 transition-all duration-300 focus:outline-none"
                                     >
-                                        {/* Image Background - Absolute Cover - 3:4 Ratio enforced via container or object-cover */}
+                                        {/* Image Background */}
                                         <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
                                             {option.image ? (
                                                 <Image
@@ -174,8 +173,8 @@ function TestContent() {
                                         </div>
 
                                         {/* Content - Positioned at bottom */}
-                                        <div className="absolute inset-x-0 bottom-0 p-4 md:p-6 text-left">
-                                            <p className={`text-lg md:text-xl lg:text-2xl font-bold text-white leading-tight break-keep shadow-black drop-shadow-md ${lang === 'ko' ? 'font-korean' : 'font-sans'}`}>
+                                        <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 text-left z-10">
+                                            <p className={`text-xs sm:text-sm md:text-base lg:text-lg font-bold text-white leading-tight break-keep shadow-black drop-shadow-md ${lang === 'ko' ? 'font-korean' : 'font-sans'}`}>
                                                 {{
                                                     ko: option.label_ko,
                                                     zh: option.label_zh,
