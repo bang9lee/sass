@@ -288,10 +288,21 @@ export function ResultCardClient({
             }
 
         } catch (err) {
-            console.error('Capture failed:', err);
-            alert(t.failedSave);
+            console.error('Capture failed first attempt:', err);
+
+            // Retry with skipFonts if it was likely a CORS/StyleSheet error
+            try {
+                const fallbackOptions = { ...captureOptions, skipFonts: true };
+                const dataUrl = await toPng(clone, fallbackOptions);
+                downloadFile(dataUrl);
+            } catch (retryErr) {
+                console.error('Capture failed retry:', retryErr);
+                alert(t.failedSave);
+            }
         } finally {
-            document.body.removeChild(captureContainer);
+            if (document.body.contains(captureContainer)) {
+                document.body.removeChild(captureContainer);
+            }
             setDownloading(false);
         }
     };
@@ -411,9 +422,9 @@ export function ResultCardClient({
                                     </span>
                                 </div>
 
-                                {/* Title - Clean Spacing */}
-                                <h1 className={`mb-2 text-5xl md:text-7xl font-black leading-none tracking-tight ${isKo ? 'font-korean' : ''} z-0`}>
-                                    <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+                                {/* Title - Clean Spacing & Auto Scale */}
+                                <h1 className={`mb-2 font-black leading-none tracking-tight ${isKo ? 'font-korean' : ''} z-0`}>
+                                    <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] whitespace-nowrap text-3xl sm:text-4xl md:text-6xl">
                                         {title}
                                     </span>
                                 </h1>
@@ -446,7 +457,7 @@ export function ResultCardClient({
                         {/* Color & Brand Info Removed as requested */}
                     </div>
 
-                    {/* 4. Advertisement Banner (Included in Screenshot) */}
+                    {/* 3.5. Moroka Banner (Restored) */}
                     <a href="https://play.google.com/store/apps/details?id=com.chlee.morokaapp" target="_blank" rel="noopener noreferrer" className="w-full bg-[#1A1A1A] p-4 flex items-center justify-between gap-3 border-t border-white/5 active:bg-[#252525] transition-colors group">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                             <div className="relative w-12 h-12 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-lg group-hover:scale-105 transition-transform duration-300">
@@ -489,6 +500,22 @@ export function ResultCardClient({
                             <ArrowRight className="w-5 h-5" />
                         </div>
                     </a>
+
+                    {/* 4. Footer: Domain & Telegram */}
+                    <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
+                        <p className="text-white text-[10px] uppercase tracking-[0.2em] font-light">
+                            findcore.me
+                        </p>
+                        <a
+                            href="https://t.me/todayshelp"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-1.5 text-white hover:text-cyan-200 transition-colors duration-300"
+                        >
+                            <span className="font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
+                            <span className="text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
+                        </a>
+                    </div>
                 </div>
 
                 {/* Action Buttons (Outside Screenshot) */}

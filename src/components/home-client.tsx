@@ -242,6 +242,22 @@ function HomeContent() {
                         </div>
                     </div>
                 </main>
+
+                {/* Footer - minimal full-width premium style */}
+                <footer className="w-full shrink-0 py-6 px-8 flex items-center justify-between z-50 mobile-fade-in-scale mobile-gpu border-t border-white/5 bg-black/20 backdrop-blur-sm" style={{ animationDelay: '0.3s' }}>
+                    <p className="text-white text-[10px] uppercase tracking-[0.2em] font-light">
+                        findcore.me
+                    </p>
+                    <a
+                        href="https://t.me/todayshelp"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center gap-2 text-white hover:text-cyan-200 transition-colors duration-300"
+                    >
+                        <span className="font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
+                        <span className="text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
+                    </a>
+                </footer>
             </div>
         </AuroraBackground>
     );
