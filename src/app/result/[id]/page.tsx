@@ -96,7 +96,7 @@ export default async function ResultPage({ params, searchParams }: Props) {
 
     return (
         <AuroraBackground>
-            <div className="flex flex-col h-dvh w-full items-center justify-center p-4 min-h-0 overflow-hidden">
+            <div className="flex flex-col min-h-screen w-full items-center justify-start p-4 md:p-8 overflow-y-auto">
                 <ResultCardClient
                     resultId={aesthetic.id}
                     title={content.title}

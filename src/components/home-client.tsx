@@ -141,7 +141,7 @@ function HomeContent() {
                 </header>
 
                 {/* 메인 콘텐츠 */}
-                <main className="flex-1 flex flex-col items-center justify-evenly px-4 pb-6 md:px-8 lg:px-16 min-h-0">
+                <main className="flex-1 flex flex-col items-center justify-center px-4 pb-4 md:px-8 lg:px-16 min-h-0 overflow-hidden">
 
                     {/* 
             모바일: 세로 스택
@@ -220,13 +220,12 @@ function HomeContent() {
                         </div>
 
                         {/* ===== 오른쪽: 이미지 ===== */}
-                        <div className="w-full max-w-sm sm:max-w-md lg:w-1/2 lg:max-w-none flex-1 min-h-0 flex items-center justify-center">
+                        <div className="w-full max-w-[280px] sm:max-w-sm lg:w-1/2 lg:max-w-none flex-1 min-h-0 flex items-center justify-center">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.1, duration: 0.6 }}
-                                className="relative w-full h-full max-h-[50vh] lg:max-h-none aspect-[4/5]"
-                            >
+                                className="relative w-full h-full max-h-[40vh] lg:max-h-none aspect-[4/5]">
                                 {/* 글로우 */}
                                 <div className="absolute -inset-4 lg:-inset-6 bg-gradient-to-br from-purple-500/30 via-pink-500/25 to-indigo-500/30 
                                rounded-[2.5rem] blur-2xl opacity-60" />
@@ -251,37 +250,37 @@ function HomeContent() {
                                     </div>
                                 </div>
                             </motion.div>
+                        </div>
 
-                            {/* CTA 버튼 - 모바일에서만 여기 표시 (이미지 위로 겹치거나 하단 고정) */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 12 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3 }}
-                                className="lg:hidden absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-xs z-20"
-                            >
-                                <Link href={`/test?lang=${lang}`} className="group block relative">
-                                    <div className="absolute -inset-[2px] rounded-full overflow-hidden">
-                                        <motion.div
-                                            animate={prefersReducedMotion ? {} : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                                            className="absolute inset-0"
-                                            style={{
-                                                backgroundImage: "linear-gradient(90deg, #8b5cf6, #ec4899, #6366f1, #8b5cf6)",
-                                                backgroundSize: "300% 100%",
-                                            }}
-                                        />
-                                    </div>
-                                    <div className={`relative flex items-center justify-center gap-2
+                        {/* CTA 버튼 - 모바일에서만 여기 표시 */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="lg:hidden w-full max-w-xs shrink-0 mt-4"
+                        >
+                            <Link href={`/test?lang=${lang}`} className="group block relative">
+                                <div className="absolute -inset-[2px] rounded-full overflow-hidden">
+                                    <motion.div
+                                        animate={prefersReducedMotion ? {} : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                        className="absolute inset-0"
+                                        style={{
+                                            backgroundImage: "linear-gradient(90deg, #8b5cf6, #ec4899, #6366f1, #8b5cf6)",
+                                            backgroundSize: "300% 100%",
+                                        }}
+                                    />
+                                </div>
+                                <div className={`relative flex items-center justify-center gap-2
                                  py-4 px-8 rounded-full
                                  bg-black/80 backdrop-blur-xl
                                  text-white text-lg font-semibold
                                  group-active:scale-[0.98] transition-transform
                                  ${isKorean ? 'font-korean' : ''}`}>
-                                        {t.button}
-                                    </div>
-                                </Link>
-                            </motion.div>
-                        </div>
+                                    {t.button}
+                                </div>
+                            </Link>
+                        </motion.div>
                     </div>
                 </main>
             </div>
