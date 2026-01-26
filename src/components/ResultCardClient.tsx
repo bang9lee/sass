@@ -192,8 +192,8 @@ export function ResultCardClient({
         captureContainer.style.width = '100vw'; // Important for layout
         document.body.appendChild(captureContainer);
 
-        let toPng: typeof import('html-to-image').toPng;
-        let clone: HTMLElement;
+        let toPng: typeof import('html-to-image').toPng | undefined;
+        let clone: HTMLElement | undefined;
         let captureOptions: any;
 
         try {
