@@ -7,6 +7,7 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 const gowun = Gowun_Batang({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-gowun" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://aesthetic-core.vercel.app'),
   title: "Find My Aesthetic Core",
   description: "Discover your unique visual atmosphere.",
 };

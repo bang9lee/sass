@@ -11,7 +11,8 @@ import { AuroraBackground } from "@/components/ui/aurora-background";
 function TestContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const lang = searchParams.get('lang') === 'ko' ? 'ko' : 'en';
+    const langParam = searchParams.get('lang');
+    const lang = (['ko', 'en', 'zh', 'ja'].includes(langParam || '') ? langParam : 'en') as 'ko' | 'en' | 'zh' | 'ja';
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<string[]>([]);
@@ -61,6 +62,13 @@ function TestContent() {
         }
     };
 
+    const loadingText = {
+        ko: { title: '당신의 무드를 분석하고 있어요...', sub: '잠시만 기다려주세요.' },
+        en: { title: 'Analyzing your aesthetic source...', sub: 'Please wait a moment.' },
+        zh: { title: '正在分析您的美学类型...', sub: '请稍候。' },
+        ja: { title: 'あなたのムードを分析中...', sub: '少々お待ちください。' }
+    }[lang];
+
     if (isSubmitting) {
         return (
             <AuroraBackground>
@@ -72,15 +80,22 @@ function TestContent() {
                         className="w-24 h-24 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 blur-xl opacity-60 mb-8"
                     />
                     <h2 className="text-3xl md:text-4xl font-playfair font-bold text-white mb-4 animate-pulse">
-                        {lang === 'ko' ? '당신의 무드를 분석하고 있어요...' : 'Analyzing your aesthetic source...'}
+                        {loadingText.title}
                     </h2>
                     <p className="text-white/50 text-sm font-light">
-                        {lang === 'ko' ? '잠시만 기다려주세요.' : 'Please wait a moment.'}
+                        {loadingText.sub}
                     </p>
                 </div>
             </AuroraBackground>
         );
     }
+
+    const currentText = {
+        ko: currentQuestion.text_ko,
+        zh: currentQuestion.text_zh,
+        ja: currentQuestion.text_ja,
+        en: currentQuestion.text
+    }[lang] || currentQuestion.text;
 
     return (
         <AuroraBackground>
@@ -122,7 +137,7 @@ function TestContent() {
                             {/* Question Title - Compact on desktop */}
                             <div className="mb-6 md:mb-8 text-center md:text-left shrink-0">
                                 <h2 className={`text-2xl md:text-4xl lg:text-5xl font-bold leading-tight break-keep ${lang === 'ko' ? 'font-korean' : 'font-serif'}`}>
-                                    {lang === 'ko' ? currentQuestion.text_ko : currentQuestion.text}
+                                    {currentText}
                                 </h2>
                             </div>
 
@@ -144,6 +159,7 @@ function TestContent() {
                                                     src={option.image}
                                                     alt={option.label}
                                                     fill
+                                                    sizes="(max-width: 768px) 50vw, 25vw"
                                                     className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                                                 />
                                             ) : (
@@ -160,7 +176,12 @@ function TestContent() {
                                         {/* Content - Positioned at bottom */}
                                         <div className="absolute inset-x-0 bottom-0 p-4 md:p-6 text-left">
                                             <p className={`text-lg md:text-xl lg:text-2xl font-bold text-white leading-tight break-keep shadow-black drop-shadow-md ${lang === 'ko' ? 'font-korean' : 'font-sans'}`}>
-                                                {lang === 'ko' ? option.label_ko : option.label}
+                                                {{
+                                                    ko: option.label_ko,
+                                                    zh: option.label_zh,
+                                                    ja: option.label_ja,
+                                                    en: option.label
+                                                }[lang] || option.label}
                                             </p>
                                         </div>
 

@@ -38,10 +38,63 @@ export function ResultCardClient({
         ? `${window.location.origin}/result/${resultId}?lang=${lang}`
         : '';
 
+    const uiText = {
+        ko: {
+            shareTitle: `나의 감성 타입: ${title}`,
+            shareText: '나의 감성 타입을 찾았어요! 당신도 테스트해보세요 ✨',
+            copyLink: '링크를 복사하세요:',
+            failedSave: '이미지 저장에 실패했습니다.',
+            palette: '추천 컬러',
+            brand: '추천 브랜드',
+            copied: '복사됨!',
+            share: '공유하기',
+            save: '이미지 저장',
+            retest: '처음부터 다시하기'
+        },
+        en: {
+            shareTitle: `My Aesthetic Core: ${title}`,
+            shareText: 'I found my Aesthetic Core! Take the test too ✨',
+            copyLink: 'Copy this link:',
+            failedSave: 'Failed to save image.',
+            palette: 'Color Palette',
+            brand: 'Brand Match',
+            copied: 'Copied!',
+            share: 'Share',
+            save: 'Save Image',
+            retest: 'Retest'
+        },
+        zh: {
+            shareTitle: `我的美学类型: ${title}`,
+            shareText: '我找到了我的专属美学类型！快来测测你的 ✨',
+            copyLink: '复制链接:',
+            failedSave: '图片保存失败。',
+            palette: '推荐色盘',
+            brand: '推荐品牌',
+            copied: '已复制!',
+            share: '分享',
+            save: '保存图片',
+            retest: '重新测试'
+        },
+        ja: {
+            shareTitle: `私の感性タイプ: ${title}`,
+            shareText: '私の感性タイプが見つかりました！あなたも診断してみて ✨',
+            copyLink: 'リンクをコピー:',
+            failedSave: '画像の保存に失敗しました。',
+            palette: 'おすすめカラー',
+            brand: 'おすすめブランド',
+            copied: 'コピー完了!',
+            share: 'シェアする',
+            save: '画像を保存',
+            retest: 'もう一度診断する'
+        }
+    };
+
+    const t = uiText[lang as keyof typeof uiText] || uiText.en;
+
     const handleShare = async () => {
         const shareData = {
-            title: isKo ? `나의 감성 타입: ${title}` : `My Aesthetic Core: ${title}`,
-            text: isKo ? '나의 감성 타입을 찾았어요! 당신도 테스트해보세요 ✨' : 'I found my Aesthetic Core! Take the test too ✨',
+            title: t.shareTitle,
+            text: t.shareText,
             url: shareUrl,
         };
 
@@ -59,7 +112,7 @@ export function ResultCardClient({
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
-            prompt(isKo ? '링크를 복사하세요:' : 'Copy this link:', shareUrl);
+            prompt(t.copyLink, shareUrl);
         }
     };
 
@@ -88,7 +141,7 @@ export function ResultCardClient({
             link.click();
         } catch (err) {
             console.error('Failed to capture image:', err);
-            alert(isKo ? '이미지 저장에 실패했습니다.' : 'Failed to save image.');
+            alert(t.failedSave);
         } finally {
             setDownloading(false);
         }
@@ -115,6 +168,7 @@ export function ResultCardClient({
                         fill
                         className="object-cover"
                         priority
+                        sizes="(max-width: 768px) 100vw, 500px"
                     />
                     {/* 1. Subtle Gradient for Text Readability - Only at bottom */}
                     <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
@@ -149,7 +203,7 @@ export function ResultCardClient({
                             {colorPalette && colorPalette.length > 0 && (
                                 <div className="space-y-2">
                                     <p className="text-xs uppercase tracking-widest text-white/80 font-mono shadow-black drop-shadow-sm">
-                                        {isKo ? '추천 컬러' : 'Color Palette'}
+                                        {t.palette}
                                     </p>
                                     <div className="flex gap-2">
                                         {colorPalette.map((color, idx) => (
@@ -167,7 +221,7 @@ export function ResultCardClient({
                             {/* Brand Matches */}
                             <div className="space-y-2">
                                 <p className="text-xs uppercase tracking-widest text-white/80 font-mono shadow-black drop-shadow-sm">
-                                    {isKo ? '추천 브랜드' : 'Brand Match'}
+                                    {t.brand}
                                 </p>
                                 <div className="flex flex-wrap gap-x-2 gap-y-1">
                                     {brandMatches.map(brand => (
@@ -204,7 +258,7 @@ export function ResultCardClient({
                     className="flex items-center justify-center gap-2 py-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-white font-medium active:scale-95"
                 >
                     {copied ? <Check className="w-5 h-5 text-green-400" /> : <Share2 className="w-5 h-5 text-white" />}
-                    <span>{isKo ? (copied ? '복사됨!' : '공유하기') : (copied ? 'Copied!' : 'Share')}</span>
+                    <span>{copied ? t.copied : t.share}</span>
                 </button>
                 <button
                     onClick={handleDownloadImage}
@@ -216,7 +270,7 @@ export function ResultCardClient({
                     ) : (
                         <Download className="w-5 h-5" />
                     )}
-                    <span>{isKo ? '이미지 저장' : 'Save Image'}</span>
+                    <span>{t.save}</span>
                 </button>
             </div>
 
@@ -226,7 +280,7 @@ export function ResultCardClient({
                 className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm py-2 hide-on-capture"
             >
                 <RotateCcw className="w-4 h-4" />
-                <span>{isKo ? '처음부터 다시하기' : 'Retest'}</span>
+                <span>{t.retest}</span>
             </Link>
         </div>
     );
