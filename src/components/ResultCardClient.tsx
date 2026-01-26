@@ -296,12 +296,16 @@ export function ResultCardClient({
             console.error('Capture failed first attempt:', err);
 
             // Retry with skipFonts if it was likely a CORS/StyleSheet error
-            try {
-                const fallbackOptions = { ...captureOptions, skipFonts: true };
-                const dataUrl = await toPng(clone, fallbackOptions);
-                downloadFile(dataUrl);
-            } catch (retryErr) {
-                console.error('Capture failed retry:', retryErr);
+            if (toPng && clone) {
+                try {
+                    const fallbackOptions = { ...captureOptions, skipFonts: true };
+                    const dataUrl = await toPng(clone, fallbackOptions);
+                    downloadFile(dataUrl);
+                } catch (retryErr) {
+                    console.error('Capture failed retry:', retryErr);
+                    alert(t.failedSave);
+                }
+            } else {
                 alert(t.failedSave);
             }
         } finally {
