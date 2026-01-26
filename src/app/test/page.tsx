@@ -79,10 +79,10 @@ function TestContent() {
                         transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
                         className="w-24 h-24 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 blur-xl opacity-60 mb-8"
                     />
-                    <h2 className="text-3xl md:text-4xl font-playfair font-bold text-white mb-4 animate-pulse">
+                    <h2 className="text-3xl md:text-4xl font-playfair font-bold text-white mb-4 animate-pulse whitespace-nowrap">
                         {loadingText.title}
                     </h2>
-                    <p className="text-white/50 text-sm font-light">
+                    <p className="text-white/50 text-sm font-light break-keep">
                         {loadingText.sub}
                     </p>
                 </div>
@@ -158,6 +158,7 @@ function TestContent() {
                                                     src={option.image}
                                                     alt={option.label}
                                                     fill
+                                                    priority={true}
                                                     sizes="(max-width: 768px) 50vw, 25vw"
                                                     className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                                                 />

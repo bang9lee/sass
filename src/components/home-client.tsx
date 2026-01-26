@@ -133,131 +133,60 @@ function HomeContent() {
 
     return (
         <AuroraBackground>
-            <div className="relative z-10 w-full h-dvh flex flex-col overflow-hidden">
+            {/* 메인 콘텐츠 */}
+            <main className="flex-1 flex flex-col items-center justify-center px-4 py-20 md:px-8 lg:px-16 min-h-screen w-full">
 
-                {/* 헤더 - 언어 선택 */}
-                <header className="flex justify-end p-4 shrink-0">
-                    <LanguageSelector currentLang={lang} onSelect={(l) => router.push(`/?lang=${l}`)} />
-                </header>
-
-                {/* 메인 콘텐츠 */}
-                <main className="flex-1 flex flex-col items-center justify-center px-4 pb-4 md:px-8 lg:px-16 min-h-0 overflow-hidden">
-
-                    {/* 
+                {/* 
             모바일: 세로 스택
             데스크탑(lg+): 가로 2분할 (텍스트 왼쪽, 이미지 오른쪽)
           */}
-                    <div className="w-full max-w-6xl mx-auto
-                         flex flex-col lg:flex-row items-center justify-between
-                         h-full max-h-full gap-4 lg:gap-16">
+                <div className="w-full max-w-6xl mx-auto
+                         flex flex-col lg:flex-row items-center justify-center lg:justify-between
+                         gap-8 lg:gap-16">
 
-                        {/* ===== 왼쪽: 텍스트 + CTA ===== */}
-                        <div className="w-full lg:w-1/2 
+                    {/* ===== 왼쪽: 텍스트 + CTA ===== */}
+                    <div className="w-full lg:w-1/2 
                            flex flex-col items-center lg:items-start 
                            text-center lg:text-left
-                           gap-3 shrink-0">
+                           gap-4 shrink-0">
 
-                            {/* 타이틀 */}
-                            <motion.h1
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5 }}
-                                className={`text-3xl sm:text-5xl lg:text-6xl xl:text-7xl 
+                        {/* 타이틀 */}
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className={`text-4xl sm:text-5xl lg:text-6xl xl:text-7xl 
                            font-bold leading-tight tracking-tight
                            ${isKorean ? 'font-korean' : 'font-serif'}`}
+                        >
+                            <span className="block text-white">{t.title1}</span>
+                            <motion.span
+                                animate={prefersReducedMotion ? {} : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                                className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 bg-[length:200%_auto]"
                             >
-                                <span className="block text-white">{t.title1}</span>
-                                <motion.span
-                                    animate={prefersReducedMotion ? {} : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                                    transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                                    className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 bg-[length:200%_auto]"
-                                >
-                                    {t.title2}
-                                </motion.span>
-                            </motion.h1>
+                                {t.title2}
+                            </motion.span>
+                        </motion.h1>
 
-                            {/* 서브타이틀 */}
-                            <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.1 }}
-                                className={`text-sm sm:text-lg lg:text-xl text-white/60 leading-relaxed whitespace-pre-line
+                        {/* 서브타이틀 */}
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className={`text-sm sm:text-lg lg:text-xl text-white/60 leading-relaxed whitespace-pre-line
                            max-w-md
                            ${isKorean ? 'font-korean' : ''}`}
-                            >
-                                {t.subtitle}
-                            </motion.p>
+                        >
+                            {t.subtitle}
+                        </motion.p>
 
-                            {/* CTA 버튼 - 데스크탑에서만 여기 표시 */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 12 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="hidden lg:block w-full max-w-sm"
-                            >
-                                <Link href={`/test?lang=${lang}`} className="group block relative">
-                                    <div className="absolute -inset-[2px] rounded-full overflow-hidden">
-                                        <motion.div
-                                            animate={prefersReducedMotion ? {} : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                                            className="absolute inset-0"
-                                            style={{
-                                                backgroundImage: "linear-gradient(90deg, #8b5cf6, #ec4899, #6366f1, #8b5cf6)",
-                                                backgroundSize: "300% 100%",
-                                            }}
-                                        />
-                                    </div>
-                                    <div className={`relative flex items-center justify-center gap-3
-                                 py-5 px-10 rounded-full
-                                 bg-black/80 backdrop-blur-xl
-                                 text-white text-xl font-semibold
-                                 group-hover:scale-[1.02] group-active:scale-[0.98] transition-transform
-                                 ${isKorean ? 'font-korean' : ''}`}>
-                                        {t.button}
-                                    </div>
-                                </Link>
-                            </motion.div>
-                        </div>
-
-                        {/* ===== 오른쪽: 이미지 ===== */}
-                        <div className="w-full max-w-[280px] sm:max-w-sm lg:w-1/2 lg:max-w-none flex-1 min-h-0 flex items-center justify-center">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.1, duration: 0.6 }}
-                                className="relative w-full h-full max-h-[40vh] lg:max-h-none aspect-[4/5]">
-                                {/* 글로우 */}
-                                <div className="absolute -inset-4 lg:-inset-6 bg-gradient-to-br from-purple-500/30 via-pink-500/25 to-indigo-500/30 
-                               rounded-[2.5rem] blur-2xl opacity-60" />
-
-                                {/* 이미지 카드 */}
-                                <div className="relative w-full h-full overflow-hidden
-                              rounded-[2rem] lg:rounded-[2.5rem]
-                              border-2 border-white/20
-                              shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
-                                    <Image src="/images/hero.webp" alt="Aesthetic" fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 50vw" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                                    {/* 배지 */}
-                                    <div className="absolute bottom-5 left-1/2 -translate-x-1/2
-                                 flex items-center gap-2 px-5 py-2.5
-                                 bg-black/60 backdrop-blur-xl rounded-full border border-white/10">
-                                        <span className="relative flex h-2 w-2">
-                                            <span className="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-50"></span>
-                                            <span className="relative rounded-full h-full w-full bg-emerald-400"></span>
-                                        </span>
-                                        <span className="text-sm text-white/90 font-medium">{t.count}</span>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
-
-                        {/* CTA 버튼 - 모바일에서만 여기 표시 */}
+                        {/* CTA 버튼 - 데스크탑에서만 여기 표시 */}
                         <motion.div
                             initial={{ opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="lg:hidden w-full max-w-xs shrink-0 mt-4"
+                            transition={{ delay: 0.2 }}
+                            className="hidden lg:block w-full max-w-sm mt-4"
                         >
                             <Link href={`/test?lang=${lang}`} className="group block relative">
                                 <div className="absolute -inset-[2px] rounded-full overflow-hidden">
@@ -271,19 +200,82 @@ function HomeContent() {
                                         }}
                                     />
                                 </div>
-                                <div className={`relative flex items-center justify-center gap-2
-                                 py-4 px-8 rounded-full
+                                <div className={`relative flex items-center justify-center gap-3
+                                 py-5 px-10 rounded-full
                                  bg-black/80 backdrop-blur-xl
-                                 text-white text-lg font-semibold
-                                 group-active:scale-[0.98] transition-transform
+                                 text-white text-xl font-semibold
+                                 group-hover:scale-[1.02] group-active:scale-[0.98] transition-transform
                                  ${isKorean ? 'font-korean' : ''}`}>
                                     {t.button}
                                 </div>
                             </Link>
                         </motion.div>
                     </div>
-                </main>
-            </div>
+
+                    {/* ===== 오른쪽: 이미지 ===== */}
+                    <div className="w-full max-w-[280px] sm:max-w-sm lg:w-1/2 lg:max-w-none flex items-center justify-center mt-4 lg:mt-0">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1, duration: 0.6 }}
+                            className="relative w-full aspect-[4/5]">
+                            {/* 글로우 */}
+                            <div className="absolute -inset-4 lg:-inset-6 bg-gradient-to-br from-purple-500/30 via-pink-500/25 to-indigo-500/30 
+                               rounded-[2.5rem] blur-2xl opacity-60" />
+
+                            {/* 이미지 카드 */}
+                            <div className="relative w-full h-full overflow-hidden
+                               rounded-[2rem] lg:rounded-[2.5rem]
+                               border-2 border-white/20
+                               shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
+                                <Image src="/images/hero.webp" alt="Aesthetic" fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 50vw" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                                {/* 배지 */}
+                                <div className="absolute bottom-5 left-1/2 -translate-x-1/2
+                                 flex items-center justify-center gap-2 px-4 py-2 w-max max-w-[90%]
+                                 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 shadow-lg z-10 whitespace-nowrap">
+                                    <span className="relative flex h-2 w-2 shrink-0">
+                                        <span className="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-50"></span>
+                                        <span className="relative rounded-full h-full w-full bg-emerald-400"></span>
+                                    </span>
+                                    <span className="text-xs sm:text-sm text-white/90 font-medium tracking-wide">{t.count}</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    {/* CTA 버튼 - 모바일에서만 여기 표시 */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="lg:hidden w-full max-w-xs shrink-0 mt-4"
+                    >
+                        <Link href={`/test?lang=${lang}`} className="group block relative">
+                            <div className="absolute -inset-[2px] rounded-full overflow-hidden">
+                                <motion.div
+                                    animate={prefersReducedMotion ? {} : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-0"
+                                    style={{
+                                        backgroundImage: "linear-gradient(90deg, #8b5cf6, #ec4899, #6366f1, #8b5cf6)",
+                                        backgroundSize: "300% 100%",
+                                    }}
+                                />
+                            </div>
+                            <div className={`relative flex items-center justify-center gap-2
+                                 py-4 px-8 rounded-full
+                                 bg-black/80 backdrop-blur-xl
+                                 text-white text-lg font-semibold
+                                 group-active:scale-[0.98] transition-transform
+                                 ${isKorean ? 'font-korean' : ''}`}>
+                                {t.button}
+                            </div>
+                        </Link>
+                    </motion.div>
+                </div>
+            </main>
         </AuroraBackground>
     );
 }

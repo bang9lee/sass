@@ -144,11 +144,12 @@ export function ResultCardClient({
                 skipFonts: true,
                 cacheBust: true,
                 includeQueryParams: true,
+                useCORS: true, // Enable CORS for images
                 // Force mobile-like aspect ratio and style adjustments during capture
                 style: {
                     transform: 'none',
                     margin: '0',
-                    borderRadius: '0', // Sharp corners for saved image often look cleaner or preserve original radius logic
+                    borderRadius: '0',
                     display: 'flex',
                     flexDirection: 'column',
                     height: 'auto',
@@ -157,16 +158,29 @@ export function ResultCardClient({
                     maxHeight: 'none',
                     overflow: 'visible'
                 },
-                onClone: (_doc: Document, clonedNode: HTMLElement) => {
+                onClone: async (_doc: Document, clonedNode: HTMLElement) => {
                     // Ensure images are fully loaded and high quality
-                    const allImages = clonedNode.querySelectorAll('img');
-                    allImages.forEach((img: HTMLImageElement) => {
-                        img.loading = 'eager';
-                        img.decoding = 'sync';
-                        if (img.src.startsWith('/')) {
-                            img.src = window.location.origin + img.src;
-                        }
-                    });
+                    const allImages = Array.from(clonedNode.querySelectorAll('img'));
+
+                    await Promise.all(allImages.map(img => {
+                        return new Promise((resolve) => {
+                            if (img.complete) {
+                                resolve(true);
+                                return;
+                            }
+                            img.onload = () => resolve(true);
+                            img.onerror = () => resolve(false);
+                            // Force loading
+                            img.loading = 'eager';
+                            img.decoding = 'sync';
+                            // Cross origin for canvas
+                            img.crossOrigin = 'anonymous';
+                            // Fix src for local dev or relative paths
+                            if (img.src.startsWith('/')) {
+                                img.src = window.location.origin + img.src;
+                            }
+                        });
+                    }));
 
                     // Force text colors and visibility just in case
                     const texts = clonedNode.querySelectorAll('*');
@@ -225,13 +239,13 @@ export function ResultCardClient({
                             </div>
                         </div>
 
-                        <h1 className={`text-4xl md:text-5xl font-bold leading-tight mb-3 drop-shadow-xl text-left ${isKo ? 'font-korean' : 'font-serif'}`}>
+                        <h1 className={`text-3xl md:text-4xl font-bold leading-tight mb-3 drop-shadow-xl text-left ${isKo ? 'font-korean' : 'font-serif'}`}>
                             <span className="bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent">
                                 {title}
                             </span>
                         </h1>
 
-                        <div className="flex flex-wrap justify-start gap-2 mb-3">
+                        <div className="flex flex-wrap justify-start gap-1.5 mb-4">
                             {keywords.map(k => (
                                 <span key={k} className="px-2 py-1 rounded bg-black/40 backdrop-blur-md text-white/90 text-[10px] font-medium border border-white/10 shadow-sm">
                                     #{k}
