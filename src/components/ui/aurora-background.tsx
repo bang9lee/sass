@@ -17,13 +17,19 @@ export const AuroraBackground = ({
 }: AuroraBackgroundProps) => {
     return (
         <main
-            className={cn(
-                "relative flex flex-col items-center justify-center min-h-screen bg-black text-white transition-bg",
-                className
-            )}
+            className={
+                cn(
+                    "relative flex flex-col items-center justify-center min-h-screen bg-black text-white transition-bg",
+                    className
+                )
+            }
             {...props}
         >
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* MOBILE: Static Gradient (Zero GPU Cost) */}
+            < div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 z-0 block md:hidden" />
+
+            {/* DESKTOP: Full Aurora Effect (Hidden on Mobile) */}
+            < div className="hidden md:block absolute inset-0 overflow-hidden pointer-events-none" >
                 <div
                     className={cn(
                         `
@@ -38,9 +44,9 @@ export const AuroraBackground = ({
             after:content-[""] after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] 
             after:dark:[background-image:var(--dark-gradient),var(--aurora)]
             after:[background-size:200%,_100%] 
-            after:animate-aurora after:[background-attachment:fixed] after:mix-blend-difference
+            after:animate-aurora after:[background-attachment:scroll]
             pointer-events-none
-            absolute -inset-[10px] opacity-50 will-change-transform`,
+            absolute -inset-[10px] opacity-50`,
                         showRadialGradient &&
                         `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,var(--transparent)_70%)]`
                     )}
@@ -62,9 +68,9 @@ export const AuroraBackground = ({
 
                 {/* Noise overlay */}
                 <div className="absolute inset-0 bg-noise opacity-[0.03] mix-blend-overlay pointer-events-none z-10" />
-            </div>
+            </div >
 
             <div className="relative z-10 w-full">{children}</div>
-        </main>
+        </main >
     );
 };

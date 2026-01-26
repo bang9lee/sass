@@ -20,8 +20,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} ${gowun.variable} font-sans antialiased min-h-screen bg-black text-white overflow-x-hidden selection:bg-pink-500/30`}>
-        {/* Cinematic Background */}
-        <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        {/* Cinematic Background - Hidden on mobile to prevent double-rendering and GPU overload */}
+        <div className="hidden md:block fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
           {/* Static Grain Texture */}
           <div className="absolute inset-0 bg-noise opacity-[0.03] mix-blend-overlay z-20 pointer-events-none" />
 
