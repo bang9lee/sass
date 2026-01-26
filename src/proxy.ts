@@ -28,7 +28,7 @@ function getPreferredLocale(acceptLanguage: string | null): string {
     return DEFAULT_LOCALE
 }
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl
 
     // Skip internal paths and static files
