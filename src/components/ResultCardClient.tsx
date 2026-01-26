@@ -405,7 +405,7 @@ export function ResultCardClient({
                             {/* BOTTOM LEFT: Archetype, Title, Keywords */}
                             <div className="flex flex-col items-start">
                                 {/* Archetype */}
-                                <div className="mb-2 px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full w-fit border border-white/30 z-10 flex items-center justify-center">
+                                <div className="mb-0 px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full w-fit border border-white/30 z-10 flex items-center justify-center">
                                     <span className="text-[10px] md:text-sm font-bold text-white tracking-wider drop-shadow-sm leading-none pt-[1px]">
                                         {archetype}
                                     </span>

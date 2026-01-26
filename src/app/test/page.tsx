@@ -71,14 +71,16 @@ function TestContent() {
     if (isSubmitting) {
         return (
             <AuroraBackground>
-                <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center z-10">
-                    <div 
-                        className="w-24 h-24 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 blur-xl opacity-60 mobile-gpu"
-                        style={{
-                            animation: 'pulse-slow 2s ease-in-out infinite'
-                        }}
-                    />
-                    {/* Minimalist Loading - No Text, just vibes */}
+                <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center z-10 w-full">
+                    {/* Premium Loading Animation */}
+                    <div className="relative w-20 h-20">
+                        <div className="absolute inset-0 rounded-full border-2 border-white/10" />
+                        <div className="absolute inset-0 rounded-full border-t-2 border-pink-500 animate-spin" />
+                        <div className="absolute inset-2 rounded-full border-t-2 border-purple-500 animate-spin-slow" style={{ animationDirection: 'reverse' }} />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        </div>
+                    </div>
                 </div>
             </AuroraBackground>
         );
@@ -100,7 +102,7 @@ function TestContent() {
                 <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
                     <div
                         className="h-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-[0_0_10px_rgba(236,72,153,0.5)] mobile-progress-fill mobile-gpu"
-                        style={{ 
+                        style={{
                             width: `${progress}%`,
                             transition: 'width 0.3s ease-out'
                         }}
