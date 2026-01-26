@@ -107,7 +107,7 @@ export function ResultCardClient({
     const handleShare = async () => {
         const shareData = {
             title: t.shareTitle,
-            text: t.shareText,
+            // text: t.shareText, // 텍스트 제거 (링크만 깔끔하게)
             url: shareUrl,
         };
 

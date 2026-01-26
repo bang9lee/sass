@@ -37,13 +37,17 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     };
     const description = descMap[currentLang] || descMap.en;
 
-    // Use English title for OG Image for better compatibility, or localized if supported
-    const ogTitle = currentLang === 'ko' ? aesthetic.title_ko : aesthetic.title;
-    const ogImage = `/api/og?id=${id}&title=${encodeURIComponent(ogTitle)}`;
+    // Use static image for better performance and reliability
     const baseUrl = 'https://aesthetic-core.vercel.app';
+    // Remove query params if image url has them, ensure absolute url
+    const ogImageUrl = aesthetic.image.startsWith('http')
+        ? aesthetic.image
+        : `${baseUrl}${aesthetic.image}`;
+
     const currentPath = `/result/${id}`;
 
     return {
+        metadataBase: new URL(baseUrl),
         title,
         description,
         alternates: {
@@ -60,9 +64,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
             description,
             images: [
                 {
-                    url: ogImage,
-                    width: 1200,
-                    height: 630,
+                    url: ogImageUrl,
+                    width: 800,
+                    height: 1000,
                 },
             ],
         },
@@ -70,7 +74,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
             card: 'summary_large_image',
             title,
             description,
-            images: [ogImage],
+            images: [ogImageUrl],
         },
     };
 }
