@@ -192,18 +192,23 @@ export function ResultCardClient({
         captureContainer.style.width = '100vw'; // Important for layout
         document.body.appendChild(captureContainer);
 
+        let toPng: typeof import('html-to-image').toPng;
+        let clone: HTMLElement;
+        let captureOptions: any;
+
         try {
-            const { toPng } = await import('html-to-image');
+            const mod = await import('html-to-image');
+            toPng = mod.toPng;
 
             // 1. Clone the element (Common step for both to avoid flickering on live UI)
             // Explicitly set width to prevent "collapsed text" issue on Android
             const originalWidth = cardRef.current.offsetWidth;
-            const clone = cardRef.current.cloneNode(true) as HTMLElement;
+            clone = cardRef.current.cloneNode(true) as HTMLElement;
             clone.style.width = `${originalWidth}px`;
             clone.style.maxWidth = 'none';
             captureContainer.appendChild(clone);
 
-            let captureOptions = {
+            captureOptions = {
                 quality: 1.0,
                 pixelRatio: 2,
                 backgroundColor: '#000000',
