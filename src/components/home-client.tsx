@@ -19,7 +19,7 @@ import { motion, AnimatePresence, useReducedMotion, useSpring, useTransform, use
 // ANIMATED COUNTER
 // ============================================
 function AnimatedCounter({ value }: { value: number }) {
-    const motionValue = useMotionValue(0);
+    const motionValue = useMotionValue(value); // Start from current value, not 0
     const springValue = useSpring(motionValue, { damping: 30, stiffness: 100 });
     const displayValue = useTransform(springValue, (latest) => Math.round(latest).toLocaleString());
 
