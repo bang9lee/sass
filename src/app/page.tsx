@@ -29,7 +29,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 
   const meta = metadataMap[currentLang] || metadataMap.en;
-  const baseUrl = 'https://aesthetic-core.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sass-opal-theta.vercel.app';
 
   return {
     title: meta.title,
@@ -63,7 +63,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       siteName: 'Aesthetic Core Test',
       images: [
         {
-          url: '/images/hero.webp',
+          url: `${baseUrl}/images/hero.webp`,
           width: 800,
           height: 1000,
           alt: meta.title,
@@ -76,7 +76,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       card: 'summary_large_image',
       title: meta.title,
       description: meta.description,
-      images: ['/images/hero.webp'],
+      images: [`${baseUrl}/images/hero.webp`],
     },
   };
 }
