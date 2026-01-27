@@ -1,3 +1,4 @@
+
 export type AestheticId =
     | 'whimsigoth'
     | 'clean_girl'
@@ -7,6 +8,17 @@ export type AestheticId =
     | 'cyberpunk'
     | 'old_money'
     | 'coquette';
+
+// Big 5 Traits
+export type TraitId = 'openness' | 'conscientiousness' | 'extraversion' | 'agreeableness' | 'neuroticism';
+
+interface TraitProfile {
+    openness: number;         // O: Imagination, Insight
+    conscientiousness: number;// C: Thoughtfulness, Impulse Control
+    extraversion: number;     // E: Sociability, Expressiveness
+    agreeableness: number;    // A: Altruism, Kindness
+    neuroticism: number;      // N: Emotional Instability, Stress
+}
 
 export interface Aesthetic {
     id: AestheticId;
@@ -29,30 +41,33 @@ export interface Aesthetic {
     brandMatches: string[];
     colorPalette: string[];
     image: string;
+    // Target psychological profile for this aesthetic
+    targetTraits: TraitProfile;
 }
 
 export const AESTHETICS: Record<AestheticId, Aesthetic> = {
     whimsigoth: {
         id: 'whimsigoth',
         title: 'Whimsigoth',
-        title_ko: '윌지가스',
+        title_ko: '윔지가스',
         title_zh: 'Whimsigoth',
         title_ja: 'Whimsigoth',
-        archetype: 'The Boundary Keeper',
-        archetype_ko: '경계선의 감시자',
-        archetype_zh: '边界守护者',
-        archetype_ja: '境界の守護者',
-        description: `Whimsigoth is the style for those who love the mystical atmosphere of the moon, tarot, and magic.\n\nPeople find you mysterious and inexplicably drawn to you. You were born with more sensitive senses than others, preferring deep conversations over shallow socializing.\n\nYour attraction to the mystical is because you want to protect your own precious world that no one else can intrude upon.`,
-        description_ko: `윌지가스는 달, 타로, 마법 같은 신비로운 분위기를 사랑하는 당신의 스타일입니다.\n\n사람들은 당신을 신비롭고 왠지 모르게 끌리는 사람이라고 느낍니다. 남들보다 예민한 감각을 타고났고, 시끄러운 인간관계보다는 깊이 있는 대화를 선호하시죠.\n\n신비로운 것에 끌리는 건, 누구도 함부로 침범할 수 없는 당신만의 소중한 세계를 지키고 싶기 때문일 거예요.`,
-        description_zh: `在别人眼里，你神秘且难以捉摸。你对神秘事物的向往，其实是一种保护色，用来隔绝那个让你感到疲惫的外部世界。这种暗黑美学是你心灵的避难所。\n\n人们觉得你自带神秘气场，令人不由自主地想要靠近。你天生感知力敏锐，比起喧闹的社交，更偏爱深度的灵魂对话。\n\n你之所以迷恋神秘，是因为你想守护那个只有你才能进入的珍贵内心世界。`,
-        description_ja: `周囲はあなたを神秘的で、どこか近寄りがたい存在だと感じています。あなたが神秘的なものに惹かれるのは、あなたを疲れさせる世界から自分自身を守るため。このダークな美学は、あなたの聖域なのです。\n\n人々はあなたをミステリアスで魅力的な人だと思っています。あなたは人一倍繊細な感覚を持っており、騒がしい人間関係よりも深い対話を好みます。\n\n神秘的なものに惹かれるのは、誰にも踏み込ませないあなただけの大切な世界を守りたいからでしょう。`,
-        keywords: ['Mystery', 'Intuition', 'Moon', 'Magic', 'Night'],
-        keywords_ko: ['신비', '직감', '달', '마법', '밤'],
-        keywords_zh: ['神秘', '直觉', '月亮', '魔法', '黑夜'],
-        keywords_ja: ['神秘', '直感', '月', '魔法', '夜'],
+        archetype: 'The Mystic',
+        archetype_ko: '신비주의자',
+        archetype_zh: '神秘主义者',
+        archetype_ja: '神秘主義者',
+        description: `[Personality Analysis]\nYou feel the world deeply.\nWhile others stick to the boring facts, you notice the magic and hidden meanings in everyday life.\nPeople might call you "dreamy," but that's just because your imagination is too big for this small world.\n\n[Why this Result?]\nWhimsigoth is your armor.\nThe dark, mystical vibe protects your sensitive heart.\nYou love tarot and magic not just for fun, but because you crave a world that is as deep and meaningful as you are.`,
+        description_ko: `[성격 분석]\n남들보다 훨씬 예민하고 섬세한 감각을 타고나셨군요.\n딱딱한 현실보다는 꿈꾸는 듯한 신비로운 분위기에서 편안함을 느낍니다.\n"생각이 너무 많다"는 말을 듣기도 하지만, 사실 그건 당신이 세상을 더 깊이 있게 바라보기 때문이에요.\n\n[왜 이 결과가 나왔을까?]\n윔지가스는 당신의 여린 마음을 지켜주는 갑옷입니다.\n어둡고 신비로운 스타일은 예민한 당신을 숨겨주고 보호해줍니다.\n당신이 마법이나 타로에 끌리는 건, 뻔하고 지루한 현실이 당신의 거대한 상상력을 담기엔 너무 좁기 때문일 거예요.`,
+        description_zh: `[性格分析]\n你感受世界的方式很特别。\n当别人只关注枯燥的事实时，你却能发现生活中的魔法和隐喻。\n别人也许觉得你“爱做梦”，但那只是因为现实世界对你丰富的想象力来说太狭隘了。\n\n[为什么是这个结果？]\nWhimsigoth 是你的盔甲。\n那种黑暗神秘的氛围保护着你敏感的内心。\n你喜欢塔罗和魔法，是因为你渴望一个像你的灵魂一样深邃、充满意义的世界。`,
+        description_ja: `【性格分析】\nあなたは誰よりも繊細な心の持ち主です。\n現実的なことよりも、夢のような神秘的な世界に惹かれます。\n「考えすぎ」と言われることもありますが、それはあなたが世界を深く感じ取っている証拠です。\n\n【なぜこの結果なのか？】\nWhimsigothは、あなたを守る鎧です。\nダークで神秘的な雰囲気は、あなたの傷つきやすい心を守ってくれます。\n魔法やタロットに惹かれるのは、平凡な現実があなたの豊かな想像力には退屈すぎるからでしょう。`,
+        keywords: ['Intuition', 'Depth', 'Symbolism', 'Sensitivity', 'Magic'],
+        keywords_ko: ['직관', '깊이', '상징', '예민함', '마법'],
+        keywords_zh: ['直觉', '深度', '象征', '敏感', '魔法'],
+        keywords_ja: ['直感', '深み', '象徴', '繊細', '魔法'],
         brandMatches: ['Anna Sui', 'Free People', 'Lush'],
         colorPalette: ['#2E1A47', '#D4AF37', '#1A1A1C'],
-        image: '/images/aesthetics/whimsigoth.webp'
+        image: '/images/aesthetics/whimsigoth.webp',
+        targetTraits: { openness: 2, conscientiousness: -1, extraversion: -1, agreeableness: 0, neuroticism: 2 }
     },
     clean_girl: {
         id: 'clean_girl',
@@ -61,42 +76,21 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         title_zh: 'Clean Girl',
         title_ja: 'Clean Girl',
         archetype: 'The Perfectionist',
-        archetype_ko: '완벽한 통제자',
+        archetype_ko: '완벽주의자',
         archetype_zh: '完美主义者',
         archetype_ja: '完璧主義者',
-        description: `Clean Girl is the style for those who value minimalist moods and self-care routines.\n\nYou find true beauty in simplicity rather than complexity, and you feel peace of mind in well-organized environments. You appear effortlessly perfect, but you're actually someone who carefully plans everything.\n\nYou are someone who maintains inner peace by focusing on what you can control.`,
-        description_ko: `클린걸은 미니멀한 무드와 자기관리 루틴을 중요하게 생각하는 당신의 스타일입니다.\n\n당신은 복잡한 것보다 단순한 것에서 진정한 아름다움을 찾고, 잘 정돈된 환경에서 마음의 평화를 느끼는 분이에요. 겉보기엔 힘들이지 않고 완벽해 보이지만, 사실 모든 것을 세심하게 계획하는 노력파이시죠.\n\n통제할 수 있는 것들에 집중하며 내면의 평온을 지켜내는 사람, 그게 바로 당신입니다.`,
-        description_zh: `你看起来总是那么精致、井井有条，毫不费力。但事实上，你害怕被人看到狼狈的一面。你的极简主义，其实是为了掌控生活中那些你能掌控的部分。\n\n你在简单中寻找真正的美，在整洁的环境中感受内心的平静。表面上云淡风轻，实则是精心规划的努力家。\n\n你通过专注于可控的事物来维持内心的秩序与安宁。`,
-        description_ja: `あなたはいつも自然体で整っているように見えます。しかし、実は「だらしない」と思われることを何より恐れています。あなたのミニマリズムは、自分にコントロールできる範囲を守るための手段なのです。\n\nあなたは複雑さよりも単純さの中に真の美しさを見出し、整頓された環境に心の平穏を感じます。一見、努力していないように見えて、実はすべてを念入りに計画する努力家です。\n\nコントロールできることに集中し、内なる平穏を守り抜く人、それがあなたです。`,
-        keywords: ['Control', 'Order', 'Calm', 'Glow', 'Minimal'],
-        keywords_ko: ['통제', '질서', '평온', '윤광', '미니멀'],
-        keywords_zh: ['掌控', '秩序', '平静', '水光肌', '极简'],
-        keywords_ja: ['統制', '秩序', '平穏', 'ツヤ肌', 'ミニマル'],
+        description: `[Personality Analysis]\nYou are the master of self-control.\nYou hate chaos. You need everything around you to be organized to feel calm.\nYou make hard work look effortless, but we know you work harder than anyone else behind the scenes.\n\n[Why this Result?]\nThe 'Clean Girl' look is the mirror of your tidy mind.\nSlick hair, simple clothes, planned schedule—these are your rituals to keep stress away.\nIn a messy world, your ability to create order is your superpower.`,
+        description_ko: `[성격 분석]\n당신은 자기관리의 끝판왕이시군요.\n주변이 어지러우면 머릿속까지 복잡해져서, 깔끔하게 정리된 환경에서 안정을 찾습니다.\n겉으로는 여유로워 보이지만, 사실은 물 밑에서 치열하게 발을 젓는 백조처럼 보이지 않는 곳에서 엄청난 노력을 하는 타입이에요.\n\n[왜 이 결과가 나왔을까?]\n클린걸 스타일은 당신의 깔끔한 성격을 그대로 보여줍니다.\n단정한 머리와 옷차림, 규칙적인 생활은 당신의 마음을 평온하게 만드는 의식과도 같아요.\n혼란스러운 세상 속에서 흔들리지 않고 나만의 질서를 유지하는 능력, 정말 대단합니다.`,
+        description_zh: `[性格分析]\n你是自律的大师。\n你讨厌混乱。只有周围井井有条，你的内心由于才会平静。\n你表面看起来毫不费力，其实在背后比谁都努力。\n\n[为什么是这个结果？]\n‘Clean Girl’ 风格是你整洁内心的写照。\n利落的发型、极简的穿搭、规划好的日程——这些都是你对抗压力的仪式。\n在一个混乱的世界里，能够建立只需，是你的超能力。`,
+        description_ja: `【性格分析】\nあなたは自己管理の達人です。\n散らかっているのが大嫌いで、身の回りが整っていないと落ち着きません。\n表面的には余裕そうに見えますが、影では誰よりも努力している人です。\n\n【なぜこの結果なのか？】\n「Clean Girl」スタイルは、あなたの几帳面な性格を映し出しています。\n整った髪、シンプルな服装、計画的な生活。これらはあなたの心を守る儀式です。\n混沌とした世界で、自分だけの秩序を作れるのは素晴らしい才能です。`,
+        keywords: ['Control', 'Efficiency', 'Clarity', 'Discipline', 'Order'],
+        keywords_ko: ['통제', '효율', '명료함', '규율', '질서'],
+        keywords_zh: ['掌控', '效率', '清晰', '自律', '秩序'],
+        keywords_ja: ['統制', '効率', '明晰', '自律', '秩序'],
         brandMatches: ['Rhode', 'Alo Yoga', 'Dyson'],
         colorPalette: ['#F5F5F0', '#E3E3E3', '#6B705C'],
-        image: '/images/aesthetics/clean_girl.webp'
-    },
-    y2k: {
-        id: 'y2k',
-        title: 'Y2K',
-        title_ko: 'Y2K',
-        title_zh: 'Y2K',
-        title_ja: 'Y2K',
-        archetype: 'The Radiant Optimist',
-        archetype_ko: '빛나는 희망주의자',
-        archetype_zh: '闪耀的乐观主义者',
-        archetype_ja: '輝く楽天家',
-        description: `Y2K is the style that captures the excitement and anticipation of the early 2000s. Pink, silver, and sparkly materials express you best.\n\nEven in a gloomy world, you somehow find ways to seek fun and joy, don't you? Your bright energy has the power to light up everyone around you.\n\nYour charm lies in the lovable courage to choose joy in your own way, rather than following the world's standards.`,
-        description_ko: `Y2K는 2000년대 초반의 설렘과 기대감을 간직한 당신의 스타일입니다. \n        핑크, 실버, 반짝이는 소재들이 당신을 가장 잘 표현하죠.\n\n혹시 우울한 세상 속에서도 어떻게든 재미와 기쁨을 찾으려 노력하시나요? 당신의 밝은 에너지는 주변 사람들까지 환하게 밝혀주는 힘이 있습니다.\n\n세상의 기준보다는 자신만의 방식으로 즐거움을 선택할 줄 아는 용기 있는 사랑스러움이 당신의 매력입니다.`,
-        description_zh: `你是大家的开心果，总是让气氛轻松愉快。你之所以被 Y2K 吸引，是因为它代表着希望——那个相信未来会充满刺激与精彩的年代。\n\n无论世界多么令人沮丧，你总能找到乐趣。你的正能量有着照亮周围人的魔力。\n\n不顾世俗眼光，勇敢选择快乐，这正是你可爱迷人的地方。`,
-        description_ja: `あなたはいつも場を明るくするムードメーカー。あなたがY2Kに惹かれるのは、それが「希望」を象徴しているから。未来はワクワクする場所だと信じていたあの頃のように。\n\n憂鬱な世界の中でも、なんとか楽しみや喜びを見つけようとしていませんか？あなたの明るいエネルギーは、周りの人々まで照らす力を持っています。\n\n世間の基準より自分なりのとめきを選ぶ、その勇敢な愛らしさがあなたの魅力です。`,
-        keywords: ['Hope', 'Fun', 'Pink', 'Bling', 'Cyber'],
-        keywords_ko: ['희망', '재미', '핑크', '블링', '사이버'],
-        keywords_zh: ['希望', '乐趣', '粉色', '闪亮', '赛博'],
-        keywords_ja: ['希望', '楽しい', 'ピンク', 'キラキラ', 'サイバー'],
-        brandMatches: ['Diesel', 'Blumarine', 'Gentle Monster'],
-        colorPalette: ['#FF69B4', '#00FFFF', '#C0C0C0'],
-        image: '/images/aesthetics/y2k.webp'
+        image: '/images/aesthetics/clean_girl.webp',
+        targetTraits: { openness: -1, conscientiousness: 2, extraversion: 0, agreeableness: 1, neuroticism: -2 }
     },
     dark_academia: {
         id: 'dark_academia',
@@ -104,21 +98,45 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         title_ko: '다크 아카데미아',
         title_zh: 'Dark Academia',
         title_ja: 'Dark Academia',
-        archetype: 'The Lonely Observer',
-        archetype_ko: '고독한 관찰자',
-        archetype_zh: '孤独的观察者',
-        archetype_ja: '孤独な観察者',
-        description: `Dark Academia is the style for those who love old libraries, the sound of rain, and deep contemplation.\n\nYou have deep thoughts and a rich inner world. You desire meaningful conversations rather than small talk, and you value deep connections over superficial relationships.\n\nOthers might say you "think too much," but that delicate sensibility is your most beautiful gift.`,
-        description_ko: `다크 아카데미아는 오래된 도서관, 타닥거리는 빗소리, 깊은 사색을 사랑하는 당신의 스타일입니다.\n\n당신은 생각이 깊고 풍부한 내면을 가진 분이시군요. 가벼운 수다보다는 의미 있는 대화를 원하고, 피상적인 관계보다는 깊이 있는 연결을 소중히 여깁니다.\n\n남들이 "너무 생각이 많다"고 할 수도 있겠지만, 그 섬세한 감수성이야말로 당신이 가진 가장 아름다운 재능입니다.`,
-        description_zh: `你是一个深沉的人。人们尊重你的思想，但觉得你难以亲近。你将忧郁浪漫化，因为比起直面内心的悲伤，沉浸在忧郁的美感中让你感到更安全。\n\n你拥有深邃而丰富的内心世界。比起闲聊，你渴望有深度的对谈；比起泛泛之交，你更珍视深刻的连结。\n\n虽然别人可能会说你“想太多”，但这种细腻的感受力，正是你最美的天赋。`,
-        description_ja: `あなたは思慮深く、深みのある人です。人々はあなたの考えを尊重していますが、近づきがたいとも感じています。あなたが憂鬱をロマンチックに捉えるのは、自分自身の本当の悲しみと向き合うよりも、その方が安全だと感じるからです。\n\n古い図書館、雨音、深い思索。あなたは軽薄な雑談よりも意味のある対話を望み、表面的な関係よりも深い繋がりを大切にします。\n\n「考えすぎだ」と言われることもあるかもしれませんが、その繊細な感受性こそが、あなたの持つ最も美しい才能です。`,
-        keywords: ['Depth', 'Poetry', 'Rain', 'Books', 'Coffee'],
-        keywords_ko: ['깊이', '시', '비', '책', '커피'],
-        keywords_zh: ['深度', '诗歌', '雨', '书籍', '咖啡'],
-        keywords_ja: ['深み', '詩', '雨', '本', 'コーヒー'],
+        archetype: 'The Scholar',
+        archetype_ko: '학자',
+        archetype_zh: '学者',
+        archetype_ja: '探求者',
+        description: `[Personality Analysis]\nYou recharge your energy when you are alone.\nLoud parties drain you; quiet cafes or libraries heal you.\nYou aren't just "quiet"—you are deep. You love talking about life, secrets, and philosophy.\n\n[Why this Result?]\nDark Academia validates your need for solitude.\nOld books, rain, silence... these aren't gloomy to you; they are peaceful.\nYou don't need to be loud to be heard. Your depth speaks for itself.`,
+        description_ko: `[성격 분석]\n시끄러운 모임보다는 혼자 카페에서 책을 읽을 때 에너지가 충전되는 분이시군요.\n단순히 "조용하다"는 말로는 부족해요. 당신은 생각이 깊고 진지한 사람입니다.\n가벼운 농담보다는 인생의 의미나 철학적인 주제로 대화할 때 눈이 반짝이죠.\n\n[왜 이 결과가 나왔을까?]\n다크 아카데미아는 당신의 '지적인 고독'을 가장 우아하게 표현해줍니다.\n오래된 도서관, 빗소리, 차분한 공기... 남들은 우울하다고 할지 몰라도 당신에겐 가장 편안한 분위기죠.\n굳이 큰 소리로 말하지 않아도 됩니다. 당신의 깊이 있는 내면은 이미 충분히 매력적이니까요.`,
+        description_zh: `[性格分析]\n独处能让你恢复能量。\n吵闹的聚会让你疲惫，安静的咖啡馆或图书馆能治愈你。\n你不仅仅是“安静”，你是深沉。你喜欢探讨人生、秘密和哲学。\n\n[为什么是这个结果？]\nDark Academia 证明了你对独处的需求是正当且迷人的。\n古书、雨天、寂静……对别人来说可能沉闷，对你却是享受。\n你不需要大声喧哗。你的深度本身就是一种力量。`,
+        description_ja: `【性格分析】\nあなたは一人でいる時にエネルギーを回復します。\n騒がしいパーティーは苦手で、静かなカフェや図書館が安らぎの場所です。\nただ「静か」なだけではありません。あなたは思慮深い人です。\n\n【なぜこの結果なのか？】\nDark Academiaは、あなたの「知的な孤独」を肯定します。\n古い本、雨音、静寂…これらはあなたにとって最高の癒しです。\n大声を出す必要はありません。あなたの深みは、それだけで十分魅力的です。`,
+        keywords: ['Intellect', 'Solitude', 'Melancholy', 'Curiosity', 'Legacy'],
+        keywords_ko: ['지성', '고독', '멜랑꼴리', '탐구', '유산'],
+        keywords_zh: ['智力', '独处', '忧郁', '好奇', '传承'],
+        keywords_ja: ['知性', '孤独', '憂鬱', '探求', '遺産'],
         brandMatches: ['Ralph Lauren', 'Moleskine', 'Burberry'],
         colorPalette: ['#3E2723', '#1C1C1C', '#A1887F'],
-        image: '/images/aesthetics/dark_academia.webp'
+        image: '/images/aesthetics/dark_academia.webp',
+        targetTraits: { openness: 2, conscientiousness: 1, extraversion: -2, agreeableness: -1, neuroticism: 0 }
+    },
+    y2k: {
+        id: 'y2k',
+        title: 'Y2K',
+        title_ko: 'Y2K',
+        title_zh: 'Y2K',
+        title_ja: 'Y2K',
+        archetype: 'The Star',
+        archetype_ko: '주인공',
+        archetype_zh: '大明星',
+        archetype_ja: 'スター',
+        description: `[Personality Analysis]\nYou have "Main Character Energy."\nYou hate being bored and always look for the next excitement.\nYou aren't afraid of attention—you love it. And honestly? You deserve it.\n\n[Why this Result?]\nY2K is the spotlight you were born for.\nBright pinks, sparkles, bold logos—they shout "Look at me!" just like your soul does.\nYour confidence makes people smile. Never dim your light for anyone.`,
+        description_ko: `[성격 분석]\n어딜 가나 시선을 끄는 '주인공' 에너지를 타고나셨네요!\n지루한 건 딱 질색이고, 항상 새롭고 짜릿한 걸 찾아다니는 모험가 같아요.\n남의 눈치를 보기보다는 "나 좀 봐! 멋지지 않아?" 하고 당당하게 자신을 드러내는 모습이 정말 매력적이에요.\n\n[왜 이 결과가 나왔을까?]\nY2K는 당신의 넘치는 끼를 발산하기 위한 최고의 무대예요.\n튀는 색감, 반짝이는 액세서리는 당신의 자신감을 그대로 보여주는 도구입니다.\n당신의 밝은 에너지는 주변 사람까지 기분 좋게 만드는 힘이 있어요. 절대 그 빛을 잃지 마세요!`,
+        description_zh: `[性格分析]\n你天生自带“主角光环”。\n你最受不了无聊，总是在寻找下一个刺激点。\n你不害怕被注视——相反，你享受它。而且说实话，你值得被关注。\n\n[为什么是这个结果？]\nY2K 是为你量身打造的聚光灯。\n亮粉色、闪粉、大Logo——它们和你一样在呐喊“看着我！”。\n你的自信能感染周围的人。永远不要为了任何人掩盖你的光芒。`,
+        description_ja: `【性格分析】\nあなたは「主人公エネルギー」の持ち主です。\n退屈なのは大嫌い、常に新しい刺激を探しています。\n注目されることを恐れず、むしろ楽しんでいますね。\n\n【なぜこの結果なのか？】\nY2Kは、あなたのためのスポットライトです。\n鮮やかなピンク、キラキラ、大胆なロゴ。これらはあなたの魂のように「私を見て！」と叫んでいます。\nあなたの自信は周りの人を笑顔にします。その輝きを失わないで。`,
+        keywords: ['Energy', 'Attention', 'Optimism', 'Play', 'Main Character'],
+        keywords_ko: ['에너지', '관종', '낙관', '놀이', '주인공'],
+        keywords_zh: ['能量', '焦点', '乐观', '玩乐', '大女主'],
+        keywords_ja: ['活力', '注目', '楽観', '遊び', '主人公'],
+        brandMatches: ['Diesel', 'Blumarine', 'Gentle Monster'],
+        colorPalette: ['#FF69B4', '#00FFFF', '#C0C0C0'],
+        image: '/images/aesthetics/y2k.webp',
+        targetTraits: { openness: 1, conscientiousness: -1, extraversion: 2, agreeableness: 1, neuroticism: 0 }
     },
     cottagecore: {
         id: 'cottagecore',
@@ -126,21 +144,22 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         title_ko: '코티지코어',
         title_zh: 'Cottagecore',
         title_ja: 'Cottagecore',
-        archetype: 'The Warm Healer',
-        archetype_ko: '따뜻한 치유자',
-        archetype_zh: '温暖的治愈者',
-        archetype_ja: '温かい癒し手',
-        description: `Cottagecore is the style for those who long for warm sunlight, nature's peace, and a simple life.\n\nPeople feel at ease around you. You may be a bit tired from this competitive, fast-paced world.\n\n"It's okay to stop and rest sometimes" - you are the warm healer who can say this to yourself and to others.`,
-        description_ko: `코티지코어는 따스한 햇살, 자연의 평화, 소박한 삶을 동경하는 당신의 스타일입니다.\n\n사람들은 당신 곁에 있으면 마음이 편안해진다고 말할 거예요. 경쟁적이고 빠르게 돌아가는 세상 속에서 조금 지치셨을지도 모르겠네요.\n\n"가끔은 멈춰 서서 쉬어가도 괜찮아"라고 스스로에게, 그리고 타인에게 말해줄 수 있는 따뜻한 치유자가 바로 당신입니다.`,
-        description_zh: `你是温柔的那一个。在你身边，人们感到安全。你对简单生活的向往并非仅仅因为“可爱”——那是你对这个不断要求效率的世界发出的无声抗议，你在呐喊着想要休息。\n\n你向往阳光、自然和平静。在这个充满竞争的快节奏世界里，你可能感到有些疲惫。\n\n“偶尔停下来休息也没关系”，你是那个能对自己、也能对他人说出这句温暖话语的治愈者。`,
-        description_ja: `あなたは穏やかな人です。人々はあなたのそばにいると安心します。あなたがシンプルな生活を愛するのは、単に「可愛いから」ではありません。常に生産性を求められる世界からの、休息を求める叫びなのです。\n\n温かい日差し、自然の安らぎ、素朴な暮らし。競争社会に少し疲れているのかもしれませんね。\n\n「たまには立ち止まって休んでもいいんだよ」と、自分自身にも、他人にも優しく言ってあげられる、温かい癒し手があなたです。`,
-        keywords: ['Rest', 'Nature', 'Slow', 'Gentle', 'Warm'],
-        keywords_ko: ['휴식', '자연', '느림', '다정함', '따뜻함'],
-        keywords_zh: ['休息', '自然', '慢生活', '温柔', '温暖'],
-        keywords_ja: ['休息', '自然', 'スロー', '優しさ', '温もり'],
+        archetype: 'The Healer',
+        archetype_ko: '치유자',
+        archetype_zh: '治愈者',
+        archetype_ja: '癒し手',
+        description: `[Personality Analysis]\nYou have a gentle and kind heart.\nYou dislike fighting and competition. You dream of a peaceful life where everyone is happy.\nYou feel other people's pain deeply, so sometimes the world feels too heavy for you.\n\n[Why this Result?]\nCottagecore is medicine for your tired soul.\nSunlight, flowers, nature... these things make you feel safe.\nWanting a slow life isn't running away. It's your way of protecting your innocence in a harsh world.`,
+        description_ko: `[성격 분석]\n마음씨가 정말 따뜻하고 다정한 분이시네요.\n싸우고 경쟁하는 걸 싫어하고, 모두가 평화롭게 지내는 세상을 꿈꾸시죠?\n공감 능력이 너무 좋아서, 남의 아픔까지 내 것처럼 느끼느라 가끔은 세상살이가 버겁기도 할 거예요.\n\n[왜 이 결과가 나왔을까?]\n코티지코어는 지친 당신의 마음에 주는 '휴식'입니다.\n따스한 햇살, 예쁜 꽃, 자연... 상상만 해도 마음이 놓이죠?\n당신이 이런 포근함을 찾는 건 도피가 아니에요. 삭막한 세상에서도 순수함과 여유를 잃지 않으려는 본능이랍니다.`,
+        description_zh: `[性格分析]\n你有一颗温柔善良的心。\n你讨厌争吵和竞争，梦想着大家都幸福的和平生活。\n你能深刻感受他人的痛苦，所以有时会觉得这个世界太沉重。\n\n[为什么是这个结果？]\nCottagecore 是给你疲惫心灵的一剂良药。\n阳光、鲜花、大自然……这些让你感到安全。\n向往慢生活不是逃避，而是你在用自己的方式守护那份纯真。`,
+        description_ja: `【性格分析】\nあなたはとても優しく温かい心の持ち主です。\n争いや競争が嫌いで、みんなが幸せに暮らす世界を夢見ています。\n共感力が高いので、他人の痛みを敏感に感じ取り、疲れてしまうこともあるでしょう。\n\n【なぜこの結果なのか？】\nCottagecoreは、疲れた心への薬です。\n日差し、花、自然…これらはあなたを安心させてくれます。\nスローライフを求めるのは逃げではありません。厳しい世界で純粋さを守るための、あなたなりの方法なのです。`,
+        keywords: ['Empathy', 'Safety', 'Nature', 'Gentleness', 'Harmony'],
+        keywords_ko: ['공감', '안전', '자연', '다정함', '조화'],
+        keywords_zh: ['共情', '安全', '自然', '温柔', '和谐'],
+        keywords_ja: ['共感', '安全', '自然', '優しさ', '調和'],
         brandMatches: ['LoveShackFancy', 'Le Creuset', 'Cath Kidston'],
         colorPalette: ['#7BA05B', '#FADADD', '#FFF8E7'],
-        image: '/images/aesthetics/cottagecore.webp'
+        image: '/images/aesthetics/cottagecore.webp',
+        targetTraits: { openness: -1, conscientiousness: 0, extraversion: -1, agreeableness: 2, neuroticism: 1 }
     },
     cyberpunk: {
         id: 'cyberpunk',
@@ -148,21 +167,22 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         title_ko: '사이버펑크',
         title_zh: 'Cyberpunk',
         title_ja: 'Cyberpunk',
-        archetype: 'The System Rebel',
-        archetype_ko: '시스템의 반역자',
-        archetype_zh: '系统的反叛者',
-        archetype_ja: 'システムの反逆者',
-        description: `Cyberpunk is the style for those who love neon signs, futuristic vibes, and the freedom of breaking boundaries.\n\nYou have a straightforward heart that doesn't compromise with unreasonable rules or hypocritical authority. You believe living by your own convictions is more important than what others think.\n\nYour courage to say "I'll live my way" even when pressured to "live like everyone else" is truly admirable.`,
-        description_ko: `사이버펑크는 네온 사인, 미래적인 분위기, 틀을 깨는 자유로움을 사랑하는 당신의 스타일입니다.\n\n당신은 불합리한 규칙이나 위선적인 권위에 타협하지 않는 곧은 마음을 가졌습니다. 남들의 시선보다는 자신의 소신대로 사는 것이 가장 중요하다고 생각하시죠.\n\n"남들처럼 살아"라는 압박 속에서도 "나는 나대로 살 거야"라고 당당히 말할 줄 아는 당신의 용기는 정말 멋집니다.`,
-        description_zh: `你是那个看透虚伪的叛逆者。你被混乱吸引，并非为了标新立异，而是因为所谓的“秩序”常常让你感觉像是冷漠者制造的牢笼。\n\n霓虹灯、未来感、打破常规。你不愿向不合理的规则妥协。对你来说，按照自己的信念生活远比迎合他人的目光重要。\n\n在“随大流”的压力下，依然敢于大声说出“我要做自己”，你的这份勇气令人钦佩。`,
-        description_ja: `あなたは虚飾を見抜く反逆者です。あなたが混沌（カオス）に惹かれるのは、単に尖っていたいからではありません。既存の「秩序」が、冷淡な人々によって作られた檻のように感じられるからです。\n\nネオンサイン、近未来的、そして型破りな自由。あなたは不合理なルールや偽善に妥協しない真っ直ぐな心を持っています。\n\n「人と同じように生きろ」という圧力の中でも、「私は私らしく生きる」と堂々と言えるあなたの勇気は本当に素晴らしいです。`,
-        keywords: ['Rebellion', 'Freedom', 'Neon', 'Night', 'Glitch'],
-        keywords_ko: ['반항', '자유', '네온', '밤', '글리치'],
-        keywords_zh: ['叛逆', '自由', '霓虹', '黑夜', '故障风'],
-        keywords_ja: ['反逆', '自由', 'ネオン', '夜', 'グリッチ'],
+        archetype: 'The Rebel',
+        archetype_ko: '반항아',
+        archetype_zh: '反叛者',
+        archetype_ja: '反逆者',
+        description: `[Personality Analysis]\nYou hate being told "Just do it like everyone else."\nYou question rules that don't make sense.\nYou prefer harsh truths over sweet lies.\n\n[Why this Result?]\nCyberpunk matches your rebellious spirit.\nYou see the cracks in the system that others ignore.\nYour courage to be your real self, even when it's weird or different, is your greatest strength.`,
+        description_ko: `[성격 분석]\n"남들 다 하니까 너도 해"라는 말이 제일 싫으시죠?\n이해 안 가는 규칙은 따르기 싫고, 꼰대 같은 권위에는 본능적으로 반감을 느끼는 '사이다' 성격이에요.\n가식적인 칭찬보다는 차라리 솔직한 비판을 선호하는, 쿨내 진동하는 타입이시군요.\n\n[왜 이 결과가 나왔을까?]\n사이버펑크는 당신의 '삐딱한 시선'과 잘 어울려요.\n당신은 남들이 외면하는 세상의 불편한 진실을 꿰뚫어 보는 눈을 가졌거든요.\n남들과 똑같이 되기를 거부하고 '진짜 나'로 살겠다는 그 용기, 정말 멋집니다.`,
+        description_zh: `[性格分析]\n你讨厌听到“别人都这么做，你也这么做吧”。\n你质疑那些毫无意义的规则。\n比起甜蜜的谎言，你宁愿面对残酷的真相。\n\n[为什么是这个结果？]\n赛博朋克完全契合你的叛逆精神。\n你能看到别人选择忽视的系统漏洞。\n即使被视为异类，也要坚持做真实的自己，这是你最大的力量。`,
+        description_ja: `【性格分析】\n「みんなやってるから」と言われるのが大嫌いですよね？\n納得できないルールには従いたくない、反骨精神の持ち主です。\n甘い嘘よりも、厳しい真実の方を好みます。\n\n【なぜこの結果なのか？】\nサイバーパンクは、あなたの反逆精神にマッチします。\nあなたは、他の人が無視する社会の歪みを見抜く目を持っています。\n変人扱いされても「本当の自分」でいようとする勇気、それがあなたの最大の武器です。`,
+        keywords: ['Rebellion', 'Truth', 'Future', 'Tech', 'Cynicism'],
+        keywords_ko: ['반항', '진실', '미래', '기술', '냉소'],
+        keywords_zh: ['反叛', '真相', '未来', '科技', '愤世嫉俗'],
+        keywords_ja: ['反逆', '真実', '未来', '技術', '冷笑'],
         brandMatches: ['Acronym', 'Razer', 'Balenciaga'],
         colorPalette: ['#00FF41', '#FF00FF', '#0D0D0D'],
-        image: '/images/aesthetics/cyberpunk.webp'
+        image: '/images/aesthetics/cyberpunk.webp',
+        targetTraits: { openness: 2, conscientiousness: 0, extraversion: 0, agreeableness: -2, neuroticism: 0 }
     },
     old_money: {
         id: 'old_money',
@@ -170,21 +190,22 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         title_ko: '올드머니',
         title_zh: 'Old Money',
         title_ja: 'Old Money',
-        archetype: 'The Silent Aristocrat',
-        archetype_ko: '침묵하는 귀족',
-        archetype_zh: '沉默的贵族',
-        archetype_ja: '沈黙の貴族',
-        description: `Old Money is the style for those who pursue timeless classics and quiet luxury.\n\nYou have natural discernment and elegance. Without needing to dress flashy or show off, your aura naturally shines through.\n\nBecause you know your own value better than anyone, you don't need to desperately prove yourself to the world - that ease is your greatest charm.`,
-        description_ko: `올드머니는 유행을 타지 않는 클래식함과 조용한 고급스러움을 추구하는 당신의 스타일입니다.\n\n당신은 타고난 안목과 기품이 있는 분이시네요. 굳이 화려하게 꾸미거나 과시하지 않아도, 당신만의 아우라는 자연스럽게 빛이 납니다.\n\n자신의 가치를 누구보다 잘 알기에, 굳이 세상에 증명하려 애쓸 필요가 없다는 여유로움이 당신의 가장 큰 매력입니다.`,
-        description_zh: `你拥有与生俱来的优雅。品质本身就是最好的证明。你对低调奢华的向往，源于对生活的掌控感——大声喧哗的炫耀在你看来显得太迫切了。\n\n经典、从容、质感。你拥有极佳的品味。不需要过度的装饰或炫耀，你自带的光环自然会闪耀。\n\n因为深知自己的价值，所以无需向世界证明什么，这份从容是你最大的魅力。`,
-        description_ja: `あなたには生まれつきの気品があります。品質そのものがすべてを語ります。あなたが「クワイエット・ラグジュアリー」に惹かれるのは、コントロールへの欲求からです。派手な誇示は、必死さの現れだと感じるのでしょう。\n\n流行に左右されないクラシックさと、静かな高級感。あなたは本質を見抜く目を持っています。派手に飾らなくても、あなた自身が放つオーラは自然と輝きます。\n\n自分の価値を誰よりも理解しているからこそ、それを世間に証明しようと必死になる必要がない。その余裕こそが、あなたの最大の魅力です。`,
-        keywords: ['Elegance', 'Classic', 'Quiet', 'Quality', 'Grace'],
-        keywords_ko: ['우아함', '클래식', '조용함', '품격', '품위'],
-        keywords_zh: ['优雅', '经典', '低调', '品质', '风度'],
-        keywords_ja: ['優雅', 'クラシック', '静寂', '品質', '気品'],
+        archetype: 'The Sovereign',
+        archetype_ko: '통치자',
+        archetype_zh: '君主',
+        archetype_ja: '君主',
+        description: `[Personality Analysis]\nYou are steady like a rock.\nYou don't chase fast trends. You like things that are proven and last a long time.\nYou have a quiet confidence that doesn't need to show off.\n\n[Why this Result?]\nOld Money shows your love for "Quality."\nYou know that true luxury comes from good character, not flashy logos.\nIn a world that changes too fast, you stand firm with dignity. That is your power.`,
+        description_ko: `[성격 분석]\n당신은 쉽게 흔들리지 않는 바위 같은 분이군요.\n유행 따라 우르르 몰려다니는 건 좀 가벼워 보인다고 생각하시나요?\n검증되지 않은 모험보다는 확실하고 안정적인 길을 선호하는 신중한 성격입니다.\n\n[왜 이 결과가 나왔을까?]\n올드머니 룩은 당신이 추구하는 '변치 않는 가치'를 보여줍니다.\n시끄럽게 자랑하지 않아도 은은하게 배어 나오는 기품이 있어요.\n세상이 아무리 빠르게 변해도, 당신만은 묵묵히 자신의 자리를 지킬 것 같네요.`,
+        description_zh: `[性格分析]\n你像岩石一样稳重。\n你不追逐快时尚，喜欢那些经久考验、能够长存的事物。\n你有一种无需炫耀的静谧自信。\n\n[为什么是这个结果？]\nOld Money 展现了你对“品质”的追求。\n你深知真正的奢华源于内在的底蕴，而非浮夸的Logo。\n在这个瞬息万变的世界里，你保持着尊严屹立不倒。这就是你的力量。`,
+        description_ja: `【性格分析】\nあなたは岩のように揺るぎない人です。\n流行を追いかけることはしません。確実で長く続くものを好みます。\n見せびらかす必要のない、静かな自信を持っています。\n\n【なぜこの結果なのか？】\nOld Moneyは、あなたの「質」へのこだわりを表しています。\n本当の贅沢とは、派手なロゴではなく、品格から来ることを知っています。\n変化の激しい世界で、威厳を持って立ち続ける。それがあなたの力です。`,
+        keywords: ['Status', 'Stability', 'Legacy', 'Dignity', 'Tradition'],
+        keywords_ko: ['지위', '안정', '유산', '품위', '전통'],
+        keywords_zh: ['地位', '稳定', '传承', '尊严', '传统'],
+        keywords_ja: ['地位', '安定', '遺産', '品格', '伝統'],
         brandMatches: ['Loro Piana', 'Chanel', 'Hermes'],
         colorPalette: ['#002147', '#F5F5DC', '#FFFFFF'],
-        image: '/images/aesthetics/old_money.webp'
+        image: '/images/aesthetics/old_money.webp',
+        targetTraits: { openness: -1, conscientiousness: 2, extraversion: -1, agreeableness: 0, neuroticism: -1 }
     },
     coquette: {
         id: 'coquette',
@@ -192,21 +213,22 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         title_ko: '코케트',
         title_zh: 'Coquette',
         title_ja: 'Coquette',
-        archetype: 'The Tender Warrior',
-        archetype_ko: '부드러움의 전사',
-        archetype_zh: '温柔的战士',
-        archetype_ja: '優しさの戦士',
-        description: `Coquette is the style for those who love ribbons, lace, and soft romance.\n\nYou have a soft and kind heart. But that softness is never weakness. It's your unique strength in choosing not to lose your kindness even in a cold world.\n\nYou already know that kindness can be the most powerful force of all.`,
-        description_ko: `코케트는 리본, 레이스, 부드러운 로맨틱함을 사랑하는 당신의 스타일입니다.\n\n당신은 부드럽고 다정한 마음씨를 가진 분이군요. 하지만 그 부드러움은 결코 약함이 아닙니다. 차가운 세상 속에서도 다정함을 잃지 않기로 선택한 당신만의 강인함이죠.\n\n다정함이야말로 가장 강력한 힘이 될 수 있다는 사실을 당신은 이미 알고 계시는군요.`,
-        description_zh: `你是柔软的那一个。人们觉得你脆弱精致。但你对蝴蝶结的喜爱并非幼稚，而是一种策略。你早就明白，温柔甚至可以是武器。\n\n蕾丝、浪漫、少女心。你拥有一颗温柔的心。但这绝不是软弱。在冷酷的世界里选择保持温柔，这本身就是一种强大的力量。\n\n你深知，温柔有时才是最无坚不摧的力量。`,
-        description_ja: `あなたは柔らかな人です。周囲はあなたを繊細だと思っています。しかし、あなたがリボンを愛するのは幼稚だからではありません。それは戦略です。あなたは「柔らかさ」が武器になることを知っているのです。\n\nリボン、レース、ロマンティック。あなたは優しい心を持っていますが、それは決して弱さではありません。冷たい世界の中でも優しさを失わないことを選んだ、あなただけの強さなのです。\n\n優しさこそが最強の力になり得ることを、あなたは既に知っているのですね。`,
-        keywords: ['Soft', 'Romance', 'Ribbon', 'Pink', 'Sweet'],
-        keywords_ko: ['부드러움', '로맨스', '리본', '핑크', '달콤함'],
-        keywords_zh: ['柔软', '浪漫', '蝴蝶结', '粉色', '甜美'],
-        keywords_ja: ['柔らかさ', 'ロマンス', 'リボン', 'ピンク', '甘美'],
+        archetype: 'The Lover',
+        archetype_ko: '연인',
+        archetype_zh: '恋人',
+        archetype_ja: '愛する者',
+        description: `[Personality Analysis]\nYou have so much love to give.\nYou get moved easily by small things, and rejection hurts you deeply.\nBut staying soft in a hard world is brave, not weak.\n\n[Why this Result?]\nCoquette is your way of being loved.\nRibbons and pink aren't just cute; they make you look harmless and sweet.\nYou chose to survival by being adorable. And honestly? It works.`,
+        description_ko: `[성격 분석]\n사랑받고 싶은 마음도 크지만, 그만큼 사랑을 줄 줄도 아는 '사랑둥이'시네요.\n작은 일에도 감동하고, 남의 말에 상처도 잘 받지만 그만큼 마음이 순수하다는 뜻이에요.\n차가운 세상에서 다정함을 잃지 않는 것, 그건 정말 대단한 용기랍니다.\n\n[왜 이 결과가 나왔을까?]\n코케트는 당신의 사랑스러움을 극대화하는 무기예요.\n리본, 핑크, 레이스... 이런 것들은 당신을 무해하고 지켜주고 싶은 존재로 보이게 하죠.\n"나를 사랑해줘"라고 말하는 대신, 존재 자체로 사랑받기를 선택한 당신. 삭막한 세상엔 당신 같은 로맨티스트가 꼭 필요해요.`,
+        description_zh: `[性格分析]\n你拥有满满的爱。\n你会为小事感动，也会因拒绝而深受伤害。\n但在坚硬的世界里保持柔软，是勇敢，而不是软弱。\n\n[为什么是这个结果？]\nCoquette 是你获得爱的方式。\n蝴蝶结和粉色不仅仅是可爱，它们让你看起来无害又甜美。\n你选择通过变得惹人怜爱来生存。说实话？这招很管用。`,
+        description_ja: `【性格分析】\nあなたは溢れるほどの愛を持っています。\n些細なことに感動し、拒絶されると深く傷つきます。\nしかし、厳しい世界で柔らかいままでいることは、弱さではなく勇気です。\n\n[なぜこの結果なのか？]\nCoquetteは、あなたが愛されるための方法です。\nリボンやピンクは単に可愛いだけでなく、あなたを無害で愛らしく見せます。\n愛らしくあることで生き残ることを選んだあなた。正直、その戦略は効果的です。`,
+        keywords: ['Romance', 'Affection', 'Softness', 'Desire', 'Charm'],
+        keywords_ko: ['로맨스', '애정', '부드러움', '욕망', '매력'],
+        keywords_zh: ['浪漫', '深情', '柔软', '渴望', '魅力'],
+        keywords_ja: ['ロマンス', '愛情', '柔らかさ', '欲望', '魅力'],
         brandMatches: ['Miu Miu', 'Selkie', 'Dior'],
         colorPalette: ['#FFC1CC', '#FFFFFF', '#FFB7C5'],
-        image: '/images/aesthetics/coquette.webp'
+        image: '/images/aesthetics/coquette.webp',
+        targetTraits: { openness: 0, conscientiousness: -1, extraversion: 1, agreeableness: 1, neuroticism: 2 }
     }
 };
 
@@ -228,486 +250,504 @@ export interface Question {
         label_ja: string;
         imagePrompt: string;
         image?: string;
-        scores: Partial<Record<AestheticId, number>>;
+        scores: Partial<TraitProfile>;
     }[];
 }
 
 export const QUESTIONS: Question[] = [
     {
         id: 1,
-        text: "When everything drains you, where do you escape?",
-        text_ko: "모든 게 지칠 때, 어디로 도망치고 싶으세요?",
-        text_zh: "当一切都让你感到疲惫时，你想逃去哪里？",
-        text_ja: "すべてに疲れたとき、どこへ逃げ込みたいですか？",
+        text: "You are given a blank notebook.\nWhat is the first thing you do?",
+        text_ko: "빈 노트가 주어지면 가장 먼저 하는 일은?",
+        text_zh: "给你一本空白笔记本，你会做的第一件事是？",
+        text_ja: "真っ白なノートを渡されました。最初に何をしますか？",
         options: [
             {
                 id: 'A',
-                label: 'An old library no one knows',
-                label_ko: '아무도 모르는 오래된 도서관',
-                label_zh: '无人知晓的古老图书馆',
-                label_ja: '誰も知らない古い図書館',
-                imagePrompt: 'dark_library',
-                image: '/images/q1_library.webp',
-                scores: { dark_academia: 4, whimsigoth: 2, old_money: 1, y2k: -2, cyberpunk: -1 }
+                label: 'Create a To-Do list or Plan',
+                label_ko: '계획표나 할 일\n목록을 적는다',
+                label_zh: '列出待办事项或计划表',
+                label_ja: 'TODOリストや計画表を作る',
+                imagePrompt: 'notebook_plan',
+                image: '/images/q1_hotel.webp', // reusing valid image paths for now
+                scores: { conscientiousness: 2, openness: -1 }
             },
             {
                 id: 'B',
-                label: 'A clean hotel room',
-                label_ko: '깔끔한 호텔 방',
-                label_zh: '一尘不染的酒店房间',
-                label_ja: '清潔なホテルの部屋',
-                imagePrompt: 'hotel',
-                image: '/images/q1_hotel.webp',
-                scores: { clean_girl: 4, old_money: 2, cyberpunk: 1, cottagecore: -2, whimsigoth: -1 }
+                label: 'Doodle abstract shapes',
+                label_ko: '추상적인 낙서나\n그림을 그린다',
+                label_zh: '随意涂鸦抽象的形状',
+                label_ja: '抽象的な落書きをする',
+                imagePrompt: 'notebook_doodle',
+                image: '/images/q1_library.webp',
+                scores: { openness: 2, conscientiousness: -1 }
             },
             {
                 id: 'C',
-                label: 'A quiet countryside',
-                label_ko: '조용한 시골',
-                label_zh: '宁静的乡村',
-                label_ja: '静かな田舎',
-                imagePrompt: 'cottage',
+                label: 'Write a diary entry about feelings',
+                label_ko: '오늘의 기분이나\n일기를 쓴다',
+                label_zh: '写下今天的感受或日记',
+                label_ja: '今日の気分や日記を書く',
+                imagePrompt: 'notebook_diary',
                 image: '/images/q1_picnic.webp',
-                scores: { cottagecore: 4, coquette: 2, whimsigoth: 1, cyberpunk: -2, clean_girl: -1 }
+                scores: { neuroticism: 1, agreeableness: 1 }
             },
             {
                 id: 'D',
-                label: 'A neon city at night',
-                label_ko: '밤의 네온 도시',
-                label_zh: '夜晚的霓虹都市',
-                label_ja: 'ネオン輝く夜の街',
-                imagePrompt: 'neon_city',
+                label: 'Pass it to a friend to write together',
+                label_ko: '친구에게 보여주며\n같이 쓴다',
+                label_zh: '递给朋友一起写',
+                label_ja: '友達に見せて一緒に書く',
+                imagePrompt: 'notebook_share',
                 image: '/images/q1_neon.webp',
-                scores: { cyberpunk: 4, y2k: 3, whimsigoth: 1, cottagecore: -2, old_money: -1 }
+                scores: { extraversion: 2 }
             }
         ]
     },
     {
         id: 2,
-        text: "What do you hide from the world?",
-        text_ko: "절대 들키고 싶지 않은 모습은 무엇인가요?",
-        text_zh: "你向世界隐藏了什么？",
-        text_ja: "世界から隠しているあなたの姿は？",
+        text: "A sudden change ruins your weekend plans.\nYour reaction?",
+        text_ko: "주말 계획이 갑자기 완전히 망가졌을 때 반응은?",
+        text_zh: "突发状况毁了你的周末计划。你的反应是？",
+        text_ja: "急な出来事で週末の予定が台無しになりました。あなたの反応は？",
         options: [
             {
                 id: 'A',
-                label: 'Overthinking everything',
-                label_ko: '사소한 것까지 고민하는 모습',
-                label_zh: '过度思考、纠结一切',
-                label_ja: '些細なことまで考えすぎる姿',
-                imagePrompt: 'overthinking',
-                image: '/images/q2_overthinking.webp',
-                scores: { dark_academia: 3, whimsigoth: 2, clean_girl: 1, y2k: -1 }
+                label: 'Immediately make a new Plan B',
+                label_ko: '즉시 플랜 B를 짠다',
+                label_zh: '立即制定B计划',
+                label_ja: 'すぐに新しいプランBを立てる',
+                imagePrompt: 'plan_b',
+                image: '/images/q5_organize.webp',
+                scores: { conscientiousness: 2, neuroticism: -1 }
             },
             {
                 id: 'B',
-                label: 'Anxiety when things are messy',
-                label_ko: '정리 안 되면 불안한 모습',
-                label_zh: '面对混乱时的焦虑',
-                label_ja: '散らかっていると不安になる姿',
-                imagePrompt: 'anxiety',
+                label: 'Feel overwhelmed and anxious',
+                label_ko: '너무 막막하고\n불안해진다',
+                label_zh: '感到不知所措和焦虑',
+                label_ja: 'どうしようもなく不安になる',
+                imagePrompt: 'anxious',
                 image: '/images/q2_anxiety.webp',
-                scores: { clean_girl: 4, old_money: 2, dark_academia: 1, cyberpunk: -2 }
+                scores: { neuroticism: 2 }
             },
             {
                 id: 'C',
-                label: 'Being exhausted from pretending',
-                label_ko: '괜찮은 척하느라 지친 모습',
-                label_zh: '因伪装完美而感到精疲力竭',
-                label_ja: '平気なふりをして疲弊している姿',
-                imagePrompt: 'exhausted',
-                image: '/images/q2_exhausted.webp',
-                scores: { coquette: 3, cottagecore: 2, whimsigoth: 1, clean_girl: -1 }
+                label: 'Call friends to complain/hang out',
+                label_ko: '친구에게 전화해서\n하소연한다',
+                label_zh: '打电话给朋友吐槽或约出来',
+                label_ja: '友達に電話して愚痴るか遊ぶ',
+                imagePrompt: 'call_friend',
+                image: '/images/q9_friend_cool.webp',
+                scores: { extraversion: 2, agreeableness: 1 }
             },
             {
                 id: 'D',
-                label: 'The anger underneath',
-                label_ko: '마음 깊은 곳의 분노',
-                label_zh: '内心深处的愤怒',
-                label_ja: '心の奥底にある怒り',
-                imagePrompt: 'anger',
-                image: '/images/q2_anger.webp',
-                scores: { cyberpunk: 4, y2k: 2, whimsigoth: 2, coquette: -2 }
+                label: 'Just go with the flow, maybe sleep',
+                label_ko: '그냥 흐름에\n맡기고 쉰다',
+                label_zh: '顺其自然，也许睡个觉',
+                label_ja: '流れに身を任せて休む',
+                imagePrompt: 'relax',
+                image: '/images/q5_daydream.webp',
+                scores: { conscientiousness: -1, neuroticism: -1 }
             }
         ]
     },
     {
         id: 3,
-        text: "What criticism hurts you most?",
-        text_ko: "가장 상처가 되는 말은 무엇인가요?",
-        text_zh: "怎样的批评最让你受伤？",
-        text_ja: "最も傷つく言葉は？",
+        text: "At a party crowded with strangers.\nHow do you act?",
+        text_ko: "낯선 사람 가득한 파티장, 당신은?",
+        text_zh: "在挤满陌生人的聚会上，你会...",
+        text_ja: "知らない人でいっぱいのパーティー会場、あなたは...",
         options: [
             {
                 id: 'A',
-                label: '"Why so serious?"',
-                label_ko: '"왜 혼자 그렇게 심각해?"',
-                label_zh: '"你为什么总是那么严肃？"',
-                label_ja: '"なんでそんなに深刻なの？"',
-                imagePrompt: 'intense',
-                image: '/images/q3_serious.webp',
-                scores: { dark_academia: 4, whimsigoth: 2, old_money: 2, y2k: -2 }
+                label: 'In the center, energizing everyone',
+                label_ko: '중심에서 분위기를\n주도한다',
+                label_zh: '在中心带动全场气氛',
+                label_ja: '中心で雰囲気を盛り上げる',
+                imagePrompt: 'party_center',
+                image: '/images/q4_adored.webp',
+                scores: { extraversion: 2, openness: 1 }
             },
             {
                 id: 'B',
-                label: '"You\'re a mess"',
-                label_ko: '"정말 정리가 안 되시네요"',
-                label_zh: '"你真是乱七八糟"',
-                label_ja: '"本当にだらしないね"',
-                imagePrompt: 'mess',
-                image: '/images/q3_mess.webp',
-                scores: { clean_girl: 4, old_money: 2, coquette: 1, cyberpunk: -1 }
+                label: 'Finding one person to have a deep talk',
+                label_ko: '한 사람을 붙잡고\n깊은 대화를 나눈다',
+                label_zh: '找一个人进行深度交谈',
+                label_ja: '一人を見つけて深い話をする',
+                imagePrompt: 'deep_talk',
+                image: '/images/q3_serious.webp',
+                scores: { extraversion: -1, openness: 1 }
             },
             {
                 id: 'C',
-                label: '"You\'re too sensitive"',
-                label_ko: '"너무 예민하시네요"',
-                label_zh: '"你太敏感了"',
-                label_ja: '"神経質すぎるよ"',
-                imagePrompt: 'sensitive',
-                image: '/images/q3_sensitive.webp',
-                scores: { coquette: 4, cottagecore: 2, whimsigoth: 2, cyberpunk: -1 }
+                label: 'Observing people from a corner',
+                label_ko: '구석에서 사람들을\n관찰한다',
+                label_zh: '在角落观察人群',
+                label_ja: '隅で人々を観察する',
+                imagePrompt: 'observe',
+                image: '/images/q1_library.webp',
+                scores: { extraversion: -2, conscientiousness: 1 }
             },
             {
                 id: 'D',
-                label: '"You\'re not special"',
-                label_ko: '"그냥 평범하시네요"',
-                label_zh: '"你一点也不特别"',
-                label_ja: '"君は特別じゃないよ"',
-                imagePrompt: 'ordinary',
-                image: '/images/q3_ordinary.webp',
-                scores: { y2k: 4, cyberpunk: 2, dark_academia: 1, old_money: -2 }
+                label: 'Planning my escape home',
+                label_ko: '집에 언제 갈지\n탈출 계획을 세운다',
+                label_zh: '策划逃跑回家的路线',
+                label_ja: 'いつ帰れるか脱出計画を練る',
+                imagePrompt: 'escape',
+                image: '/images/q5_retreat.webp',
+                scores: { extraversion: -2, neuroticism: 1 }
             }
         ]
     },
     {
         id: 4,
-        text: "Secret desire you can't admit?",
-        text_ko: "창피해서 말 못 하는 욕망은 무엇인가요?",
-        text_zh: "你羞于承认的秘密愿望是？",
-        text_ja: "恥ずかしくて言えない秘密の願望は？",
+        text: "What drives your clothing choice today?",
+        text_ko: "오늘 입을 옷을 고르는 핵심 기준은?",
+        text_zh: "今天选衣服的标准是？",
+        text_ja: "今日の服を選ぶ基準は？",
         options: [
             {
                 id: 'A',
-                label: 'To seem brilliant effortlessly',
-                label_ko: '노력 없이 천재로 보이기',
-                label_zh: '毫不费力地看起来像个天才',
-                label_ja: '努力せずに天才に見られたい',
-                imagePrompt: 'brilliant',
-                image: '/images/q4_brilliant.webp',
-                scores: { old_money: 4, dark_academia: 3, y2k: 1, cottagecore: -1 }
+                label: 'Self-expression & Uniqueness',
+                label_ko: '나만의 개성과\n독특함',
+                label_zh: '自我表达与独特性',
+                label_ja: '自分らしさとユニークさ',
+                imagePrompt: 'fashion_unique',
+                image: '/images/q8_wardrobe_bold.webp',
+                scores: { openness: 2, conscientiousness: -1 }
             },
             {
                 id: 'B',
-                label: 'To be completely taken care of',
-                label_ko: '완전히 보살핌받기',
-                label_zh: '被完全地照顾和宠爱',
-                label_ja: '誰かに完全にお世話されたい',
-                imagePrompt: 'care',
-                image: '/images/q4_care.webp',
-                scores: { coquette: 4, cottagecore: 3, clean_girl: 1, cyberpunk: -2 }
+                label: 'Appropriateness & Cleanliness',
+                label_ko: '상황에 맞고\n단정한지',
+                label_zh: '得体与整洁',
+                label_ja: 'TPOに合っていて清潔か',
+                imagePrompt: 'fashion_clean',
+                image: '/images/q8_wardrobe_neutral.webp',
+                scores: { conscientiousness: 2, openness: -1 }
             },
             {
                 id: 'C',
-                label: 'To be feared, not just respected',
-                label_ko: '존경 말고 두려움 주기',
-                label_zh: '让人畏惧，而不仅仅是尊敬',
-                label_ja: '尊敬より、恐れられる存在になりたい',
-                imagePrompt: 'fear',
-                image: '/images/q4_fear.webp',
-                scores: { cyberpunk: 4, whimsigoth: 3, dark_academia: 1, coquette: -2 }
+                label: 'Comfort & Soft fabrics',
+                label_ko: '편안함과\n부드러운 촉감',
+                label_zh: '舒适与柔软的面料',
+                label_ja: '快適さと肌触りの良さ',
+                imagePrompt: 'fashion_comfort',
+                image: '/images/q8_wardrobe_cozy.webp',
+                scores: { agreeableness: 1, neuroticism: 1 }
             },
             {
                 id: 'D',
-                label: 'To be absolutely adored',
-                label_ko: '완전히 숭배받기',
-                label_zh: '被所有人狂热地喜爱',
-                label_ja: '熱狂的に愛されたい',
-                imagePrompt: 'adored',
-                image: '/images/q4_adored.webp',
-                scores: { y2k: 4, coquette: 2, clean_girl: 1, dark_academia: -1 }
+                label: 'Does it make me look powerful?',
+                label_ko: '나를 강해 보이게\n하는가?',
+                label_zh: '能让我看起来很强势吗？',
+                label_ja: '自分を強く見せてくれるか？',
+                imagePrompt: 'fashion_power',
+                image: '/images/q8_wardrobe_vintage.webp',
+                scores: { agreeableness: -2, extraversion: 1 }
             }
         ]
     },
     {
         id: 5,
-        text: "How do you cope when powerless?",
-        text_ko: "무력할 때 어떻게 버티세요?",
-        text_zh: "感到无力时，你会如何应对？",
-        text_ja: "無力感を感じたとき、どう対処しますか？",
+        text: "You see someone crying on the street.\nHow do you react?",
+        text_ko: "길에서 우는 사람을 봤을 때 드는 감정은?",
+        text_zh: "看到有人在街上哭泣。你的感受是...",
+        text_ja: "道端で誰かが泣いているのを見ました。あなたの感情は...",
         options: [
             {
                 id: 'A',
-                label: 'Retreat into my own world',
-                label_ko: '내 세계 속으로 숨어요',
-                label_zh: '躲进自己的小世界',
-                label_ja: '自分の世界に引きこもる',
-                imagePrompt: 'retreat',
-                image: '/images/q5_retreat.webp',
-                scores: { whimsigoth: 4, dark_academia: 2, cottagecore: 1, y2k: -1 }
+                label: 'My heart breaks immediately',
+                label_ko: '가슴이 즉시\n미어지고 아프다',
+                label_zh: '立刻感到心碎难过',
+                label_ja: '胸がすぐに張り裂けそうになる',
+                imagePrompt: 'crying_empathy',
+                image: '/images/q7_understood.webp',
+                scores: { agreeableness: 2, neuroticism: 1 }
             },
             {
                 id: 'B',
-                label: 'Clean and organize',
-                label_ko: '정리하고 청소해요',
-                label_zh: '打扫卫生，整理房间',
-                label_ja: '掃除と整理整頓する',
-                imagePrompt: 'organize',
-                image: '/images/q5_organize.webp',
-                scores: { clean_girl: 4, old_money: 2, dark_academia: 1, cyberpunk: -1 }
+                label: 'Awkward, I avoid eye contact',
+                label_ko: '어색해서\n시선을 피한다',
+                label_zh: '尴尬，避开眼神接触',
+                label_ja: '気まずくて視線を逸らす',
+                imagePrompt: 'crying_avoid',
+                image: '/images/q4_fear.webp',
+                scores: { agreeableness: -1, extraversion: -1 }
             },
             {
                 id: 'C',
-                label: 'Daydream about simpler life',
-                label_ko: '단순한 삶을 상상해요',
-                label_zh: '幻想简单纯粹的生活',
-                label_ja: 'シンプルな生活を夢見る',
-                imagePrompt: 'daydream',
-                image: '/images/q5_daydream.webp',
-                scores: { cottagecore: 4, coquette: 2, whimsigoth: 1, clean_girl: -1 }
+                label: 'I wonder logically why they are crying',
+                label_ko: '왜 우는지\n논리적으로 궁금하다',
+                label_zh: '逻辑上好奇他们为什么哭',
+                label_ja: 'なぜ泣いているのか論理的に気になる',
+                imagePrompt: 'crying_logic',
+                image: '/images/q3_ordinary.webp',
+                scores: { agreeableness: -1, conscientiousness: 1 }
             },
             {
                 id: 'D',
-                label: 'Get angry and want to break things',
-                label_ko: '화가 나서 다 부수고 싶어요',
-                label_zh: '愤怒地想要破坏一切',
-                label_ja: '怒ってすべてを壊したくなる',
-                imagePrompt: 'burn',
-                image: '/images/q5_burn.webp',
-                scores: { cyberpunk: 4, y2k: 2, whimsigoth: 1, coquette: -2 }
+                label: 'I want to intervene and help',
+                label_ko: '다가가서\n도와주고 싶다',
+                label_zh: '想要上前帮忙',
+                label_ja: '近づいて助けたい',
+                imagePrompt: 'crying_help',
+                image: '/images/q9_friend_comforting.webp',
+                scores: { agreeableness: 2, extraversion: 1 }
             }
         ]
     },
     {
         id: 6,
-        text: "When do you feel most like yourself?",
-        text_ko: "가장 나다운 시간은 언제인가요?",
-        text_zh: "什么时候你感觉最像自己？",
-        text_ja: "一番自分らしくいられる時間は？",
+        text: "A project you worked on is criticized.\nWhat is your first instinct?",
+        text_ko: "열심히 한 프로젝트가 비판받았을 때?",
+        text_zh: "你努力做的项目受到了批评。",
+        text_ja: "一生懸命やったプロジェクトが批判されました。",
         options: [
             {
                 id: 'A',
-                label: 'Late night alone',
-                label_ko: '새벽 혼자 있을 때',
-                label_zh: '深夜独自一人的时候',
-                label_ja: '真夜中、独りでいるとき',
-                imagePrompt: 'night',
-                image: '/images/q6_night_real.webp',
-                scores: { whimsigoth: 4, dark_academia: 2, cyberpunk: 1, clean_girl: -1 }
+                label: 'I defend my vision aggressively',
+                label_ko: '나의 비전을\n공격적으로 방어한다',
+                label_zh: '极力为自己的想法辩护',
+                label_ja: '自分のビジョンを攻撃的に守る',
+                imagePrompt: 'criticism_defend',
+                image: '/images/q5_burn.webp',
+                scores: { agreeableness: -2, extraversion: 1 }
             },
             {
                 id: 'B',
-                label: 'Early morning routine',
-                label_ko: '이른 아침 루틴',
-                label_zh: '清晨的自律时刻',
-                label_ja: '早朝のルーティン中',
-                imagePrompt: 'morning',
-                image: '/images/q6_morning.webp',
-                scores: { clean_girl: 4, old_money: 3, cottagecore: 1, whimsigoth: -1 }
+                label: 'I analyze the feedback to improve',
+                label_ko: '피드백을 분석해\n개선점을 찾는다',
+                label_zh: '分析反馈以寻求改进',
+                label_ja: 'フィードバックを分析して改善点を探す',
+                imagePrompt: 'criticism_analyze',
+                image: '/images/q1_hotel.webp',
+                scores: { conscientiousness: 2, neuroticism: -1 }
             },
             {
                 id: 'C',
-                label: 'Golden hour outside',
-                label_ko: '노을 지는 야외에서',
-                label_zh: '日落时分的户外',
-                label_ja: '夕暮れ時の屋外で',
-                imagePrompt: 'sunset',
-                image: '/images/q6_sunset.webp',
-                scores: { cottagecore: 3, coquette: 3, old_money: 1, cyberpunk: -1 }
+                label: 'I feel like a total failure',
+                label_ko: '완전한 실패자가\n된 기분이다',
+                label_zh: '感觉自己是个彻底的失败者',
+                label_ja: '完全な敗北者になった気分だ',
+                imagePrompt: 'criticism_fail',
+                image: '/images/q3_mess.webp',
+                scores: { neuroticism: 3 }
             },
             {
                 id: 'D',
-                label: 'Midnight in the city',
-                label_ko: '도심 한복판 자정',
-                label_zh: '午夜的城市街头',
-                label_ja: '真夜中の都会の真ん中で',
-                imagePrompt: 'midnight',
-                image: '/images/q6_midnight.webp',
-                scores: { y2k: 4, cyberpunk: 3, whimsigoth: 1, cottagecore: -2 }
+                label: 'I shrug it off; haters gonna hate',
+                label_ko: '신경 안 쓴다.\n싫어할 사람은 하겠지',
+                label_zh: '耸耸肩，毫不在意',
+                label_ja: '気にしない。嫌う人は嫌うものだ',
+                imagePrompt: 'criticism_ignore',
+                image: '/images/q9_friend_cool.webp',
+                scores: { neuroticism: -2, openness: 1 }
             }
         ]
     },
     {
         id: 7,
-        text: "What does your inner child need to hear?",
-        text_ko: "어린 내게 해주고 싶은 말은 무엇인가요?",
-        text_zh: "你想对内心的那个小孩说什么？",
-        text_ja: "幼い頃の自分に声をかけるなら？",
+        text: "What describes the usual state of your room?",
+        text_ko: "평소 당신의 방 상태는?",
+        text_zh: "你的房间通常是...",
+        text_ja: "あなたの部屋の状態は通常...",
         options: [
             {
                 id: 'A',
-                label: '"Someone will understand you"',
-                label_ko: '"언젠간 이해해주는 사람 생겨"',
-                label_zh: '"终会有人理解你的"',
-                label_ja: '"いつか理解してくれる人が現れるよ"',
-                imagePrompt: 'understood',
-                image: '/images/q7_understood.webp',
-                scores: { dark_academia: 4, whimsigoth: 3, cyberpunk: 1, y2k: -1 }
+                label: 'Immaculate, everything has a place',
+                label_ko: '먼지 한 점 없이\n모든 게 제자리에',
+                label_zh: '一尘不染，井井有条',
+                label_ja: '塵一つなく、すべてが定位置に',
+                imagePrompt: 'room_clean',
+                image: '/images/q5_organize.webp',
+                scores: { conscientiousness: 3 }
             },
             {
                 id: 'B',
-                label: '"You\'re doing great"',
-                label_ko: '"충분히 잘 하고 있어"',
-                label_zh: '"你已经很棒了"',
-                label_ja: '"十分よくやっているよ"',
-                imagePrompt: 'right',
-                image: '/images/q7_great.webp',
-                scores: { clean_girl: 3, old_money: 4, cottagecore: 1, whimsigoth: -1 }
+                label: 'Organized chaos (I know where things are)',
+                label_ko: '나만 아는 질서\n(어지럽혀져 있음)',
+                label_zh: '乱中有序（只有我知道东西在哪）',
+                label_ja: '自分だけの秩序（散らかっている）',
+                imagePrompt: 'room_chaos',
+                image: '/images/q2_overthinking.webp',
+                scores: { conscientiousness: -1, openness: 1 }
             },
             {
                 id: 'C',
-                label: '"It\'s okay to rest"',
-                label_ko: '"이제 좀 쉬어도 괜찮아"',
-                label_zh: '"休息一下也没关系"',
-                label_ja: '"もう休んでも大丈夫だよ"',
-                imagePrompt: 'rest',
-                image: '/images/q7_rest.webp',
-                scores: { cottagecore: 4, coquette: 3, clean_girl: 1, cyberpunk: -1 }
+                label: 'Filled with sentimental objects',
+                label_ko: '추억이 담긴\n물건들로 가득함',
+                label_zh: '充满情感纪念品',
+                label_ja: '思い出の品でいっぱい',
+                imagePrompt: 'room_sentimental',
+                image: '/images/q8_wardrobe_vintage.webp',
+                scores: { openness: 1, agreeableness: 1 }
             },
             {
                 id: 'D',
-                label: '"You are special"',
-                label_ko: '"너는 특별한 존재야"',
-                label_zh: '"你是独一无二的"',
-                label_ja: '"君は特別な存在だよ"',
-                imagePrompt: 'matter',
-                image: '/images/q7_matter.webp',
-                scores: { y2k: 4, cyberpunk: 2, whimsigoth: 1, old_money: -1 }
+                label: 'Minimalist, barely anything',
+                label_ko: '미니멀리스트,\n물건이 거의 없음',
+                label_zh: '极简主义，几乎没什么东西',
+                label_ja: 'ミニマリスト、物がほとんどない',
+                imagePrompt: 'room_minimal',
+                image: '/images/q1_hotel.webp',
+                scores: { conscientiousness: 1, openness: -1 }
             }
         ]
     },
     {
         id: 8,
-        text: "What stands out most in your wardrobe?",
-        text_ko: "당신의 옷장을 열었을 때, 가장 눈에 띄는 것은?",
-        text_zh: "打开你的衣橱，最引人注目的是？",
-        text_ja: "クローゼット開けたとき、一番目立つのは？",
+        text: "In a group project,\nwhat role do you usually take?",
+        text_ko: "팀 프로젝트에서 나의 주된 역할은?",
+        text_zh: "在这队项目中，你自然而然会成为...",
+        text_ja: "チームプロジェクトで、あなたは自然と...",
         options: [
             {
                 id: 'A',
-                label: 'Neutral colors & Quality fabrics',
-                label_ko: '무채색과 고급 소재 (캐시미어, 린넨)',
-                label_zh: '中性色调与高级面料（羊绒、亚麻）',
-                label_ja: '無彩色と高級素材（カシミヤ、リネン）',
-                imagePrompt: 'wardrobe_neutral',
-                image: '/images/q8_wardrobe_neutral.webp',
-                scores: { old_money: 4, clean_girl: 3, dark_academia: 2, y2k: -2 }
+                label: 'The Leader/Director',
+                label_ko: '리더 / 감독',
+                label_zh: '领导者 / 导演',
+                label_ja: 'リーダー / 監督',
+                imagePrompt: 'role_leader',
+                image: '/images/q9_friend_disciplined.webp',
+                scores: { extraversion: 2, conscientiousness: 1 }
             },
             {
                 id: 'B',
-                label: 'Bold patterns & Vibrant colors',
-                label_ko: '화려한 패턴, 레이스, 과감한 컬러',
-                label_zh: '大胆的印花、蕾丝与鲜艳色彩',
-                label_ja: '派手な柄、レース、大胆なカラー',
-                imagePrompt: 'wardrobe_bold',
-                image: '/images/q8_wardrobe_bold.webp',
-                scores: { y2k: 4, coquette: 3, cyberpunk: 2, old_money: -2 }
+                label: 'The Peacemaker/Mediator',
+                label_ko: '중재자 / 분위기 메이커',
+                label_zh: '调解者 / 氛围组',
+                label_ja: '仲裁者 / ムードメーカー',
+                imagePrompt: 'role_peace',
+                image: '/images/q9_friend_comforting.webp',
+                scores: { agreeableness: 3 }
             },
             {
                 id: 'C',
-                label: 'Comfortable knits & Cotton',
-                label_ko: '편안하고 자연스러운 니트와 면 소재',
-                label_zh: '舒适自然的针织与棉质衣物',
-                label_ja: '快適で自然なニットとコットン素材',
-                imagePrompt: 'wardrobe_cozy',
-                image: '/images/q8_wardrobe_cozy.webp',
-                scores: { cottagecore: 4, clean_girl: 2, coquette: 1, cyberpunk: -1 }
+                label: 'The Creative/Idea Generator',
+                label_ko: '아이디어 뱅크',
+                label_zh: '创意生成器',
+                label_ja: 'アイデアバンク',
+                imagePrompt: 'role_idea',
+                image: '/images/q9_friend_eccentric.webp',
+                scores: { openness: 3 }
             },
             {
                 id: 'D',
-                label: 'Unique Vintage & All Black',
-                label_ko: '독특한 빈티지나 검정색 계열의 룩',
-                label_zh: '独特的复古单品或全黑穿搭',
-                label_ja: 'ユニークなビンテージやオールブラック',
-                imagePrompt: 'wardrobe_vintage',
-                image: '/images/q8_wardrobe_vintage.webp',
-                scores: { whimsigoth: 4, dark_academia: 3, cyberpunk: 2, clean_girl: -1 }
+                label: 'The Critic/Editor',
+                label_ko: '비평가 / 검수자',
+                label_zh: '批评家 / 编辑',
+                label_ja: '批評家 / チェッカー',
+                imagePrompt: 'role_critic',
+                image: '/images/q9_friend_cool.webp',
+                scores: { agreeableness: -1, conscientiousness: 2 }
             }
         ]
     },
     {
         id: 9,
-        text: "What do friends say about your personality?",
-        text_ko: "친구들이 말하는 나의 평소 성격은?",
-        text_zh: "朋友们通常怎么形容你的性格？",
-        text_ja: "友達から言われるあなたの性格は？",
+        text: "What is your relationship with 'Fantasy'?",
+        text_ko: "'공상'과 '상상'은 당신에게 어떤 의미?",
+        text_zh: "‘幻想’对你来说意味着什么？",
+        text_ja: "あなたにとって「空想」や「想像」とは？",
         options: [
             {
                 id: 'A',
-                label: '"You are disciplined"',
-                label_ko: '"너는 자기 관리를 진짜 잘해"',
-                label_zh: '"你真的非常自律"',
-                label_ja: '"自己管理が本当に上手だね"',
-                imagePrompt: 'friend_disciplined',
-                image: '/images/q9_friend_disciplined.webp',
-                scores: { clean_girl: 4, old_money: 3, dark_academia: 1, whimsigoth: -1 }
+                label: 'I live there. Reality is boring.',
+                label_ko: '나는 그곳에 산다.\n현실은 지루하다.',
+                label_zh: '我住在那里。现实太无聊了。',
+                label_ja: '私はそこに住んでいる。現実は退屈だ。',
+                imagePrompt: 'fantasy_live',
+                image: '/images/q1_library.webp',
+                scores: { openness: 3, neuroticism: 1 }
             },
             {
                 id: 'B',
-                label: '"You are eccentric"',
-                label_ko: '"너는 엉뚱하고 4차원 같아"',
-                label_zh: '"你古灵精怪，像个外星人"',
-                label_ja: '"엉뚱하고 4차원 같아" (変わってるね/不思議ちゃんだね)',
-                imagePrompt: 'friend_eccentric',
-                image: '/images/q9_friend_eccentric.webp',
-                scores: { whimsigoth: 4, y2k: 3, cyberpunk: 2, clean_girl: -2 }
+                label: 'A waste of time. Focus on facts.',
+                label_ko: '시간 낭비다.\n팩트에 집중해야 한다.',
+                label_zh: '浪费时间。专注于事实。',
+                label_ja: '時間の無駄。事実に集中すべき。',
+                imagePrompt: 'fantasy_waste',
+                image: '/images/q6_morning.webp',
+                scores: { openness: -2, conscientiousness: 2 }
             },
             {
                 id: 'C',
-                label: '"You are comforting"',
-                label_ko: '"너랑 있으면 마음이 편해져"',
-                label_zh: '"跟你在一起很安心"',
-                label_ja: '"一緒にいると落ち着くよ"',
-                imagePrompt: 'friend_comforting',
-                image: '/images/q9_friend_comforting.webp',
-                scores: { cottagecore: 4, coquette: 3, old_money: 1, cyberpunk: -2 }
+                label: 'A useful tool for solving problems',
+                label_ko: '문제 해결을 위한\n유용한 도구',
+                label_zh: '解决问题的有用工具',
+                label_ja: '問題解決のための有用なツール',
+                imagePrompt: 'fantasy_tool',
+                image: '/images/q6_midnight.webp',
+                scores: { openness: 1, conscientiousness: 1 }
             },
             {
                 id: 'D',
-                label: '"You are cool & strong"',
-                label_ko: '"너는 주관이 강하고 힙해"',
-                label_zh: '"你很有主见，很酷"',
-                label_ja: '"自分の芯を持っててカッコいい"',
-                imagePrompt: 'friend_cool',
-                image: '/images/q9_friend_cool.webp',
-                scores: { cyberpunk: 4, dark_academia: 3, y2k: 2, cottagecore: -1 }
+                label: 'I scare myself with dark thoughts',
+                label_ko: '가끔 어두운 상상으로\n스스로를 겁준다',
+                label_zh: '经常用黑暗的想法吓自己',
+                label_ja: '時々暗い想像で自分を怖がらせる',
+                imagePrompt: 'fantasy_dark',
+                image: '/images/q2_overthinking.webp',
+                scores: { neuroticism: 2, openness: 1 }
             }
         ]
     }
 ];
 
 export function calculateResult(answers: string[]): Aesthetic {
-    const scores: Record<AestheticId, number> = {
-        whimsigoth: 0,
-        clean_girl: 0,
-        y2k: 0,
-        dark_academia: 0,
-        cottagecore: 0,
-        cyberpunk: 0,
-        old_money: 0,
-        coquette: 0
+    // 1. Initialize User Profile
+    const userProfile: TraitProfile = {
+        openness: 0,
+        conscientiousness: 0,
+        extraversion: 0,
+        agreeableness: 0,
+        neuroticism: 0
     };
 
+    // 2. Sum up scores from answers
     answers.forEach((answerId, questionIndex) => {
         const question = QUESTIONS[questionIndex];
         if (!question) return;
         const option = question.options.find(o => o.id === answerId);
         if (!option) return;
 
-        Object.entries(option.scores).forEach(([aestheticId, score]) => {
-            scores[aestheticId as AestheticId] += score || 0;
-        });
+        // Add scores
+        if (option.scores.openness) userProfile.openness += option.scores.openness;
+        if (option.scores.conscientiousness) userProfile.conscientiousness += option.scores.conscientiousness;
+        if (option.scores.extraversion) userProfile.extraversion += option.scores.extraversion;
+        if (option.scores.agreeableness) userProfile.agreeableness += option.scores.agreeableness;
+        if (option.scores.neuroticism) userProfile.neuroticism += option.scores.neuroticism;
     });
 
-    let maxScore = -1;
-    let resultId: AestheticId = 'clean_girl';
+    // 3. Normalize User Profile (optional, but good if questions vary in weight)
+    // For now we just use raw sums as vectors.
 
-    Object.entries(scores).forEach(([id, score]) => {
-        if (score > maxScore) {
-            maxScore = score;
-            resultId = id as AestheticId;
+    // 4. Find closest Aesthetic using Euclidean Distance
+    let bestMatchId: AestheticId = 'clean_girl';
+    let minDistance = Infinity;
+
+    Object.values(AESTHETICS).forEach((aesthetic) => {
+        const target = aesthetic.targetTraits;
+
+        // Calculate Euclidean Distance
+        // Scale factors can be adjusted if we want to weight certain traits higher
+        const distance = Math.sqrt(
+            Math.pow(userProfile.openness - target.openness, 2) +
+            Math.pow(userProfile.conscientiousness - target.conscientiousness, 2) +
+            Math.pow(userProfile.extraversion - target.extraversion, 2) +
+            Math.pow(userProfile.agreeableness - target.agreeableness, 2) +
+            Math.pow(userProfile.neuroticism - target.neuroticism, 2)
+        );
+
+        if (distance < minDistance) {
+            minDistance = distance;
+            bestMatchId = aesthetic.id;
         }
     });
 
-    return AESTHETICS[resultId];
+    return AESTHETICS[bestMatchId];
 }

@@ -96,7 +96,7 @@ function TestContent() {
     const nextQuestion = QUESTIONS[currentIndex + 1];
 
     return (
-        <AuroraBackground>
+        <AuroraBackground className="justify-start">
             <div className="flex flex-col h-dvh w-full relative z-10 overflow-hidden">
                 {/* Progress Bar (Top Fixed) - Mobile Optimized */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
@@ -123,24 +123,26 @@ function TestContent() {
                 </div>
 
                 {/* Question Area - Mobile Optimized */}
-                <div className="flex-1 max-w-[1600px] mx-auto w-full px-4 md:px-8 pb-4 min-h-0 relative pt-[10vh] md:pt-[5vh]">
+                {/* Mobile: Top-aligned with scroll (safe) | Desktop: High-Center fixed */}
+                <div className="flex-1 max-w-[1600px] mx-auto w-full px-3 md:px-8 min-h-0 relative flex flex-col justify-start md:justify-center overflow-y-auto no-scrollbar pt-6 md:pt-0 pb-10 md:pb-[15vh]">
                     <div
                         key={currentIndex}
-                        className="flex flex-col w-full mobile-slide-right mobile-gpu"
+                        className="flex flex-col w-full mobile-slide-right mobile-gpu items-center md:items-start space-y-6 md:space-y-10 shrink-0"
                     >
-                        {/* Question Title - Compact on desktop */}
-                        <div className="mb-4 md:mb-8 text-center md:text-left shrink-0">
-                            <h2 className={`text-xl md:text-3xl lg:text-5xl font-bold leading-tight break-keep ${lang === 'ko' ? 'font-korean' : 'font-serif'}`}>
+                        {/* Question Title - Consistent Typography */}
+                        <div className="w-full text-center shrink-0 px-2">
+                            <h2 className={`text-[1.1rem] md:text-3xl font-bold leading-snug tracking-tight break-keep whitespace-pre-line ${lang === 'ko' ? 'font-korean' : 'font-serif'}`}>
                                 {currentText}
                             </h2>
                         </div>
 
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+                        {/* Grid - maximized width for text */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 w-full flex-1 md:flex-none">
                             {shuffledOptions.map((option, idx) => (
                                 <button
                                     key={option.id}
                                     onClick={() => handleAnswer(option.id)}
-                                    className={`group relative w-full aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-black/20 mobile-hover touch-optimized mobile-gpu mobile-fade-in-scale focus:outline-none`}
+                                    className={`group relative w-full aspect-[3/4] md:aspect-[4/5] overflow-hidden rounded-xl border border-white/10 bg-black/20 mobile-hover touch-optimized mobile-gpu mobile-fade-in-scale focus:outline-none`}
                                     style={{
                                         animationDelay: `${idx * 0.03}s`
                                     }}
@@ -163,13 +165,13 @@ function TestContent() {
                                                         'from-blue-900/40 to-pink-900/40'
                                                 }`} />
                                         )}
-                                        {/* Gradient Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-90" />
+                                        {/* Gradient Overlay - Stronger at bottom for text readability */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90" />
                                     </div>
 
-                                    {/* Content - Positioned at bottom */}
-                                    <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 text-left z-10">
-                                        <p className={`text-xs sm:text-sm md:text-base lg:text-lg font-bold text-white leading-tight break-keep shadow-black drop-shadow-md ${lang === 'ko' ? 'font-korean' : 'font-sans'}`}>
+                                    {/* Content - Left Aligned for Readability */}
+                                    <div className="absolute inset-0 p-3 md:p-5 text-left z-10 w-full flex flex-col justify-end items-start">
+                                        <p className={`text-[0.95rem] md:text-xl font-bold text-white leading-tight break-keep whitespace-pre-line shadow-black drop-shadow-md ${lang === 'ko' ? 'font-korean' : 'font-sans'}`}>
                                             {{
                                                 ko: option.label_ko,
                                                 zh: option.label_zh,
