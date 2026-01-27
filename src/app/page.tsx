@@ -29,7 +29,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 
   const meta = metadataMap[currentLang] || metadataMap.en;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sass-opal-theta.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://findcore.me';
 
   return {
     title: meta.title,

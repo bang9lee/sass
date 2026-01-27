@@ -8,7 +8,7 @@ const gowun = Gowun_Batang({ weight: ["400", "700"], subsets: ["latin"], variabl
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://sass-opal-theta.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://findcore.me'),
   title: "Find My Aesthetic Core",
   description: "Discover your unique visual atmosphere.",
 };

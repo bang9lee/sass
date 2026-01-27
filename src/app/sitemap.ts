@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { AESTHETICS } from '@/lib/data';
 
-const BASE_URL = 'https://aesthetic-core.vercel.app';
+const BASE_URL = 'https://findcore.me';
 const LANGUAGES = ['ko', 'en', 'zh', 'ja'];
 
 export default function sitemap(): MetadataRoute.Sitemap {

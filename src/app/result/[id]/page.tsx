@@ -38,7 +38,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const description = descMap[currentLang] || descMap.en;
 
     // Use static image for better performance and reliability
-    const baseUrl = 'https://aesthetic-core.vercel.app';
+    const baseUrl = 'https://findcore.me';
     // Remove query params if image url has them, ensure absolute url
     const ogImageUrl = aesthetic.image.startsWith('http')
         ? aesthetic.image
