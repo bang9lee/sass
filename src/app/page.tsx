@@ -34,6 +34,19 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return {
     title: meta.title,
     description: meta.description,
+    keywords: [
+      "Aesthetic Test", "Core Test", "미학 테스트", "감성 테스트", "분위기 테스트",
+      "Dark Academia", "Cottagecore", "Y2K", "Cyberpunk", "Minimalism",
+      "심리테스트", "MBTI", "성격테스트"
+    ],
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+      },
+    },
     alternates: {
       canonical: baseUrl,
       languages: {
@@ -50,7 +63,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       siteName: 'Aesthetic Core Test',
       images: [
         {
-          url: `${baseUrl}/images/hero.webp`, // Use optimized image
+          url: '/images/hero.webp',
           width: 800,
           height: 1000,
           alt: meta.title,
@@ -63,7 +76,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       card: 'summary_large_image',
       title: meta.title,
       description: meta.description,
-      images: [`${baseUrl}/images/hero.webp`],
+      images: ['/images/hero.webp'],
     },
   };
 }

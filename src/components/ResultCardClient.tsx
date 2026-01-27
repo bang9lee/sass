@@ -210,12 +210,17 @@ export function ResultCardClient({
             clone.style.backgroundColor = '#000000'; // Force black background
             clone.style.color = '#ffffff'; // Force white text
 
-            // Fix: Enforce "No Wrap" on Tags and Archetype
-            const spans = clone.querySelectorAll('span');
-            spans.forEach(s => {
-                s.style.whiteSpace = 'nowrap';
-                s.style.display = 'inline-block';
-            });
+            // Fix: Enforce "No Wrap" on Tags for straight line layout
+            const keywordsContainer = clone.querySelector('.keywords-container') as HTMLElement;
+            if (keywordsContainer) {
+                keywordsContainer.style.flexWrap = 'nowrap';
+                // Also prevent text wrapping inside the tags
+                const keywordSpans = keywordsContainer.querySelectorAll('span');
+                keywordSpans.forEach(s => {
+                    s.style.whiteSpace = 'nowrap';
+                    s.style.flexShrink = '0'; // Prevent shrinking
+                });
+            }
 
             captureContainer.style.width = `${CAPTURE_WIDTH}px`;
             captureContainer.appendChild(clone);
@@ -439,7 +444,7 @@ export function ResultCardClient({
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/95 z-10" />
 
                         {/* Text Overlay */}
-                        <div className="absolute inset-0 px-6 pt-6 pb-4 flex flex-col justify-between z-20">
+                        <div className="absolute inset-0 px-6 pt-6 pb-8 flex flex-col justify-between z-20">
 
                             {/* TOP RIGHT: Color Palette */}
                             <div className="flex justify-end">
@@ -475,7 +480,7 @@ export function ResultCardClient({
                                 </h1>
 
                                 {/* Keywords */}
-                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                <div className="flex flex-wrap gap-1.5 pt-1 keywords-container">
                                     {keywords.map((k, i) => (
                                         <span
                                             key={k}
