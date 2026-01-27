@@ -6,12 +6,29 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect, useRef } from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+
 
 // ============================================
 // TYPES
 // ============================================
 type Language = 'ko' | 'en' | 'zh' | 'ja';
+
+import { motion, AnimatePresence, useReducedMotion, useSpring, useTransform, useMotionValue } from "framer-motion";
+
+// ============================================
+// ANIMATED COUNTER
+// ============================================
+function AnimatedCounter({ value }: { value: number }) {
+    const motionValue = useMotionValue(0);
+    const springValue = useSpring(motionValue, { damping: 30, stiffness: 100 });
+    const displayValue = useTransform(springValue, (latest) => Math.round(latest).toLocaleString());
+
+    useEffect(() => {
+        motionValue.set(value);
+    }, [value, motionValue]);
+
+    return <motion.span>{displayValue}</motion.span>;
+}
 
 // ============================================
 // LANGUAGE SELECTOR
@@ -103,28 +120,28 @@ function HomeContent() {
             title2: "어떤 무드일까?",
             subtitle: "당신만의 특별한 분위기와\n딱 맞는 감성 타입(Aesthetic)을 찾아보세요.",
             button: "테스트 시작하기",
-            count: `${testCount.toLocaleString()}명 테스트`
+            countSuffix: "명 테스트"
         },
         en: {
             title1: "Find Your",
             title2: "Aesthetic Soul",
             subtitle: "Discover your unique vibe\nand the perfect Aesthetic type for you.",
             button: "Start the Journey",
-            count: `${testCount.toLocaleString()} tested`
+            countSuffix: " tested"
         },
         zh: {
             title1: "寻找你的",
             title2: "专属美学氛围",
             subtitle: "探索你独特的氛围，\n找到最适合你的美学类型 (Aesthetic)。",
             button: "开始测试",
-            count: `${testCount.toLocaleString()} 人已测试`
+            countSuffix: " 人已测试"
         },
         ja: {
             title1: "私の感性は",
             title2: "どんなムード？",
             subtitle: "あなただけの特別な雰囲気と\nぴったりの感性タイプ(Aesthetic)を見つけましょう。",
             button: "診断を始める",
-            count: `${testCount.toLocaleString()}人が診断`
+            countSuffix: "人が診断"
         }
     }[lang];
 
@@ -169,7 +186,9 @@ function HomeContent() {
                                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                         className={`relative flex items-center justify-center gap-3 py-5 px-10 rounded-full border border-white/20 text-white text-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ${isKorean ? 'font-korean' : ''}`}
                                     >
-                                        {t.button}
+
+                                        <span className="tracking-wide">{t.button}</span>
+
                                     </motion.div>
                                 </Link>
                             </div>
@@ -188,7 +207,10 @@ function HomeContent() {
                                             <span className="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-50"></span>
                                             <span className="relative rounded-full h-full w-full bg-emerald-400"></span>
                                         </span>
-                                        <span className="text-xs text-white/90 font-medium">{t.count}</span>
+                                        <span className="text-xs text-white/90 font-medium flex gap-1">
+                                            <AnimatedCounter value={testCount} />
+                                            <span>{t.countSuffix}</span>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -207,7 +229,9 @@ function HomeContent() {
                                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                     className={`relative flex items-center justify-center gap-2 py-4 px-8 rounded-full border border-white/20 text-white text-lg font-bold shadow-xl active:scale-95 transition-all ${isKorean ? 'font-korean' : ''}`}
                                 >
-                                    {t.button}
+
+                                    <span className="tracking-wide">{t.button}</span>
+
                                 </motion.div>
                             </Link>
                         </div>

@@ -107,7 +107,6 @@ export function ResultCardClient({
     const handleShare = async () => {
         const shareData = {
             title: t.shareTitle,
-            text: t.shareText,
             url: shareUrl,
         };
 
@@ -208,6 +207,8 @@ export function ResultCardClient({
             clone.style.top = '0';
             clone.style.left = '0';
             clone.style.borderRadius = '0';
+            clone.style.backgroundColor = '#000000'; // Force black background
+            clone.style.color = '#ffffff'; // Force white text
 
             // Fix: Enforce "No Wrap" on Tags and Archetype
             const spans = clone.querySelectorAll('span');
@@ -419,7 +420,7 @@ export function ResultCardClient({
                 {/* Main Result Card - Mobile Optimized Vertical Stack */}
                 <div
                     ref={cardRef}
-                    className="relative w-full flex flex-col overflow-hidden bg-black text-white rounded-[2rem]"
+                    className={`relative w-full flex flex-col overflow-hidden bg-black text-white rounded-[2rem] ${isKo ? '' : 'font-cinzel'}`}
                     style={{
                         // Use standard mobile aspect ratio or auto height
                         boxShadow: '0 0 50px -12px rgba(255,255,255,0.1)'
@@ -461,14 +462,14 @@ export function ResultCardClient({
                                 {/* Archetype Pill */}
                                 <div className="px-3 py-1 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                    <span className="text-[11px] md:text-sm font-bold text-white/90 tracking-wider uppercase whitespace-nowrap">
+                                    <span className={`text-[11px] md:text-sm font-bold text-white/90 tracking-wider uppercase whitespace-nowrap ${isKo ? '' : 'font-cinzel'}`}>
                                         {archetype}
                                     </span>
                                 </div>
 
                                 {/* Title */}
-                                <h1 className={`font-black leading-none tracking-tight ${isKo ? 'font-korean' : ''} z-0`}>
-                                    <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] whitespace-nowrap text-4xl sm:text-5xl md:text-6xl">
+                                <h1 className={`font-black leading-none tracking-tight ${isKo ? 'font-korean' : 'font-cinzel'} z-0`}>
+                                    <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] whitespace-nowrap text-2xl sm:text-3xl md:text-4xl">
                                         {title}
                                     </span>
                                 </h1>
@@ -478,7 +479,7 @@ export function ResultCardClient({
                                     {keywords.map((k, i) => (
                                         <span
                                             key={k}
-                                            className={`px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-medium border backdrop-blur-md
+                                            className={`px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-medium border backdrop-blur-md ${isKo ? 'font-korean' : 'font-serif'}
                                                 ${i === 0 ? 'bg-pink-500/20 border-pink-500/30 text-pink-200' :
                                                     i === 1 ? 'bg-purple-500/20 border-purple-500/30 text-purple-200' :
                                                         'bg-white/10 border-white/10 text-white/70'}`}
@@ -492,9 +493,9 @@ export function ResultCardClient({
                     </div>
 
                     {/* 3. Description & Details - REDESIGNED for Readability */}
-                    <div className="flex flex-col px-6 py-6 z-10 bg-black w-full text-left">
+                    <div className="flex flex-col px-6 py-6 z-10 bg-black w-full text-left" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
                         {/* Psychological Analysis Section */}
-                        <div className={`flex flex-col gap-6 ${isKo ? 'font-korean' : 'font-sans'}`}>
+                        <div className={`flex flex-col gap-6 ${isKo ? 'font-korean' : 'font-serif'}`}>
                             {description.split('\n\n').map((block, index) => {
                                 // Check for Headers like [Title]
                                 const match = block.match(/^\[(.*?)\]/);

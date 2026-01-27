@@ -61,25 +61,47 @@ function TestContent() {
         }
     };
 
-    const loadingText = {
-        ko: { title: '당신의 무드를 분석하고 있어요...', sub: '잠시만 기다려주세요.' },
-        en: { title: 'Analyzing your aesthetic source...', sub: 'Please wait a moment.' },
-        zh: { title: '正在分析您的美学类型...', sub: '请稍候。' },
-        ja: { title: 'あなたのムードを分析中...', sub: '少々お待ちください。' }
-    }[lang];
+    // Loading Text Cycle
+    const loadingMessages = {
+        en: { text: "Analyzing your unique aesthetic...", sub: "Reading your soul frequency" },
+        ko: { text: "당신의 고유한 분위기를 분석 중...", sub: "영혼의 주파수를 읽는 중" },
+        ja: { text: "あなただけの独自の雰囲気を分析中...", sub: "魂の周波数を読み取っています" },
+        zh: { text: "正在分析您独特的氛围...", sub: "读取灵魂频率" },
+    };
 
     if (isSubmitting) {
+        const currentMsg = loadingMessages[lang];
         return (
             <AuroraBackground>
                 <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center z-10 w-full">
-                    {/* Premium Loading Animation */}
-                    <div className="relative w-20 h-20">
-                        <div className="absolute inset-0 rounded-full border-2 border-white/10" />
-                        <div className="absolute inset-0 rounded-full border-t-2 border-pink-500 animate-spin" />
-                        <div className="absolute inset-2 rounded-full border-t-2 border-purple-500 animate-spin-slow" style={{ animationDirection: 'reverse' }} />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        </div>
+                    {/* Abstract Sacred Geometry Loader */}
+                    <div className="relative w-40 h-40 flex items-center justify-center mb-12">
+                        {/* Core Light */}
+                        <div className="absolute inset-0 bg-white/10 blur-[50px] rounded-full animate-pulse" />
+
+                        {/* 1. Outer Star Geometry (Spinning) */}
+                        <div className="absolute inset-0 border border-white/20 rotate-45 animate-spin-slow duration-[10s]" />
+                        <div className="absolute inset-0 border border-white/20 rotate-12 animate-spin-slow duration-[15s] opacity-50" />
+
+                        {/* 2. Gyroscopic Rings */}
+                        <div className="absolute inset-[-10px] rounded-full border-t border-b border-pink-500/50 animate-spin duration-[3s]" />
+                        <div className="absolute inset-[-20px] rounded-full border-r border-l border-purple-500/50 animate-spin duration-[4s] direction-reverse" />
+
+                        {/* 3. Central Core Prism */}
+                        <div className="relative w-16 h-16 bg-gradient-to-br from-white to-transparent opacity-90 blur-md rounded-full animate-float-gentle" />
+                        <div className="absolute w-2 h-32 bg-gradient-to-b from-transparent via-white/50 to-transparent blur-sm animate-pulse" />
+                        <div className="absolute w-32 h-2 bg-gradient-to-r from-transparent via-white/50 to-transparent blur-sm animate-pulse delay-75" />
+                    </div>
+
+                    {/* Multilingual Text Display */}
+                    <div className="flex flex-col gap-2 h-20 items-center justify-center">
+                        <h2 className={`text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-white to-purple-200 animate-in fade-in slide-in-from-bottom-2 duration-300
+                            ${lang === 'ko' ? 'font-korean' : lang === 'en' ? 'font-cinzel tracking-widest' : 'font-sans'}`}>
+                            {currentMsg.text}
+                        </h2>
+                        <p className="text-white/40 text-xs uppercase tracking-[0.3em] animate-pulse">
+                            {currentMsg.sub}
+                        </p>
                     </div>
                 </div>
             </AuroraBackground>
@@ -171,7 +193,7 @@ function TestContent() {
 
                                     {/* Content - Fixed height container for consistent text start position */}
                                     <div className="absolute bottom-0 inset-x-0 h-[35%] md:h-[30%] p-3 md:p-5 text-left z-10 w-full flex flex-col justify-start items-start">
-                                        <p className={`text-[0.95rem] md:text-xl font-bold text-white leading-tight break-keep whitespace-pre-line shadow-black drop-shadow-md ${lang === 'ko' ? 'font-korean' : 'font-sans'}`}>
+                                        <p className={`text-[0.95rem] md:text-xl font-bold text-white leading-tight break-keep whitespace-pre-line shadow-black drop-shadow-md ${lang === 'ko' ? 'font-korean' : 'font-serif'}`}>
                                             {{
                                                 ko: option.label_ko,
                                                 zh: option.label_zh,

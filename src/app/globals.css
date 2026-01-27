@@ -9,6 +9,7 @@
   --font-sans: var(--font-inter);
   --font-serif: var(--font-playfair);
   --font-korean: var(--font-gowun);
+  --font-cinzel: var(--font-cinzel);
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-aurora: aurora 60s linear infinite;
@@ -200,6 +201,10 @@
   background-size: 128px 128px;
 }
 
+.font-cinzel {
+  font-family: var(--font-cinzel), serif;
+}
+
 /* ============================================
    MOBILE-FIRST REDESIGN UTILITIES
    ============================================ */
@@ -350,6 +355,7 @@
     opacity: 0;
     transform: translate3d(20px, 0, 0);
   }
+
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
@@ -361,6 +367,7 @@
     opacity: 0;
     transform: translate3d(-20px, 0, 0);
   }
+
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
@@ -372,6 +379,7 @@
     opacity: 0;
     transform: translate3d(0, 0, 0) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
@@ -383,6 +391,7 @@
     transform: scaleX(0);
     transform-origin: left;
   }
+
   to {
     transform: scaleX(1);
     transform-origin: left;

@@ -21,7 +21,6 @@ export function ShareButtons({ resultId, title, isKo, aestheticImage }: ShareBut
     const handleShare = async () => {
         const shareData = {
             title: isKo ? `나의 에스테틱 코어: ${title}` : `My Aesthetic Core: ${title}`,
-            text: isKo ? '나의 에스테틱 코어를 찾았어요! 당신도 테스트해보세요 ✨' : 'I found my Aesthetic Core! Take the test too ✨',
             url: shareUrl,
         };
 
@@ -71,7 +70,7 @@ export function ShareButtons({ resultId, title, isKo, aestheticImage }: ShareBut
     };
 
     return (
-        <div className="grid grid-cols-2 gap-3">
+        <div className={`grid grid-cols-2 gap-3 ${isKo ? '' : 'font-cinzel'}`}>
             {/* Share Link Button */}
             <button
                 onClick={handleShare}

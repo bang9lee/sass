@@ -42,7 +42,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     // Remove query params if image url has them, ensure absolute url
     const ogImageUrl = aesthetic.image.startsWith('http')
         ? aesthetic.image
-        : `${baseUrl}${aesthetic.image}`;
+        : `${baseUrl}${aesthetic.image.startsWith('/') ? '' : '/'}${aesthetic.image}`;
 
     const currentPath = `/result/${id}`;
 
