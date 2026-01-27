@@ -86,11 +86,13 @@ function HomeContent() {
 
     const [testCount, setTestCount] = useState(320592);
 
-    // 실시간 카운트 증가 효과
+    // 실시간 카운트 증가 효과 (More realistic random growth)
     useEffect(() => {
         const interval = setInterval(() => {
-            setTestCount(prev => prev + 2);
-        }, 10000); // 10초마다 2명씩 증가
+            // 1~100명 사이의 랜덤한 숫자가 증가
+            const randomIncrement = Math.floor(Math.random() * 100) + 1;
+            setTestCount(prev => prev + randomIncrement);
+        }, 10000); // 10초마다 갱신
 
         return () => clearInterval(interval);
     }, []);
@@ -127,117 +129,86 @@ function HomeContent() {
     }[lang];
 
     return (
-        <AuroraBackground>
-            <div className="relative z-10 w-full min-h-screen flex flex-col overflow-x-hidden">
-                {/* 헤더 - 언어 선택 */}
-                <header className="flex justify-end p-4 shrink-0 w-full z-50">
+        <AuroraBackground className="justify-start">
+            <div className="relative z-10 w-full h-dvh flex flex-col overflow-hidden">
+                {/* 헤더 - 언어 선택 (Compact) */}
+                <header className="flex justify-end p-3 shrink-0 w-full z-50 absolute top-0 right-0">
                     <LanguageSelector currentLang={lang} onSelect={(l) => router.push(`/?lang=${l}`)} />
                 </header>
 
-                {/* 메인 콘텐츠 */}
-                <main className="flex-1 flex flex-col items-center justify-center px-4 py-4 md:px-8 lg:px-16 w-full">
+                {/* 메인 콘텐츠 - Premium Layout with Dynamic Spacing */}
+                <main className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-0 relative">
+                    <div className="w-full max-w-6xl mx-auto h-full flex flex-col lg:flex-row items-center justify-between lg:justify-center gap-2 lg:gap-16 py-safe-top lg:py-0">
 
-                    {/* 
-            모바일: 세로 스택
-            데스크탑(lg+): 가로 2분할 (텍스트 왼쪽, 이미지 오른쪽)
-          */}
-                    <div className="w-full max-w-6xl mx-auto
-                         flex flex-col lg:flex-row items-center justify-center lg:justify-between
-                         gap-8 lg:gap-16">
-
-                        {/* ===== 왼쪽: 텍스트 + CTA ===== */}
-                        <div className="w-full lg:w-1/2 
-                           flex flex-col items-center lg:items-start 
-                           text-center lg:text-left
-                           gap-4 shrink-0">
-
+                        {/* ===== 모바일: 타이틀 그룹 (상단) ===== */}
+                        <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left gap-2 lg:gap-6 shrink-0 z-10 pt-14 lg:pt-0">
                             {/* 타이틀 */}
-                            <h1 className={`text-4xl sm:text-5xl lg:text-6xl xl:text-7xl 
-                           font-bold leading-tight tracking-tight mobile-slide-right mobile-gpu
-                           ${isKorean ? 'font-korean' : 'font-serif'}`}
-                            >
-                                <span className="block text-white">{t.title1}</span>
-                                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 bg-[length:200%_auto] gradient-text-animated">
+                            <h1 className={`text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight tracking-tight 
+                           ${isKorean ? 'font-korean' : 'font-serif'}`}>
+                                <span className="block text-white mobile-slide-up">{t.title1}</span>
+                                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 gradient-text-animated mobile-slide-up" style={{ animationDelay: '0.1s' }}>
                                     {t.title2}
                                 </span>
                             </h1>
-
                             {/* 서브타이틀 */}
-                            <p className={`text-sm sm:text-lg lg:text-xl text-white/60 leading-relaxed whitespace-pre-line mobile-slide-right mobile-gpu max-w-md
-                           ${isKorean ? 'font-korean' : ''}`}
-                                style={{ animationDelay: '0.1s' }}
-                            >
+                            <p className={`text-sm sm:text-lg lg:text-xl text-white/60 leading-relaxed whitespace-pre-line max-w-md mobile-slide-up
+                           ${isKorean ? 'font-korean' : ''}`} style={{ animationDelay: '0.2s' }}>
                                 {t.subtitle}
                             </p>
 
-                            {/* CTA 버튼 - 데스크탑 */}
-                            <div className="hidden lg:block w-full max-w-sm mt-8 mobile-fade-in-scale mobile-gpu">
-                                <Link href={`/test?lang=${lang}`} className="group relative block w-full touch-optimized">
-                                    {/* 강력한 백그라운드 글로우 */}
-                                    <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 via-pink-600 to-indigo-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500 group-hover:duration-200 animate-tilt"></div>
-
-                                    {/* 실제 버튼 */}
-                                    <div className={`relative flex items-center justify-center gap-3
-                                 py-5 px-10 rounded-full
-                                 bg-black leading-none
-                                 border border-white/20
-                                 text-white text-xl font-bold
-                                 shadow-[0_0_20px_rgba(168,85,247,0.3)]
-                                 group-hover:text-white transition-all duration-200
-                                 ${isKorean ? 'font-korean' : ''}`}>
+                            {/* CTA 버튼 - 데스크탑 전용 */}
+                            <div className="hidden lg:block w-full max-w-sm mt-8">
+                                <Link href={`/test?lang=${lang}`} className="group relative block w-full">
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 via-pink-600 to-indigo-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
+                                    <motion.div
+                                        animate={{
+                                            scale: [1, 1.02, 1],
+                                            backgroundColor: ["#000000", "#1e1b4b", "#000000"], // Black -> Indigo-950 -> Black
+                                            borderColor: ["rgba(255,255,255,0.2)", "rgba(167,139,250,0.5)", "rgba(255,255,255,0.2)"]
+                                        }}
+                                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                        className={`relative flex items-center justify-center gap-3 py-5 px-10 rounded-full border border-white/20 text-white text-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ${isKorean ? 'font-korean' : ''}`}
+                                    >
                                         {t.button}
-                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                    </div>
+                                    </motion.div>
                                 </Link>
                             </div>
                         </div>
 
-                        {/* ===== 오른쪽: 이미지 ===== */}
-                        <div className="w-full max-w-[280px] sm:max-w-sm lg:w-1/2 lg:max-w-none flex items-center justify-center mt-4 lg:mt-0">
-                            <div className="relative w-full aspect-[4/5] mobile-fade-in-scale mobile-gpu" style={{ animationDelay: '0.1s' }}>
-                                {/* 글로우 */}
-                                <div className="absolute -inset-4 lg:-inset-6 bg-gradient-to-br from-purple-500/30 via-pink-500/25 to-indigo-500/30 
-                               rounded-[2.5rem] blur-2xl opacity-60" />
-
-                                {/* 이미지 카드 */}
-                                <div className="relative w-full h-full overflow-hidden
-                               rounded-[2rem] lg:rounded-[2.5rem]
-                               border-2 border-white/20
-                               shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
-                                    <Image src="/images/hero.webp" alt="Aesthetic" fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 50vw" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                                    {/* 배지 */}
-                                    <div className="absolute bottom-5 left-1/2 -translate-x-1/2
-                                 flex items-center justify-center gap-2 px-4 py-2 w-max max-w-[90%]
-                                 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 shadow-lg z-10 whitespace-nowrap">
+                        {/* ===== 모바일: 이미지 (중앙, 가용 공간 채움) ===== */}
+                        {/* flex-1 with min-h-0 allows it to shrink to fit, object-contain preserves ratio */}
+                        <div className="flex-1 w-full flex items-center justify-center min-h-0 lg:h-auto lg:w-1/2 lg:max-w-none py-2 lg:py-0">
+                            <div className="relative w-full h-full max-h-[50vh] lg:max-h-none aspect-[4/5] max-w-sm lg:max-w-md mobile-fade-in-scale" style={{ animationDelay: '0.3s' }}>
+                                {/* Image Card */}
+                                <div className="relative w-full h-full overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] border border-white/20 shadow-2xl">
+                                    <Image src="/images/hero.webp" alt="Aesthetic" fill className="object-cover lg:object-cover" priority sizes="(max-width: 768px) 100vw, 50vw" />
+                                    {/* Badge */}
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 w-max max-w-[90%] bg-black/60 backdrop-blur-md rounded-full border border-white/10 shadow-lg z-10">
                                         <span className="relative flex h-2 w-2 shrink-0">
                                             <span className="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-50"></span>
                                             <span className="relative rounded-full h-full w-full bg-emerald-400"></span>
                                         </span>
-                                        <span className="text-xs sm:text-sm text-white/90 font-medium tracking-wide">{t.count}</span>
+                                        <span className="text-xs text-white/90 font-medium">{t.count}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* CTA 버튼 - 모바일 */}
-                        <div className="lg:hidden w-full max-w-xs shrink-0 mt-6 mobile-fade-in-scale mobile-gpu" style={{ animationDelay: '0.2s' }}>
+                        {/* ===== 모바일: CTA 버튼 (하단 고정) ===== */}
+                        <div className="lg:hidden w-full max-w-sm shrink-0 pb-4 z-20 mobile-slide-up" style={{ animationDelay: '0.4s' }}>
                             <Link href={`/test?lang=${lang}`} className="group relative block w-full touch-optimized">
-                                {/* 강력한 백그라운드 글로우 */}
-                                <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 via-pink-600 to-indigo-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
-
-                                {/* 실제 버튼 */}
-                                <div className={`relative flex items-center justify-center gap-2
-                                 py-4 px-8 rounded-full
-                                 bg-black leading-none
-                                 border border-white/20
-                                 text-white text-lg font-bold
-                                 shadow-[0_0_15px_rgba(236,72,153,0.3)]
-                                 ${isKorean ? 'font-korean' : ''}`}>
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-600 via-pink-600 to-indigo-600 rounded-full blur opacity-70 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
+                                <motion.div
+                                    animate={{
+                                        scale: [1, 1.02, 1],
+                                        backgroundColor: ["#000000", "#1e1b4b", "#000000"],
+                                        borderColor: ["rgba(255,255,255,0.2)", "rgba(167,139,250,0.5)", "rgba(255,255,255,0.2)"]
+                                    }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                    className={`relative flex items-center justify-center gap-2 py-4 px-8 rounded-full border border-white/20 text-white text-lg font-bold shadow-xl active:scale-95 transition-all ${isKorean ? 'font-korean' : ''}`}
+                                >
                                     {t.button}
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </div>
+                                </motion.div>
                             </Link>
                         </div>
                     </div>

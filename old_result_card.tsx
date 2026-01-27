@@ -181,10 +181,10 @@ export function ResultCardClient({
 
         setDownloading(true);
         const ua = navigator.userAgent.toLowerCase();
+        const isAndroid = ua.includes('android');
         const isIOS = /iphone|ipad|ipod/.test(ua);
-        const isMobile = /android|iphone|ipad|ipod/i.test(ua);
 
-        // Capture Container Setup
+        // Capture Container Setup (Fixed position to avoid layout shifts)
         const captureContainer = document.createElement('div');
         captureContainer.style.position = 'fixed';
         captureContainer.style.left = '-9999px';
@@ -192,66 +192,45 @@ export function ResultCardClient({
         captureContainer.style.width = '100vw'; // Important for layout
         document.body.appendChild(captureContainer);
 
-        let clone: HTMLElement | undefined;
-
         try {
-            const mod = await import('html-to-image');
+            const { toPng } = await import('html-to-image');
 
-            // 1. Clone & Style (Fixed 800px Width - Modern Fix)
-            const CAPTURE_WIDTH = 800;
-
-            clone = cardRef.current.cloneNode(true) as HTMLElement;
-            clone.style.width = `${CAPTURE_WIDTH}px`;
-            clone.style.height = 'auto';
+            // 1. Clone the element (Common step for both to avoid flickering on live UI)
+            // Explicitly set width to prevent "collapsed text" issue on Android
+            const originalWidth = cardRef.current.offsetWidth;
+            const clone = cardRef.current.cloneNode(true) as HTMLElement;
+            clone.style.width = `${originalWidth}px`;
             clone.style.maxWidth = 'none';
-            clone.style.minWidth = `${CAPTURE_WIDTH}px`;
-            clone.style.position = 'absolute';
-            clone.style.top = '0';
-            clone.style.left = '0';
-            clone.style.borderRadius = '0';
-
-            // Fix: Enforce "No Wrap" on Tags and Archetype
-            const spans = clone.querySelectorAll('span');
-            spans.forEach(s => {
-                s.style.whiteSpace = 'nowrap';
-                s.style.display = 'inline-block';
-            });
-
-            captureContainer.style.width = `${CAPTURE_WIDTH}px`;
             captureContainer.appendChild(clone);
 
-            let blob: Blob | null = null;
-
-            const captureOptions = {
+            let captureOptions = {
                 quality: 1.0,
                 pixelRatio: 2,
                 backgroundColor: '#000000',
-                width: CAPTURE_WIDTH,
+                skipFonts: false,
+                cacheBust: true,
                 style: {
                     transform: 'none',
                     margin: '0',
+                    borderRadius: '0',
                 }
             };
 
-            // --- iOS SPECIFIC LOGIC (RESTORED FROM PROVEN LEGACY) ---
+            // --- iOS SPECIFIC LOGIC (Robust) ---
             if (isIOS) {
                 // Heavy Processing: Base64 Padding for Safari
                 const images = Array.from(clone.querySelectorAll('img'));
                 await Promise.all(images.map(async (img) => {
                     try {
-                        if (img.src.startsWith('data:')) return;
-
-                        // Proven Logic: mode: 'cors', cache: 'no-cache'
                         const fetchUrl = img.src.includes('?') ? `${img.src}&t=${Date.now()}` : `${img.src}?t=${Date.now()}`;
                         const response = await fetch(fetchUrl, { mode: 'cors', cache: 'no-cache' });
                         if (!response.ok) throw new Error('Fetch failed');
-
-                        const b = await response.blob();
+                        const blob = await response.blob();
                         await new Promise((resolve) => {
                             const reader = new FileReader();
                             reader.onloadend = async () => {
                                 let b64 = reader.result as string;
-                                // Safari padding fix (Critical)
+                                // Safari padding fix
                                 const parts = b64.split(',');
                                 if (parts[1]) {
                                     let content = parts[1];
@@ -262,7 +241,7 @@ export function ResultCardClient({
                                 try { await img.decode(); } catch (e) { }
                                 resolve(true);
                             };
-                            reader.readAsDataURL(b);
+                            reader.readAsDataURL(blob);
                         });
                     } catch (e) {
                         img.crossOrigin = 'anonymous';
@@ -272,81 +251,58 @@ export function ResultCardClient({
                 // Wait for stability
                 await new Promise(resolve => setTimeout(resolve, 300));
 
-                // 5-Stage Retry Loop (Proven Fix for Safari Canvas)
+                // 5-Stage Retry Loop
                 let dataUrl = '';
                 let lastLen = 0;
                 for (let i = 0; i < 5; i++) {
-                    dataUrl = await mod.toPng(clone, captureOptions);
+                    dataUrl = await toPng(clone, captureOptions);
                     if (dataUrl.length > 10000 && dataUrl.length >= lastLen) {
                         await new Promise(resolve => setTimeout(resolve, 200));
-                        dataUrl = await mod.toPng(clone, captureOptions);
+                        dataUrl = await toPng(clone, captureOptions);
                         break;
                     }
                     lastLen = dataUrl.length;
                     await new Promise(resolve => setTimeout(resolve, 300));
                 }
-
-                // Convert back to Blob for generic share handling
-                if (dataUrl) {
-                    const res = await fetch(dataUrl);
-                    blob = await res.blob();
-                }
+                downloadFile(dataUrl);
             }
-            // --- ANDROID / PC SPECIFIC LOGIC ---
+
+            // --- ANDROID / PC SPECIFIC LOGIC (Lightweight) ---
             else {
-                // Lightweight - just crossOrigin
-                const images = clone.querySelectorAll('img');
-                images.forEach(img => { img.crossOrigin = 'anonymous'; });
+                // FAST TRACK: "Raw Clone"
+                // No Base64 conversion loop. No decoding wait.
+                // Just use the cloned DOM (which isolates flicker) and capture immediately.
+                // Modern Android Chrome handles 'img' tags in clones very well without manual Base64.
 
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 100)); // Minimal settle time
 
-                blob = await mod.toBlob(clone, captureOptions);
-            }
+                let dataUrl = await toPng(clone, captureOptions);
 
-            if (!blob) throw new Error('Blob generation failed');
-
-            // 3. Share (Mobile Priority - Modern Fix)
-            const file = new File([blob], `aesthetic-core-${resultId}.png`, { type: 'image/png' });
-            let shareSuccess = false;
-
-            if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: t.shareTitle,
-                    });
-                    shareSuccess = true;
-                } catch (shareError) {
-                    if ((shareError as Error).name !== 'AbortError') {
-                        console.error('Share failed', shareError);
-                    } else {
-                        setDownloading(false);
-                        return; // User cancelled
-                    }
+                // One simple retry if it looks broken (just in case)
+                if (dataUrl.length < 5000) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    dataUrl = await toPng(clone, captureOptions);
                 }
-            }
 
-            // 4. Fallback or PC: Manual Download
-            if (!shareSuccess) {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = `aesthetic-core-${resultId}.png`;
-                link.href = url;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-
-                setShowToast(true);
-                setTimeout(() => setShowToast(false), 2500);
+                downloadFile(dataUrl);
             }
 
         } catch (err) {
-            console.error('Capture failed:', err);
-            alert(t.failedSave);
+            console.error('Capture failed first attempt:', err);
+
+            // Retry with skipFonts if it was likely a CORS/StyleSheet error
+            try {
+                const fallbackOptions = { ...captureOptions, skipFonts: true };
+                const dataUrl = await toPng(clone, fallbackOptions);
+                downloadFile(dataUrl);
+            } catch (retryErr) {
+                console.error('Capture failed retry:', retryErr);
+                alert(t.failedSave);
+            }
         } finally {
-            if (clone) clone.remove();
-            captureContainer.remove();
+            if (document.body.contains(captureContainer)) {
+                document.body.removeChild(captureContainer);
+            }
             setDownloading(false);
         }
     };
@@ -436,18 +392,18 @@ export function ResultCardClient({
                             loading="eager"
                         />
                         {/* Premium Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/95 z-10" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/90 z-10" />
 
-                        {/* Text Overlay */}
-                        <div className="absolute inset-0 px-6 pt-6 pb-4 flex flex-col justify-between z-20">
+                        {/* Text Overlay - Balanced Layout */}
+                        <div className="absolute inset-0 px-6 pt-6 pb-2 flex flex-col justify-between z-20">
 
                             {/* TOP RIGHT: Color Palette */}
                             <div className="flex justify-end">
-                                <div className="flex gap-2 p-1.5 bg-black/30 backdrop-blur-md rounded-full border border-white/10">
+                                <div className="flex gap-2">
                                     {colorPalette?.map((c, i) => (
                                         <div
                                             key={i}
-                                            className="w-5 h-5 rounded-full ring-1 ring-white/20"
+                                            className="w-6 h-6 rounded-full"
                                             style={{
                                                 backgroundColor: c,
                                                 boxShadow: `0 0 10px ${c}50`
@@ -458,74 +414,47 @@ export function ResultCardClient({
                             </div>
 
                             {/* BOTTOM LEFT: Archetype, Title, Keywords */}
-                            <div className="flex flex-col items-start gap-2">
-                                {/* Archetype Pill */}
-                                <div className="px-3 py-1 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                    <span className="text-[11px] md:text-sm font-bold text-white/90 tracking-wider uppercase whitespace-nowrap">
+                            <div className="flex flex-col items-start">
+                                {/* Archetype */}
+                                <div className="mb-0 px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full w-fit border border-white/30 z-10 flex items-center justify-center">
+                                    <span className="text-[10px] md:text-sm font-bold text-white tracking-wider drop-shadow-sm leading-none pt-[1px]">
                                         {archetype}
                                     </span>
                                 </div>
 
-                                {/* Title */}
-                                <h1 className={`font-black leading-none tracking-tight ${isKo ? 'font-korean' : ''} z-0`}>
-                                    <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] whitespace-nowrap text-4xl sm:text-5xl md:text-6xl">
+                                {/* Title - Clean Spacing & Auto Scale */}
+                                <h1 className={`mb-2 font-black leading-none tracking-tight ${isKo ? 'font-korean' : ''} z-0`}>
+                                    <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] whitespace-nowrap text-3xl sm:text-4xl md:text-6xl">
                                         {title}
                                     </span>
                                 </h1>
 
-                                {/* Keywords */}
-                                <div className="flex flex-wrap gap-1.5 pt-1">
-                                    {keywords.map((k, i) => (
+                                {/* Keywords - Adjusted for Single Line on Mobile */}
+                                <div className="flex flex-wrap justify-start gap-1.5 z-10 max-w-full">
+                                    {keywords.map(k => (
                                         <span
                                             key={k}
-                                            className={`px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-medium border backdrop-blur-md
-                                                ${i === 0 ? 'bg-pink-500/20 border-pink-500/30 text-pink-200' :
-                                                    i === 1 ? 'bg-purple-500/20 border-purple-500/30 text-purple-200' :
-                                                        'bg-white/10 border-white/10 text-white/70'}`}
+                                            className="px-2 py-1 rounded-md bg-black/60 backdrop-blur-md text-white/90 text-[10px] font-medium border border-white/10 whitespace-nowrap"
                                         >
                                             #{k}
                                         </span>
                                     ))}
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
-                    {/* 3. Description & Details - REDESIGNED for Readability */}
-                    <div className="flex flex-col px-6 py-6 z-10 bg-black w-full text-left">
-                        {/* Psychological Analysis Section */}
-                        <div className={`flex flex-col gap-6 ${isKo ? 'font-korean' : 'font-sans'}`}>
-                            {description.split('\n\n').map((block, index) => {
-                                // Check for Headers like [Title]
-                                const match = block.match(/^\[(.*?)\]/);
-                                const header = match ? match[1] : null;
-                                const content = match ? block.replace(/^\[.*?\]\n?/, '') : block;
-
-                                if (header) {
-                                    return (
-                                        <div key={index} className="flex flex-col gap-2">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-1 h-4 bg-gradient-to-b from-pink-500 to-purple-500 rounded-full" />
-                                                <h3 className="text-pink-300 font-bold text-sm tracking-wide uppercase">
-                                                    {header}
-                                                </h3>
-                                            </div>
-                                            <p className="text-sm md:text-[15px] text-white/95 leading-7 font-normal tracking-wide text-justify">
-                                                {content}
-                                            </p>
-                                        </div>
-                                    );
-                                }
-
-                                // Fallback for unstructured text (or intro lines)
-                                return (
-                                    <p key={index} className="text-sm md:text-[15px] text-white/95 leading-7 font-normal tracking-wide text-justify">
-                                        {block}
-                                    </p>
-                                );
-                            })}
+                    {/* 3. Description & Details */}
+                    <div className="flex flex-col pb-6 pt-4 z-10 bg-black w-full text-left">
+                        <div className="relative w-full pl-6 pr-6">
+                            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-pink-500 via-purple-500 to-indigo-500" />
+                            <p className={`pl-4 text-sm md:text-base text-white/90 leading-relaxed whitespace-pre-line text-left ${isKo ? 'font-korean' : 'font-sans'}`}>
+                                {description}
+                            </p>
                         </div>
+
+                        {/* Color & Brand Info Removed as requested */}
                     </div>
 
                     {/* 3.5. Moroka Banner (Restored) */}

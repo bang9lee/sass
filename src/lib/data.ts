@@ -264,42 +264,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'Create a To-Do list or Plan',
+                label: 'Create a To-Do list\nor a detailed plan',
                 label_ko: '계획표나 할 일\n목록을 적는다',
-                label_zh: '列出待办事项或计划表',
-                label_ja: 'TODOリストや計画表を作る',
+                label_zh: '列出待办事项\n或制定计划',
+                label_ja: 'TODOリストや\n計画表を作る',
                 imagePrompt: 'notebook_plan',
-                image: '/images/q1_hotel.webp', // reusing valid image paths for now
+                image: '/images/q_options/q1_a.webp', // reusing valid image paths for now
                 scores: { conscientiousness: 2, openness: -1 }
             },
             {
                 id: 'B',
-                label: 'Doodle abstract shapes',
+                label: 'Doodle abstract\nshapes',
                 label_ko: '추상적인 낙서나\n그림을 그린다',
-                label_zh: '随意涂鸦抽象的形状',
-                label_ja: '抽象的な落書きをする',
+                label_zh: '随意画些\n抽象的涂鸦',
+                label_ja: '抽象的な\n落書きをする',
                 imagePrompt: 'notebook_doodle',
-                image: '/images/q1_library.webp',
+                image: '/images/q_options/q1_b.webp',
                 scores: { openness: 2, conscientiousness: -1 }
             },
             {
                 id: 'C',
-                label: 'Write a diary entry about feelings',
+                label: 'Write a diary entry\nabout feelings',
                 label_ko: '오늘의 기분이나\n일기를 쓴다',
-                label_zh: '写下今天的感受或日记',
-                label_ja: '今日の気分や日記を書く',
+                label_zh: '记录当下的\n心情与日记',
+                label_ja: '今日の気分や\n日記を書く',
                 imagePrompt: 'notebook_diary',
-                image: '/images/q1_picnic.webp',
+                image: '/images/q_options/q1_c.webp',
                 scores: { neuroticism: 1, agreeableness: 1 }
             },
             {
                 id: 'D',
-                label: 'Pass it to a friend to write together',
+                label: 'Pass it to a friend\nto write together',
                 label_ko: '친구에게 보여주며\n같이 쓴다',
-                label_zh: '递给朋友一起写',
-                label_ja: '友達に見せて一緒に書く',
+                label_zh: '递给朋友\n一起写',
+                label_ja: '友達に見せて\n一緒に書く',
                 imagePrompt: 'notebook_share',
-                image: '/images/q1_neon.webp',
+                image: '/images/q_options/q1_d.webp',
                 scores: { extraversion: 2 }
             }
         ]
@@ -313,42 +313,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'Immediately make a new Plan B',
+                label: 'Immediately make\na new Plan B',
                 label_ko: '즉시 플랜 B를 짠다',
-                label_zh: '立即制定B计划',
-                label_ja: 'すぐに新しいプランBを立てる',
+                label_zh: '立即制定\nB计划',
+                label_ja: 'すぐに新しい\nプランBを立てる',
                 imagePrompt: 'plan_b',
-                image: '/images/q5_organize.webp',
+                image: '/images/q_options/q2_a.webp',
                 scores: { conscientiousness: 2, neuroticism: -1 }
             },
             {
                 id: 'B',
-                label: 'Feel overwhelmed and anxious',
+                label: 'Feel overwhelmed\nand anxious',
                 label_ko: '너무 막막하고\n불안해진다',
-                label_zh: '感到不知所措和焦虑',
-                label_ja: 'どうしようもなく不安になる',
+                label_zh: '感到不知所措\n和焦虑',
+                label_ja: 'どうしようもなく\n不安になる',
                 imagePrompt: 'anxious',
-                image: '/images/q2_anxiety.webp',
+                image: '/images/q_options/q2_b.webp',
                 scores: { neuroticism: 2 }
             },
             {
                 id: 'C',
-                label: 'Call friends to complain/hang out',
+                label: 'Call friends to\ncomplain/hang out',
                 label_ko: '친구에게 전화해서\n하소연한다',
-                label_zh: '打电话给朋友吐槽或约出来',
-                label_ja: '友達に電話して愚痴るか遊ぶ',
+                label_zh: '打电话给朋友\n吐槽或约出来',
+                label_ja: '友達に電話して\n愚痴るか遊ぶ',
                 imagePrompt: 'call_friend',
-                image: '/images/q9_friend_cool.webp',
+                image: '/images/q_options/q2_c.webp',
                 scores: { extraversion: 2, agreeableness: 1 }
             },
             {
                 id: 'D',
-                label: 'Just go with the flow, maybe sleep',
+                label: 'Just go with the\nflow, maybe sleep',
                 label_ko: '그냥 흐름에\n맡기고 쉰다',
-                label_zh: '顺其自然，也许睡个觉',
-                label_ja: '流れに身を任せて休む',
+                label_zh: '顺其自然，\n也许睡个觉',
+                label_ja: '流れに\n身を任せて休む',
                 imagePrompt: 'relax',
-                image: '/images/q5_daydream.webp',
+                image: '/images/q_options/q2_d.webp',
                 scores: { conscientiousness: -1, neuroticism: -1 }
             }
         ]
@@ -362,42 +362,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'In the center, energizing everyone',
+                label: 'In the center,\nenergizing everyone',
                 label_ko: '중심에서 분위기를\n주도한다',
-                label_zh: '在中心带动全场气氛',
-                label_ja: '中心で雰囲気を盛り上げる',
+                label_zh: '在中心带动\n全场气氛',
+                label_ja: '中心で雰囲気を\n盛り上げる',
                 imagePrompt: 'party_center',
-                image: '/images/q4_adored.webp',
+                image: '/images/q_options/q3_a.webp',
                 scores: { extraversion: 2, openness: 1 }
             },
             {
                 id: 'B',
-                label: 'Finding one person to have a deep talk',
+                label: 'Find one person\nfor deep conversation',
                 label_ko: '한 사람을 붙잡고\n깊은 대화를 나눈다',
-                label_zh: '找一个人进行深度交谈',
-                label_ja: '一人を見つけて深い話をする',
+                label_zh: '找一个人\n进行深度交谈',
+                label_ja: '一人を見つけて\n深い話をする',
                 imagePrompt: 'deep_talk',
-                image: '/images/q3_serious.webp',
+                image: '/images/q_options/q3_b.webp',
                 scores: { extraversion: -1, openness: 1 }
             },
             {
                 id: 'C',
-                label: 'Observing people from a corner',
+                label: 'Observing people\nfrom a corner',
                 label_ko: '구석에서 사람들을\n관찰한다',
-                label_zh: '在角落观察人群',
-                label_ja: '隅で人々を観察する',
+                label_zh: '在角落\n观察人群',
+                label_ja: '隅で人々を\n観察する',
                 imagePrompt: 'observe',
-                image: '/images/q1_library.webp',
+                image: '/images/q_options/q3_c.webp',
                 scores: { extraversion: -2, conscientiousness: 1 }
             },
             {
                 id: 'D',
-                label: 'Planning my escape home',
+                label: 'Planning my\nescape home',
                 label_ko: '집에 언제 갈지\n탈출 계획을 세운다',
-                label_zh: '策划逃跑回家的路线',
-                label_ja: 'いつ帰れるか脱出計画を練る',
+                label_zh: '策划逃跑\n回家的路线',
+                label_ja: 'いつ帰れるか\n脱出計画を練る',
                 imagePrompt: 'escape',
-                image: '/images/q5_retreat.webp',
+                image: '/images/q_options/q3_d.webp',
                 scores: { extraversion: -2, neuroticism: 1 }
             }
         ]
@@ -411,42 +411,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'Self-expression & Uniqueness',
+                label: 'Self-expression\n& Uniqueness',
                 label_ko: '나만의 개성과\n독특함',
-                label_zh: '自我表达与独特性',
-                label_ja: '自分らしさとユニークさ',
+                label_zh: '自我表达\n与独特性',
+                label_ja: '自分らしさと\nユニークさ',
                 imagePrompt: 'fashion_unique',
-                image: '/images/q8_wardrobe_bold.webp',
+                image: '/images/q_options/q4_a.webp',
                 scores: { openness: 2, conscientiousness: -1 }
             },
             {
                 id: 'B',
-                label: 'Appropriateness & Cleanliness',
+                label: 'Appropriateness\n& Cleanliness',
                 label_ko: '상황에 맞고\n단정한지',
-                label_zh: '得体与整洁',
-                label_ja: 'TPOに合っていて清潔か',
+                label_zh: '得体\n与整洁',
+                label_ja: 'TPOに合っていて\n清潔か',
                 imagePrompt: 'fashion_clean',
-                image: '/images/q8_wardrobe_neutral.webp',
+                image: '/images/q_options/q4_b.webp',
                 scores: { conscientiousness: 2, openness: -1 }
             },
             {
                 id: 'C',
-                label: 'Comfort & Soft fabrics',
+                label: 'Comfort &\nSoft fabrics',
                 label_ko: '편안함과\n부드러운 촉감',
-                label_zh: '舒适与柔软的面料',
-                label_ja: '快適さと肌触りの良さ',
+                label_zh: '舒适与\n柔软的面料',
+                label_ja: '快適さと\n肌触りの良さ',
                 imagePrompt: 'fashion_comfort',
-                image: '/images/q8_wardrobe_cozy.webp',
+                image: '/images/q_options/q4_c.webp',
                 scores: { agreeableness: 1, neuroticism: 1 }
             },
             {
                 id: 'D',
-                label: 'Does it make me look powerful?',
-                label_ko: '나를 강해 보이게\n하는가?',
-                label_zh: '能让我看起来很强势吗？',
-                label_ja: '自分を強く見せてくれるか？',
+                label: 'Does it make me\nlook powerful?',
+                label_ko: '강한 인상을\n주는 복장',
+                label_zh: '能让我\n看起来很强势吗？',
+                label_ja: '自分を強く\n見せてくれるか？',
                 imagePrompt: 'fashion_power',
-                image: '/images/q8_wardrobe_vintage.webp',
+                image: '/images/q_options/q4_d.webp',
                 scores: { agreeableness: -2, extraversion: 1 }
             }
         ]
@@ -460,42 +460,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'My heart breaks immediately',
+                label: 'My heart breaks\nimmediately',
                 label_ko: '가슴이 즉시\n미어지고 아프다',
-                label_zh: '立刻感到心碎难过',
-                label_ja: '胸がすぐに張り裂けそうになる',
+                label_zh: '立刻感到\n心碎难过',
+                label_ja: '胸がすぐに\n張り裂けそうになる',
                 imagePrompt: 'crying_empathy',
-                image: '/images/q7_understood.webp',
+                image: '/images/q_options/q5_a.webp',
                 scores: { agreeableness: 2, neuroticism: 1 }
             },
             {
                 id: 'B',
-                label: 'Awkward, I avoid eye contact',
+                label: 'Feel awkward,\navoid eye contact',
                 label_ko: '어색해서\n시선을 피한다',
-                label_zh: '尴尬，避开眼神接触',
-                label_ja: '気まずくて視線を逸らす',
+                label_zh: '感到尴尬，\n避开眼神接触',
+                label_ja: '気まずくて\n視線を逸らす',
                 imagePrompt: 'crying_avoid',
-                image: '/images/q4_fear.webp',
+                image: '/images/q_options/q5_b.webp',
                 scores: { agreeableness: -1, extraversion: -1 }
             },
             {
                 id: 'C',
-                label: 'I wonder logically why they are crying',
+                label: 'I wonder logically\nwhy they are crying',
                 label_ko: '왜 우는지\n논리적으로 궁금하다',
-                label_zh: '逻辑上好奇他们为什么哭',
-                label_ja: 'なぜ泣いているのか論理的に気になる',
+                label_zh: '逻辑上好奇\n他们为什么哭',
+                label_ja: 'なぜ泣いているのか\n論理的に気になる',
                 imagePrompt: 'crying_logic',
-                image: '/images/q3_ordinary.webp',
+                image: '/images/q_options/q5_c.webp',
                 scores: { agreeableness: -1, conscientiousness: 1 }
             },
             {
                 id: 'D',
-                label: 'I want to intervene and help',
+                label: 'I want to\nstep in and help',
                 label_ko: '다가가서\n도와주고 싶다',
-                label_zh: '想要上前帮忙',
-                label_ja: '近づいて助けたい',
+                label_zh: '想要\n上前帮忙',
+                label_ja: '近づいて\n助けたい',
                 imagePrompt: 'crying_help',
-                image: '/images/q9_friend_comforting.webp',
+                image: '/images/q_options/q5_d.webp',
                 scores: { agreeableness: 2, extraversion: 1 }
             }
         ]
@@ -509,42 +509,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'I defend my vision aggressively',
+                label: 'I defend my vision\naggressively',
                 label_ko: '나의 비전을\n공격적으로 방어한다',
-                label_zh: '极力为自己的想法辩护',
-                label_ja: '自分のビジョンを攻撃的に守る',
+                label_zh: '极力为\n自己的想法辩护',
+                label_ja: '自分のビジョンを\n攻撃的に守る',
                 imagePrompt: 'criticism_defend',
-                image: '/images/q5_burn.webp',
+                image: '/images/q_options/q6_a.webp',
                 scores: { agreeableness: -2, extraversion: 1 }
             },
             {
                 id: 'B',
-                label: 'I analyze the feedback to improve',
+                label: 'I analyze\nthe feedback to improve',
                 label_ko: '피드백을 분석해\n개선점을 찾는다',
-                label_zh: '分析反馈以寻求改进',
-                label_ja: 'フィードバックを分析して改善点を探す',
+                label_zh: '分析反馈\n以寻求改进',
+                label_ja: 'フィードバックを\n分析して改善点を探す',
                 imagePrompt: 'criticism_analyze',
-                image: '/images/q1_hotel.webp',
+                image: '/images/q_options/q6_b.webp',
                 scores: { conscientiousness: 2, neuroticism: -1 }
             },
             {
                 id: 'C',
-                label: 'I feel like a total failure',
+                label: 'I feel like\na total failure',
                 label_ko: '완전한 실패자가\n된 기분이다',
-                label_zh: '感觉自己是个彻底的失败者',
-                label_ja: '完全な敗北者になった気分だ',
+                label_zh: '感觉自己\n是个彻底的失败者',
+                label_ja: '完全な敗北者に\nなった気分だ',
                 imagePrompt: 'criticism_fail',
-                image: '/images/q3_mess.webp',
+                image: '/images/q_options/q6_c.webp',
                 scores: { neuroticism: 3 }
             },
             {
                 id: 'D',
-                label: 'I shrug it off; haters gonna hate',
+                label: 'I shrug it off;\nhaters gonna hate',
                 label_ko: '신경 안 쓴다.\n싫어할 사람은 하겠지',
-                label_zh: '耸耸肩，毫不在意',
-                label_ja: '気にしない。嫌う人は嫌うものだ',
+                label_zh: '耸耸肩，\n毫不在意',
+                label_ja: '気にしない。\n嫌う人は嫌うものだ',
                 imagePrompt: 'criticism_ignore',
-                image: '/images/q9_friend_cool.webp',
+                image: '/images/q_options/q6_d.webp',
                 scores: { neuroticism: -2, openness: 1 }
             }
         ]
@@ -558,42 +558,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'Immaculate, everything has a place',
+                label: 'Immaculate,\neverything has a place',
                 label_ko: '먼지 한 점 없이\n모든 게 제자리에',
-                label_zh: '一尘不染，井井有条',
-                label_ja: '塵一つなく、すべてが定位置に',
+                label_zh: '一尘不染，\n井井有条',
+                label_ja: '塵一つなく、\nすべてが定位置に',
                 imagePrompt: 'room_clean',
-                image: '/images/q5_organize.webp',
+                image: '/images/q_options/q7_a.webp',
                 scores: { conscientiousness: 3 }
             },
             {
                 id: 'B',
-                label: 'Organized chaos (I know where things are)',
+                label: 'Organized chaos\n(My own system)',
                 label_ko: '나만 아는 질서\n(어지럽혀져 있음)',
-                label_zh: '乱中有序（只有我知道东西在哪）',
-                label_ja: '自分だけの秩序（散らかっている）',
+                label_zh: '乱中有序\n（只有我知道东西在哪）',
+                label_ja: '自分だけの秩序\n（散らかっている）',
                 imagePrompt: 'room_chaos',
-                image: '/images/q2_overthinking.webp',
+                image: '/images/q_options/q7_b.webp',
                 scores: { conscientiousness: -1, openness: 1 }
             },
             {
                 id: 'C',
-                label: 'Filled with sentimental objects',
+                label: 'Filled with\nsentimental objects',
                 label_ko: '추억이 담긴\n물건들로 가득함',
-                label_zh: '充满情感纪念品',
-                label_ja: '思い出の品でいっぱい',
+                label_zh: '充满回忆\n的物品',
+                label_ja: '思い出の品で\nいっぱい',
                 imagePrompt: 'room_sentimental',
-                image: '/images/q8_wardrobe_vintage.webp',
+                image: '/images/q_options/q7_c.webp',
                 scores: { openness: 1, agreeableness: 1 }
             },
             {
                 id: 'D',
-                label: 'Minimalist, barely anything',
+                label: 'Minimalist,\nbarely anything',
                 label_ko: '미니멀리스트,\n물건이 거의 없음',
-                label_zh: '极简主义，几乎没什么东西',
-                label_ja: 'ミニマリスト、物がほとんどない',
+                label_zh: '极简主义，\n几乎没什么东西',
+                label_ja: 'ミニマリスト、\n物がほとんどない',
                 imagePrompt: 'room_minimal',
-                image: '/images/q1_hotel.webp',
+                image: '/images/q_options/q7_d.webp',
                 scores: { conscientiousness: 1, openness: -1 }
             }
         ]
@@ -607,42 +607,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'The Leader/Director',
+                label: 'The Leader\n/ Director',
                 label_ko: '리더 / 감독',
-                label_zh: '领导者 / 导演',
-                label_ja: 'リーダー / 監督',
+                label_zh: '领导者\n/ 导演',
+                label_ja: 'リーダー\n/ 監督',
                 imagePrompt: 'role_leader',
-                image: '/images/q9_friend_disciplined.webp',
+                image: '/images/q_options/q8_a.webp',
                 scores: { extraversion: 2, conscientiousness: 1 }
             },
             {
                 id: 'B',
-                label: 'The Peacemaker/Mediator',
+                label: 'The Peacemaker\n/ Mediator',
                 label_ko: '중재자 / 분위기 메이커',
-                label_zh: '调解者 / 氛围组',
-                label_ja: '仲裁者 / ムードメーカー',
+                label_zh: '调解者\n/ 氛围组',
+                label_ja: '仲裁者\n/ ムードメーカー',
                 imagePrompt: 'role_peace',
-                image: '/images/q9_friend_comforting.webp',
+                image: '/images/q_options/q8_b.webp',
                 scores: { agreeableness: 3 }
             },
             {
                 id: 'C',
-                label: 'The Creative/Idea Generator',
+                label: 'The Creative\n/ Idea Machine',
                 label_ko: '아이디어 뱅크',
-                label_zh: '创意生成器',
-                label_ja: 'アイデアバンク',
+                label_zh: '脑洞大开\n的点子王',
+                label_ja: 'アイデア\nマン',
                 imagePrompt: 'role_idea',
-                image: '/images/q9_friend_eccentric.webp',
+                image: '/images/q_options/q8_c.webp',
                 scores: { openness: 3 }
             },
             {
                 id: 'D',
-                label: 'The Critic/Editor',
+                label: 'The Critic\n/ Editor',
                 label_ko: '비평가 / 검수자',
-                label_zh: '批评家 / 编辑',
-                label_ja: '批評家 / チェッカー',
+                label_zh: '批评家\n/ 编辑',
+                label_ja: '批評家\n/ チェッカー',
                 imagePrompt: 'role_critic',
-                image: '/images/q9_friend_cool.webp',
+                image: '/images/q_options/q8_d.webp',
                 scores: { agreeableness: -1, conscientiousness: 2 }
             }
         ]
@@ -656,42 +656,42 @@ export const QUESTIONS: Question[] = [
         options: [
             {
                 id: 'A',
-                label: 'I live there. Reality is boring.',
+                label: 'I live there.\nReality is boring.',
                 label_ko: '나는 그곳에 산다.\n현실은 지루하다.',
-                label_zh: '我住在那里。现实太无聊了。',
-                label_ja: '私はそこに住んでいる。現実は退屈だ。',
+                label_zh: '我住在那里。\n现实太无聊了。',
+                label_ja: '私はそこに住んでいる。\n現実は退屈だ。',
                 imagePrompt: 'fantasy_live',
-                image: '/images/q1_library.webp',
+                image: '/images/q_options/q9_a.webp',
                 scores: { openness: 3, neuroticism: 1 }
             },
             {
                 id: 'B',
-                label: 'A waste of time. Focus on facts.',
+                label: 'A waste of time.\nFocus on facts.',
                 label_ko: '시간 낭비다.\n팩트에 집중해야 한다.',
-                label_zh: '浪费时间。专注于事实。',
-                label_ja: '時間の無駄。事実に集中すべき。',
+                label_zh: '浪费时间。\n专注于事实。',
+                label_ja: '時間の無駄。\n事実に集中すべき。',
                 imagePrompt: 'fantasy_waste',
-                image: '/images/q6_morning.webp',
+                image: '/images/q_options/q9_b.webp',
                 scores: { openness: -2, conscientiousness: 2 }
             },
             {
                 id: 'C',
-                label: 'A useful tool for solving problems',
+                label: 'A useful tool\nfor solving problems',
                 label_ko: '문제 해결을 위한\n유용한 도구',
-                label_zh: '解决问题的有用工具',
-                label_ja: '問題解決のための有用なツール',
+                label_zh: '解决问题\n的有用工具',
+                label_ja: '問題解決のための\n有用なツール',
                 imagePrompt: 'fantasy_tool',
-                image: '/images/q6_midnight.webp',
+                image: '/images/q_options/q9_c.webp',
                 scores: { openness: 1, conscientiousness: 1 }
             },
             {
                 id: 'D',
-                label: 'I scare myself with dark thoughts',
+                label: 'I scare myself\nwith dark thoughts',
                 label_ko: '가끔 어두운 상상으로\n스스로를 겁준다',
-                label_zh: '经常用黑暗的想法吓自己',
-                label_ja: '時々暗い想像で自分を怖がらせる',
+                label_zh: '经常用黑暗的\n想法吓自己',
+                label_ja: '時々暗い想像で\n自分を怖がらせる',
                 imagePrompt: 'fantasy_dark',
-                image: '/images/q2_overthinking.webp',
+                image: '/images/q_options/q9_d.webp',
                 scores: { neuroticism: 2, openness: 1 }
             }
         ]

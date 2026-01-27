@@ -169,8 +169,8 @@ function TestContent() {
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90" />
                                     </div>
 
-                                    {/* Content - Left Aligned for Readability */}
-                                    <div className="absolute inset-0 p-3 md:p-5 text-left z-10 w-full flex flex-col justify-end items-start">
+                                    {/* Content - Fixed height container for consistent text start position */}
+                                    <div className="absolute bottom-0 inset-x-0 h-[35%] md:h-[30%] p-3 md:p-5 text-left z-10 w-full flex flex-col justify-start items-start">
                                         <p className={`text-[0.95rem] md:text-xl font-bold text-white leading-tight break-keep whitespace-pre-line shadow-black drop-shadow-md ${lang === 'ko' ? 'font-korean' : 'font-sans'}`}>
                                             {{
                                                 ko: option.label_ko,
