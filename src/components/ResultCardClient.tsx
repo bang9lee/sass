@@ -107,28 +107,27 @@ export function ResultCardClient({
     const handleShare = async () => {
         const shareData = {
             title: t.shareTitle,
-            // text: t.shareText, // 텍스트 제거 (링크만 깔끔하게)
+            text: t.shareText,
             url: shareUrl,
         };
 
-        // 모바일인지 체크
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        // 1. 모바일이면서 공유 기능 지원 시 -> 네이티브 공유 (전달하기)
-        // (주의: 로컬 HTTP 환경에서는 모바일이어도 보안상 이 기능이 작동 안 할 수 있음 -> 배포 후엔 됨)
-        if (isMobile && navigator.share && navigator.canShare?.(shareData)) {
+        // 1. Try Native Share (Prioritize)
+        if (typeof navigator !== 'undefined' && navigator.share) {
             try {
+                // canShare check is optional but good; if it fails, just try sharing anyway
                 await navigator.share(shareData);
                 return;
             } catch (err) {
-                if ((err as Error).name !== 'AbortError') {
-                    setShowShareModal(true);
-                }
+                // AbortError means user cancelled, don't show modal
+                if ((err as Error).name === 'AbortError') return;
+
+                // Other errors (like insecure context) fall back to modal
+                console.error('Native share failed:', err);
             }
-        } else {
-            // 2. PC이거나 공유 미지원 환경 -> 커스텀 모달 무조건 표시
-            setShowShareModal(true);
         }
+
+        // 2. Fallback to Custom Modal
+        setShowShareModal(true);
     };
 
     const handleCopyLink = async () => {
