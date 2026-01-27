@@ -106,7 +106,6 @@ export function ResultCardClient({
 
     const handleShare = async () => {
         const shareData = {
-            title: t.shareTitle,
             url: shareUrl,
         };
 

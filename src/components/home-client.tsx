@@ -13,22 +13,7 @@ import { AuroraBackground } from "@/components/ui/aurora-background";
 // ============================================
 type Language = 'ko' | 'en' | 'zh' | 'ja';
 
-import { motion, AnimatePresence, useReducedMotion, useSpring, useTransform, useMotionValue } from "framer-motion";
-
-// ============================================
-// ANIMATED COUNTER
-// ============================================
-function AnimatedCounter({ value }: { value: number }) {
-    const motionValue = useMotionValue(value); // Start from current value, not 0
-    const springValue = useSpring(motionValue, { damping: 30, stiffness: 100 });
-    const displayValue = useTransform(springValue, (latest) => Math.round(latest).toLocaleString());
-
-    useEffect(() => {
-        motionValue.set(value);
-    }, [value, motionValue]);
-
-    return <motion.span>{displayValue}</motion.span>;
-}
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 // ============================================
 // LANGUAGE SELECTOR
@@ -101,18 +86,7 @@ function HomeContent() {
     const prefersReducedMotion = useReducedMotion();
     const isKorean = lang === 'ko';
 
-    const [testCount, setTestCount] = useState(320592);
 
-    // 실시간 카운트 증가 효과 (More realistic random growth)
-    useEffect(() => {
-        const interval = setInterval(() => {
-            // 1~100명 사이의 랜덤한 숫자가 증가
-            const randomIncrement = Math.floor(Math.random() * 100) + 1;
-            setTestCount(prev => prev + randomIncrement);
-        }, 10000); // 10초마다 갱신
-
-        return () => clearInterval(interval);
-    }, []);
 
     const t = {
         ko: {
@@ -202,16 +176,7 @@ function HomeContent() {
                                 <div className="relative w-full h-full overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] border border-white/20 shadow-2xl">
                                     <Image src="/images/hero.webp" alt="Aesthetic" fill className="object-cover lg:object-cover" priority sizes="(max-width: 768px) 100vw, 50vw" />
                                     {/* Badge */}
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 w-max max-w-[90%] bg-black/60 backdrop-blur-md rounded-full border border-white/10 shadow-lg z-10">
-                                        <span className="relative flex h-2 w-2 shrink-0">
-                                            <span className="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-50"></span>
-                                            <span className="relative rounded-full h-full w-full bg-emerald-400"></span>
-                                        </span>
-                                        <span className="text-xs text-white/90 font-medium flex gap-1">
-                                            <AnimatedCounter value={testCount} />
-                                            <span>{t.countSuffix}</span>
-                                        </span>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>
