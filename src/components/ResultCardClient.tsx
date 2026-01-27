@@ -41,8 +41,8 @@ export function ResultCardClient({
 
     const uiText = {
         ko: {
-            shareTitle: `나의 감성 타입: ${title}`,
-            shareText: '나의 감성 타입을 찾았어요! 당신도 테스트해보세요 ✨',
+            shareTitle: `나의 에스테틱 코어: ${title} 🔮`,
+            shareText: `저의 감성 분위기는 "${title}"이에요! ✨\n\n당신만의 에스테틱 코어도 찾아보세요 👇\nhttps://findcore.me`,
             copyLink: '링크를 복사하세요:',
             failedSave: '이미지 저장에 실패했습니다.',
             palette: '추천 컬러',
@@ -194,8 +194,8 @@ export function ResultCardClient({
         try {
             const mod = await import('html-to-image');
 
-            // 1. Clone & Style (Fixed 800px Width - Modern Fix)
-            const CAPTURE_WIDTH = 800;
+            // 1. Clone & Style (Fixed 1200px Width - Restore)
+            const CAPTURE_WIDTH = 1200;
 
             clone = cardRef.current.cloneNode(true) as HTMLElement;
             clone.style.width = `${CAPTURE_WIDTH}px`;
@@ -213,13 +213,155 @@ export function ResultCardClient({
             const keywordsContainer = clone.querySelector('.keywords-container') as HTMLElement;
             if (keywordsContainer) {
                 keywordsContainer.style.flexWrap = 'nowrap';
+                keywordsContainer.style.gap = '16px';
                 // Also prevent text wrapping inside the tags
                 const keywordSpans = keywordsContainer.querySelectorAll('span');
                 keywordSpans.forEach(s => {
                     s.style.whiteSpace = 'nowrap';
                     s.style.flexShrink = '0'; // Prevent shrinking
+                    s.style.fontSize = '32px'; // Massively increase tag size for 1200px
+                    s.style.lineHeight = '1.5';
+                    s.style.padding = '8px 24px'; // More padding for rounded shape
+                    s.style.borderRadius = '9999px'; // Force rounded-full
                 });
             }
+
+            // --- USER REQUEST: MAXIMIZE Internal Font Sizes ---
+            // 1. Archetype Badge (The small pill ABOVE title)
+            const archetypeWrapper = clone.querySelector('.archetype-wrapper');
+            const archetypeInner = clone.querySelector('.archetype-inner');
+            const archetypeText = clone.querySelector('.archetype-text');
+            const archetypeIcon = clone.querySelector('.archetype-inner svg');
+
+            if (archetypeWrapper) {
+                (archetypeWrapper as HTMLElement).style.padding = '3px'; // Thicker gradient border
+                (archetypeWrapper as HTMLElement).style.borderRadius = '9999px';
+                (archetypeWrapper as HTMLElement).style.boxShadow = '0 0 40px rgba(255,255,255,0.6)'; // Stronger glow
+            }
+
+            if (archetypeInner) {
+                (archetypeInner as HTMLElement).style.padding = '12px 32px'; // Bulkier pill
+                (archetypeInner as HTMLElement).style.borderRadius = '9999px';
+                (archetypeInner as HTMLElement).style.background = 'rgba(0,0,0,0.85)'; // Darker background
+                (archetypeInner as HTMLElement).style.gap = '16px';
+                (archetypeInner as HTMLElement).style.display = 'flex';
+                (archetypeInner as HTMLElement).style.justifyContent = 'center';
+                (archetypeInner as HTMLElement).style.alignItems = 'center';
+            }
+
+            if (archetypeIcon) {
+                (archetypeIcon as HTMLElement).style.width = '24px';
+                (archetypeIcon as HTMLElement).style.height = '24px';
+            }
+
+            if (archetypeText) {
+                (archetypeText as HTMLElement).style.fontSize = '34px'; // Scaled for 1200px
+                (archetypeText as HTMLElement).style.fontWeight = '800'; // Thicker font
+                (archetypeText as HTMLElement).style.letterSpacing = '0.2em';
+                (archetypeText as HTMLElement).style.marginRight = '-0.2em'; // Offset letter-spacing visual imbalance
+                (archetypeText as HTMLElement).style.textShadow = '0 0 15px rgba(255,255,255,0.8)'; // Text glow
+            }
+
+            // 2. Title (e.g. "Y2K") - FORCE CINZEL
+            const titleText = clone.querySelector('h1 span');
+            if (titleText) {
+                (titleText as HTMLElement).style.fontFamily = '"Cinzel", serif'; // FORCE CINZEL
+                (titleText as HTMLElement).style.fontSize = '140px'; // Scaled for 1200px
+                (titleText as HTMLElement).style.lineHeight = '1';
+                (titleText as HTMLElement).style.marginTop = '16px';
+                (titleText as HTMLElement).style.display = 'inline-block';
+            }
+
+            // 3. Description Headers & Text
+            const descHeaders = clone.querySelectorAll('h3');
+            descHeaders.forEach(h => {
+                (h as HTMLElement).style.fontSize = '40px'; // Scaled for 1200px
+                (h as HTMLElement).style.marginBottom = '0'; // Gap handled by wrapper
+            });
+
+            // 3.1 Section Headers (Pink Bar & Gap)
+            const sectionBars = clone.querySelectorAll('.section-color-bar');
+            sectionBars.forEach(bar => {
+                (bar as HTMLElement).style.width = '12px'; // 1 -> 12px
+                (bar as HTMLElement).style.height = '48px'; // 4 -> 48px
+                (bar as HTMLElement).style.borderRadius = '9999px';
+            });
+            const sectionWrappers = clone.querySelectorAll('.section-header-wrapper');
+            sectionWrappers.forEach(wrapper => {
+                (wrapper as HTMLElement).style.gap = '24px'; // 2 -> 24px
+                (wrapper as HTMLElement).style.marginBottom = '20px'; // 1 -> 20px
+            });
+
+            const descParagraphs = clone.querySelectorAll('p');
+            descParagraphs.forEach(p => {
+                // Exclude footer/misc small text if needed, but main desc is p
+                if (p.textContent?.length && p.textContent.length > 10) {
+                    (p as HTMLElement).style.fontSize = '32px'; // Scaled for 1200px
+                    (p as HTMLElement).style.lineHeight = '1.7';
+                }
+            });
+
+            // 4. Footer domain & Telegram
+            const footerDomain = clone.querySelector('.footer-domain');
+            const footerTgLabel = clone.querySelector('.footer-telegram-label');
+            const footerTgId = clone.querySelector('.footer-telegram-id');
+            const footerIcon = clone.querySelector('.footer-telegram-icon');
+
+            if (footerDomain) (footerDomain as HTMLElement).style.fontSize = '24px'; // 10 -> 24
+
+            if (footerTgLabel) {
+                (footerTgLabel as HTMLElement).style.fontSize = '32px'; // Italic label
+            }
+            if (footerTgId) {
+                (footerTgId as HTMLElement).style.fontSize = '26px'; // @todayshelp
+            }
+            if (footerIcon) { // If there's an icon wrapper or svg
+                // Ensure icon scales if needed, though usually font-size affects em-based icons
+            }
+
+            // 5. Ad Banner Redesign for Capture
+            const adContainer = clone.querySelector('.ad-container');
+            const adIconLink = clone.querySelector('.ad-icon-wrapper'); // Renamed var to match selector logic if needed, or just adIcon
+            const adTitle = clone.querySelector('.ad-title');
+            const adDesc = clone.querySelector('.ad-desc');
+            const adRating = clone.querySelector('.ad-rating');
+            const adCta = clone.querySelector('.ad-cta');
+
+            if (adContainer) {
+                (adContainer as HTMLElement).style.padding = '12px 32px';
+                (adContainer as HTMLElement).style.gap = '24px';
+            }
+            if (adIconLink) {
+                (adIconLink as HTMLElement).style.width = '84px';
+                (adIconLink as HTMLElement).style.height = '84px';
+                (adIconLink as HTMLElement).style.borderRadius = '20px';
+            }
+            if (adTitle) {
+                (adTitle as HTMLElement).style.fontSize = '36px';
+            }
+            if (adDesc) {
+                (adDesc as HTMLElement).style.fontSize = '24px';
+                (adDesc as HTMLElement).style.padding = '6px 16px';
+                (adDesc as HTMLElement).style.borderRadius = '8px';
+                (adDesc as HTMLElement).style.borderWidth = '2px';
+            }
+            if (adRating) {
+                (adRating as HTMLElement).style.gap = '16px';
+                const stars = adRating.querySelectorAll('span'); // or svg
+                // If using SVG stars, scale them
+                const svgs = adRating.querySelectorAll('svg');
+                svgs.forEach(svg => {
+                    (svg as unknown as HTMLElement).style.width = '24px';
+                    (svg as unknown as HTMLElement).style.height = '24px';
+                });
+                stars.forEach(s => {
+                    (s as HTMLElement).style.fontSize = '24px';
+                });
+            }
+            if (adCta) {
+                (adCta as HTMLElement).style.fontSize = '24px';
+            }
+
 
             captureContainer.style.width = `${CAPTURE_WIDTH}px`;
             captureContainer.appendChild(clone);
@@ -228,7 +370,7 @@ export function ResultCardClient({
 
             const captureOptions = {
                 quality: 1.0,
-                pixelRatio: 2,
+                pixelRatio: 1,
                 backgroundColor: '#000000',
                 width: CAPTURE_WIDTH,
                 style: {
@@ -318,6 +460,8 @@ export function ResultCardClient({
                     await navigator.share({
                         files: [file],
                         title: t.shareTitle,
+                        text: t.shareText,
+                        // url: shareUrl, // Some apps fail if URL + File are sent together, but Text usually works
                     });
                     shareSuccess = true;
                 } catch (shareError) {
@@ -463,16 +607,17 @@ export function ResultCardClient({
 
                             {/* BOTTOM LEFT: Archetype, Title, Keywords */}
                             <div className="flex flex-col items-start gap-2">
-                                {/* Archetype Pill */}
-                                <div className="px-3 py-1 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                    <span className={`text-[11px] md:text-sm font-bold text-white/90 tracking-wider uppercase whitespace-nowrap ${isKo ? '' : 'font-cinzel'}`}>
-                                        {archetype}
-                                    </span>
+                                {/* Archetype Details - PREMIUM CRYSTAL */}
+                                <div className="archetype-wrapper p-[2px] rounded-full bg-gradient-to-r from-rose-200 via-white to-sky-200 shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+                                    <div className="archetype-inner px-5 py-1.5 bg-black/80 backdrop-blur-2xl rounded-full flex items-center gap-2">
+                                        <span className={`archetype-text text-[11px] md:text-sm font-bold text-white tracking-[0.2em] uppercase whitespace-nowrap drop-shadow-sm ${isKo ? '' : 'font-cinzel'}`}>
+                                            {archetype}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {/* Title */}
-                                <h1 className={`font-black leading-none tracking-tight ${isKo ? 'font-korean' : 'font-cinzel'} z-0`}>
+                                <h1 className={`font-black leading-none tracking-tight font-cinzel z-0`}>
                                     <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] whitespace-nowrap text-2xl sm:text-3xl md:text-4xl">
                                         {title}
                                     </span>
@@ -483,10 +628,7 @@ export function ResultCardClient({
                                     {keywords.map((k, i) => (
                                         <span
                                             key={k}
-                                            className={`px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-medium border backdrop-blur-md ${isKo ? 'font-korean' : 'font-serif'}
-                                                ${i === 0 ? 'bg-pink-500/20 border-pink-500/30 text-pink-200' :
-                                                    i === 1 ? 'bg-purple-500/20 border-purple-500/30 text-purple-200' :
-                                                        'bg-white/10 border-white/10 text-white/70'}`}
+                                            className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-light border backdrop-blur-md ${isKo ? 'font-korean' : 'font-sans'} bg-zinc-900/60 border-white/10 text-gray-300 tracking-wide`}
                                         >
                                             #{k}
                                         </span>
@@ -509,8 +651,8 @@ export function ResultCardClient({
                                 if (header) {
                                     return (
                                         <div key={index} className="flex flex-col gap-2">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-1 h-4 bg-gradient-to-b from-pink-500 to-purple-500 rounded-full" />
+                                            <div className="flex items-center gap-2 mb-1 section-header-wrapper">
+                                                <div className="w-1 h-4 bg-gradient-to-b from-pink-500 to-purple-500 rounded-full section-color-bar" />
                                                 <h3 className="text-pink-300 font-bold text-sm tracking-wide uppercase">
                                                     {header}
                                                 </h3>
@@ -533,30 +675,26 @@ export function ResultCardClient({
                     </div>
 
                     {/* 3.5. Moroka Banner (Restored) */}
-                    <a href="https://play.google.com/store/apps/details?id=com.chlee.morokaapp" target="_blank" rel="noopener noreferrer" className="w-full bg-[#1A1A1A] p-4 flex items-center justify-between gap-3 border-t border-white/5 active:bg-[#252525] transition-colors group">
+                    <a href="https://play.google.com/store/apps/details?id=com.chlee.morokaapp" target="_blank" rel="noopener noreferrer" className="ad-container w-full bg-[#1A1A1A] p-4 flex items-center justify-between gap-3 border-t border-white/5 active:bg-[#252525] transition-colors group">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="relative w-12 h-12 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-lg group-hover:scale-105 transition-transform duration-300">
+                            <div className="ad-icon-wrapper relative w-12 h-12 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-lg group-hover:scale-105 transition-transform duration-300">
                                 <img
                                     src="/icon.webp"
                                     alt="App Icon"
                                     className="w-full h-full object-cover"
                                     crossOrigin="anonymous"
                                 />
-                                {/* NEW Badge */}
-                                <div className="absolute top-0 right-0 px-1.5 py-0.5 bg-gradient-to-r from-pink-500 to-rose-500 rounded-bl-lg text-[8px] font-bold text-white shadow-sm z-10">
-                                    HOT
-                                </div>
                             </div>
                             <div className="flex flex-col justify-center min-w-0 gap-0.5">
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-base font-bold bg-gradient-to-r from-amber-200 to-amber-500 bg-clip-text text-transparent truncate">
+                                    <span className="ad-title text-base font-bold bg-gradient-to-r from-amber-200 to-amber-500 bg-clip-text text-transparent truncate">
                                         {t.adTitle}
                                     </span>
-                                    <span className="text-[10px] text-amber-400/80 truncate border border-amber-500/30 px-1 rounded-sm">
+                                    <span className="ad-desc text-[10px] text-amber-400/80 truncate border border-amber-500/30 px-1 rounded-sm">
                                         {t.adDesc}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="ad-rating flex items-center gap-2">
                                     <div className="flex items-center gap-0.5">
                                         {[1, 2, 3, 4, 5].map(i => (
                                             <svg key={i} className="w-2.5 h-2.5 text-amber-400 fill-current" viewBox="0 0 20 20">
@@ -566,7 +704,7 @@ export function ResultCardClient({
                                         <span className="text-[10px] text-white/80 font-medium ml-1">5.0</span>
                                     </div>
                                     <span className="w-0.5 h-2 bg-white/20" />
-                                    <span className="text-[10px] text-white/50">{t.adCTA}</span>
+                                    <span className="ad-cta text-[10px] text-white/50">{t.adCTA}</span>
                                 </div>
                             </div>
                         </div>
@@ -578,7 +716,7 @@ export function ResultCardClient({
 
                     {/* 4. Footer: Domain & Telegram */}
                     <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
-                        <p className="text-white text-[10px] uppercase tracking-[0.2em] font-light">
+                        <p className="footer-domain text-white text-[10px] uppercase tracking-[0.2em] font-light">
                             findcore.me
                         </p>
                         <a
@@ -587,8 +725,8 @@ export function ResultCardClient({
                             rel="noopener noreferrer"
                             className="group flex items-center gap-1.5 text-white hover:text-cyan-200 transition-colors duration-300"
                         >
-                            <span className="font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
-                            <span className="text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
+                            <span className="footer-telegram-label font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
+                            <span className="footer-telegram-id font-serif italic text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
                         </a>
                     </div>
                 </div>

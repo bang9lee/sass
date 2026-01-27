@@ -11,20 +11,20 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   const metadataMap = {
     ko: {
-      title: '나의 감성 타입 찾기 테스트 (Aesthetic Core)',
-      description: '나만의 시각적 분위기와 감성 타입을 찾아보세요. 당신은 Dark Academia일까요, 아니면 Y2K일까요?',
+      title: '나의 감성 타입 찾기 테스트',
+      description: '나만의 시각적 분위기와 감성 타입을 찾아보세요.',
     },
     en: {
       title: 'Find My Aesthetic Core Test',
-      description: 'Discover your unique visual atmosphere. Are you Dark Academia, Cottagecore, or Y2K?',
+      description: 'Discover your unique visual atmosphere.',
     },
     zh: {
       title: '寻找我的美学类型 (Aesthetic Core Test)',
-      description: '探索你独特的视觉氛围。你是黑暗学院风 (Dark Academia) 还是 Y2K 千禧辣妹？',
+      description: '探索你独特的视觉氛围。',
     },
     ja: {
       title: '私の感性タイプ診断 (Aesthetic Core Test)',
-      description: 'あなただけの視覚的な雰囲気を発見しましょう。ダークアカデミア？それともY2K？',
+      description: 'あなただけの視覚的な雰囲気を発見しましょう。',
     }
   };
 

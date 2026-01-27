@@ -92,7 +92,7 @@ export default async function ResultPage({ params, searchParams }: Props) {
     }
 
     const content = {
-        title: { ko: aesthetic.title_ko, zh: aesthetic.title_zh, ja: aesthetic.title_ja, en: aesthetic.title }[currentLang] || aesthetic.title,
+        title: aesthetic.title, // ALWAYS English for global consistency
         archetype: { ko: aesthetic.archetype_ko, zh: aesthetic.archetype_zh, ja: aesthetic.archetype_ja, en: aesthetic.archetype }[currentLang] || aesthetic.archetype,
         description: { ko: aesthetic.description_ko, zh: aesthetic.description_zh, ja: aesthetic.description_ja, en: aesthetic.description }[currentLang] || aesthetic.description,
         keywords: { ko: aesthetic.keywords_ko, zh: aesthetic.keywords_zh, ja: aesthetic.keywords_ja, en: aesthetic.keywords }[currentLang] || aesthetic.keywords,

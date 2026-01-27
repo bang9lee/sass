@@ -59,7 +59,15 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         description: `[Personality Analysis]\nYou feel the world deeply.\nWhile others stick to the boring facts, you notice the magic and hidden meanings in everyday life.\nPeople might call you "dreamy," but that's just because your imagination is too big for this small world.\n\n[Why this Result?]\nWhimsigoth is your armor.\nThe dark, mystical vibe protects your sensitive heart.\nYou love tarot and magic not just for fun, but because you crave a world that is as deep and meaningful as you are.`,
         description_ko: `[성격 분석]\n남들보다 훨씬 예민하고 섬세한 감각을 타고나셨군요.\n딱딱한 현실보다는 꿈꾸는 듯한 신비로운 분위기에서 편안함을 느낍니다.\n"생각이 너무 많다"는 말을 듣기도 하지만, 사실 그건 당신이 세상을 더 깊이 있게 바라보기 때문이에요.\n\n[왜 이 결과가 나왔을까?]\n윔지가스는 당신의 여린 마음을 지켜주는 갑옷입니다.\n어둡고 신비로운 스타일은 예민한 당신을 숨겨주고 보호해줍니다.\n당신이 마법이나 타로에 끌리는 건, 뻔하고 지루한 현실이 당신의 거대한 상상력을 담기엔 너무 좁기 때문일 거예요.`,
         description_zh: `[性格分析]\n你感受世界的方式很特别。\n当别人只关注枯燥的事实时，你却能发现生活中的魔法和隐喻。\n别人也许觉得你“爱做梦”，但那只是因为现实世界对你丰富的想象力来说太狭隘了。\n\n[为什么是这个结果？]\nWhimsigoth 是你的盔甲。\n那种黑暗神秘的氛围保护着你敏感的内心。\n你喜欢塔罗和魔法，是因为你渴望一个像你的灵魂一样深邃、充满意义的世界。`,
-        description_ja: `【性格分析】\nあなたは誰よりも繊細な心の持ち主です。\n現実的なことよりも、夢のような神秘的な世界に惹かれます。\n「考えすぎ」と言われることもありますが、それはあなたが世界を深く感じ取っている証拠です。\n\n【なぜこの結果なのか？】\nWhimsigothは、あなたを守る鎧です。\nダークで神秘的な雰囲気は、あなたの傷つきやすい心を守ってくれます。\n魔法やタロットに惹かれるのは、平凡な現実があなたの豊かな想像力には退屈すぎるからでしょう。`,
+        description_ja: `[性格分析]
+あなたは誰よりも繊細な心の持ち主です。
+現実的なことよりも、夢のような神秘的な世界に惹かれます。
+「考えすぎ」と言われることもありますが、それはあなたが世界を深く感じ取っている証拠です。
+
+[なぜこの結果なのか？]
+Whimsigothは、あなたを守る鎧です。
+ダークで神秘的な雰囲気は、あなたの傷つきやすい心を守ってくれます。
+魔法やタロットに惹かれるのは、平凡な現実があなたの豊かな想像力には退屈すぎるからでしょう。`,
         keywords: ['Intuition', 'Depth', 'Symbolism', 'Sensitivity', 'Magic'],
         keywords_ko: ['직관', '깊이', '상징', '예민함', '마법'],
         keywords_zh: ['直觉', '深度', '象征', '敏感', '魔法'],
@@ -82,7 +90,15 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         description: `[Personality Analysis]\nYou are the master of self-control.\nYou hate chaos. You need everything around you to be organized to feel calm.\nYou make hard work look effortless, but we know you work harder than anyone else behind the scenes.\n\n[Why this Result?]\nThe 'Clean Girl' look is the mirror of your tidy mind.\nSlick hair, simple clothes, planned schedule—these are your rituals to keep stress away.\nIn a messy world, your ability to create order is your superpower.`,
         description_ko: `[성격 분석]\n당신은 자기관리의 끝판왕이시군요.\n주변이 어지러우면 머릿속까지 복잡해져서, 깔끔하게 정리된 환경에서 안정을 찾습니다.\n겉으로는 여유로워 보이지만, 사실은 물 밑에서 치열하게 발을 젓는 백조처럼 보이지 않는 곳에서 엄청난 노력을 하는 타입이에요.\n\n[왜 이 결과가 나왔을까?]\n클린걸 스타일은 당신의 깔끔한 성격을 그대로 보여줍니다.\n단정한 머리와 옷차림, 규칙적인 생활은 당신의 마음을 평온하게 만드는 의식과도 같아요.\n혼란스러운 세상 속에서 흔들리지 않고 나만의 질서를 유지하는 능력, 정말 대단합니다.`,
         description_zh: `[性格分析]\n你是自律的大师。\n你讨厌混乱。只有周围井井有条，你的内心由于才会平静。\n你表面看起来毫不费力，其实在背后比谁都努力。\n\n[为什么是这个结果？]\n‘Clean Girl’ 风格是你整洁内心的写照。\n利落的发型、极简的穿搭、规划好的日程——这些都是你对抗压力的仪式。\n在一个混乱的世界里，能够建立只需，是你的超能力。`,
-        description_ja: `【性格分析】\nあなたは自己管理の達人です。\n散らかっているのが大嫌いで、身の回りが整っていないと落ち着きません。\n表面的には余裕そうに見えますが、影では誰よりも努力している人です。\n\n【なぜこの結果なのか？】\n「Clean Girl」スタイルは、あなたの几帳面な性格を映し出しています。\n整った髪、シンプルな服装、計画的な生活。これらはあなたの心を守る儀式です。\n混沌とした世界で、自分だけの秩序を作れるのは素晴らしい才能です。`,
+        description_ja: `[性格分析]
+あなたは自己管理の達人です。
+散らかっているのが大嫌いで、身の回りが整っていないと落ち着きません。
+表面的には余裕そうに見えますが、影では誰よりも努力している人です。
+
+[なぜこの結果なのか？]
+「Clean Girl」スタイルは、あなたの几帳面な性格を映し出しています。
+整った髪、シンプルな服装、計画的な生活。これらはあなたの心を守る儀式です。
+混沌とした世界で、自分だけの秩序を作れるのは素晴らしい才能です。`,
         keywords: ['Control', 'Efficiency', 'Clarity', 'Discipline', 'Order'],
         keywords_ko: ['통제', '효율', '명료함', '규율', '질서'],
         keywords_zh: ['掌控', '效率', '清晰', '自律', '秩序'],
@@ -105,7 +121,15 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         description: `[Personality Analysis]\nYou recharge your energy when you are alone.\nLoud parties drain you; quiet cafes or libraries heal you.\nYou aren't just "quiet"—you are deep. You love talking about life, secrets, and philosophy.\n\n[Why this Result?]\nDark Academia validates your need for solitude.\nOld books, rain, silence... these aren't gloomy to you; they are peaceful.\nYou don't need to be loud to be heard. Your depth speaks for itself.`,
         description_ko: `[성격 분석]\n시끄러운 모임보다는 혼자 카페에서 책을 읽을 때 에너지가 충전되는 분이시군요.\n단순히 "조용하다"는 말로는 부족해요. 당신은 생각이 깊고 진지한 사람입니다.\n가벼운 농담보다는 인생의 의미나 철학적인 주제로 대화할 때 눈이 반짝이죠.\n\n[왜 이 결과가 나왔을까?]\n다크 아카데미아는 당신의 '지적인 고독'을 가장 우아하게 표현해줍니다.\n오래된 도서관, 빗소리, 차분한 공기... 남들은 우울하다고 할지 몰라도 당신에겐 가장 편안한 분위기죠.\n굳이 큰 소리로 말하지 않아도 됩니다. 당신의 깊이 있는 내면은 이미 충분히 매력적이니까요.`,
         description_zh: `[性格分析]\n独处能让你恢复能量。\n吵闹的聚会让你疲惫，安静的咖啡馆或图书馆能治愈你。\n你不仅仅是“安静”，你是深沉。你喜欢探讨人生、秘密和哲学。\n\n[为什么是这个结果？]\nDark Academia 证明了你对独处的需求是正当且迷人的。\n古书、雨天、寂静……对别人来说可能沉闷，对你却是享受。\n你不需要大声喧哗。你的深度本身就是一种力量。`,
-        description_ja: `【性格分析】\nあなたは一人でいる時にエネルギーを回復します。\n騒がしいパーティーは苦手で、静かなカフェや図書館が安らぎの場所です。\nただ「静か」なだけではありません。あなたは思慮深い人です。\n\n【なぜこの結果なのか？】\nDark Academiaは、あなたの「知的な孤独」を肯定します。\n古い本、雨音、静寂…これらはあなたにとって最高の癒しです。\n大声を出す必要はありません。あなたの深みは、それだけで十分魅力的です。`,
+        description_ja: `[性格分析]
+あなたは一人でいる時にエネルギーを回復します。
+騒がしいパーティーは苦手で、静かなカフェや図書館が安らぎの場所です。
+ただ「静か」なだけではありません。あなたは思慮深い人です。
+
+[なぜこの結果なのか？]
+Dark Academiaは、あなたの「知的な孤独」を肯定します。
+古い本、雨音、静寂…これらはあなたにとって最高の癒しです。
+大声を出す必要はありません。あなたの深みは、それだけで十分魅力的です。`,
         keywords: ['Intellect', 'Solitude', 'Melancholy', 'Curiosity', 'Legacy'],
         keywords_ko: ['지성', '고독', '멜랑꼴리', '탐구', '유산'],
         keywords_zh: ['智力', '独处', '忧郁', '好奇', '传承'],
@@ -128,7 +152,15 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         description: `[Personality Analysis]\nYou have "Main Character Energy."\nYou hate being bored and always look for the next excitement.\nYou aren't afraid of attention—you love it. And honestly? You deserve it.\n\n[Why this Result?]\nY2K is the spotlight you were born for.\nBright pinks, sparkles, bold logos—they shout "Look at me!" just like your soul does.\nYour confidence makes people smile. Never dim your light for anyone.`,
         description_ko: `[성격 분석]\n어딜 가나 시선을 끄는 '주인공' 에너지를 타고나셨네요!\n지루한 건 딱 질색이고, 항상 새롭고 짜릿한 걸 찾아다니는 모험가 같아요.\n남의 눈치를 보기보다는 "나 좀 봐! 멋지지 않아?" 하고 당당하게 자신을 드러내는 모습이 정말 매력적이에요.\n\n[왜 이 결과가 나왔을까?]\nY2K는 당신의 넘치는 끼를 발산하기 위한 최고의 무대예요.\n튀는 색감, 반짝이는 액세서리는 당신의 자신감을 그대로 보여주는 도구입니다.\n당신의 밝은 에너지는 주변 사람까지 기분 좋게 만드는 힘이 있어요. 절대 그 빛을 잃지 마세요!`,
         description_zh: `[性格分析]\n你天生自带“主角光环”。\n你最受不了无聊，总是在寻找下一个刺激点。\n你不害怕被注视——相反，你享受它。而且说实话，你值得被关注。\n\n[为什么是这个结果？]\nY2K 是为你量身打造的聚光灯。\n亮粉色、闪粉、大Logo——它们和你一样在呐喊“看着我！”。\n你的自信能感染周围的人。永远不要为了任何人掩盖你的光芒。`,
-        description_ja: `【性格分析】\nあなたは「主人公エネルギー」の持ち主です。\n退屈なのは大嫌い、常に新しい刺激を探しています。\n注目されることを恐れず、むしろ楽しんでいますね。\n\n【なぜこの結果なのか？】\nY2Kは、あなたのためのスポットライトです。\n鮮やかなピンク、キラキラ、大胆なロゴ。これらはあなたの魂のように「私を見て！」と叫んでいます。\nあなたの自信は周りの人を笑顔にします。その輝きを失わないで。`,
+        description_ja: `[性格分析]
+あなたは「主人公エネルギー」の持ち主です。
+退屈なのは大嫌い、常に新しい刺激を探しています。
+注目されることを恐れず、むしろ楽しんでいますね。
+
+[なぜこの結果なのか？]
+Y2Kは、あなたのためのスポットライトです。
+鮮やかなピンク、キラキラ、大胆なロゴ。これらはあなたの魂のように「私を見て！」と叫んでいます。
+あなたの自信は周りの人を笑顔にします。その輝きを失わないで。`,
         keywords: ['Energy', 'Attention', 'Optimism', 'Play', 'Main Character'],
         keywords_ko: ['에너지', '관종', '낙관', '놀이', '주인공'],
         keywords_zh: ['能量', '焦点', '乐观', '玩乐', '大女主'],
@@ -151,7 +183,15 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         description: `[Personality Analysis]\nYou have a gentle and kind heart.\nYou dislike fighting and competition. You dream of a peaceful life where everyone is happy.\nYou feel other people's pain deeply, so sometimes the world feels too heavy for you.\n\n[Why this Result?]\nCottagecore is medicine for your tired soul.\nSunlight, flowers, nature... these things make you feel safe.\nWanting a slow life isn't running away. It's your way of protecting your innocence in a harsh world.`,
         description_ko: `[성격 분석]\n마음씨가 정말 따뜻하고 다정한 분이시네요.\n싸우고 경쟁하는 걸 싫어하고, 모두가 평화롭게 지내는 세상을 꿈꾸시죠?\n공감 능력이 너무 좋아서, 남의 아픔까지 내 것처럼 느끼느라 가끔은 세상살이가 버겁기도 할 거예요.\n\n[왜 이 결과가 나왔을까?]\n코티지코어는 지친 당신의 마음에 주는 '휴식'입니다.\n따스한 햇살, 예쁜 꽃, 자연... 상상만 해도 마음이 놓이죠?\n당신이 이런 포근함을 찾는 건 도피가 아니에요. 삭막한 세상에서도 순수함과 여유를 잃지 않으려는 본능이랍니다.`,
         description_zh: `[性格分析]\n你有一颗温柔善良的心。\n你讨厌争吵和竞争，梦想着大家都幸福的和平生活。\n你能深刻感受他人的痛苦，所以有时会觉得这个世界太沉重。\n\n[为什么是这个结果？]\nCottagecore 是给你疲惫心灵的一剂良药。\n阳光、鲜花、大自然……这些让你感到安全。\n向往慢生活不是逃避，而是你在用自己的方式守护那份纯真。`,
-        description_ja: `【性格分析】\nあなたはとても優しく温かい心の持ち主です。\n争いや競争が嫌いで、みんなが幸せに暮らす世界を夢見ています。\n共感力が高いので、他人の痛みを敏感に感じ取り、疲れてしまうこともあるでしょう。\n\n【なぜこの結果なのか？】\nCottagecoreは、疲れた心への薬です。\n日差し、花、自然…これらはあなたを安心させてくれます。\nスローライフを求めるのは逃げではありません。厳しい世界で純粋さを守るための、あなたなりの方法なのです。`,
+        description_ja: `[性格分析]
+あなたはとても優しく温かい心の持ち主です。
+争いや競争が嫌いで、みんなが幸せに暮らす世界を夢見ています。
+共感力が高いので、他人の痛みを敏感に感じ取り、疲れてしまうこともあるでしょう。
+
+[なぜこの結果なのか？]
+Cottagecoreは、疲れた心への薬です。
+日差し、花、自然…これらはあなたにとって最高の癒しです。
+スローライフを求めるのは逃げではありません。厳しい世界で純粋さを守るための、あなたなりの方法なのです。`,
         keywords: ['Empathy', 'Safety', 'Nature', 'Gentleness', 'Harmony'],
         keywords_ko: ['공감', '안전', '자연', '다정함', '조화'],
         keywords_zh: ['共情', '安全', '自然', '温柔', '和谐'],
@@ -174,7 +214,15 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         description: `[Personality Analysis]\nYou hate being told "Just do it like everyone else."\nYou question rules that don't make sense.\nYou prefer harsh truths over sweet lies.\n\n[Why this Result?]\nCyberpunk matches your rebellious spirit.\nYou see the cracks in the system that others ignore.\nYour courage to be your real self, even when it's weird or different, is your greatest strength.`,
         description_ko: `[성격 분석]\n"남들 다 하니까 너도 해"라는 말이 제일 싫으시죠?\n이해 안 가는 규칙은 따르기 싫고, 꼰대 같은 권위에는 본능적으로 반감을 느끼는 '사이다' 성격이에요.\n가식적인 칭찬보다는 차라리 솔직한 비판을 선호하는, 쿨내 진동하는 타입이시군요.\n\n[왜 이 결과가 나왔을까?]\n사이버펑크는 당신의 '삐딱한 시선'과 잘 어울려요.\n당신은 남들이 외면하는 세상의 불편한 진실을 꿰뚫어 보는 눈을 가졌거든요.\n남들과 똑같이 되기를 거부하고 '진짜 나'로 살겠다는 그 용기, 정말 멋집니다.`,
         description_zh: `[性格分析]\n你讨厌听到“别人都这么做，你也这么做吧”。\n你质疑那些毫无意义的规则。\n比起甜蜜的谎言，你宁愿面对残酷的真相。\n\n[为什么是这个结果？]\n赛博朋克完全契合你的叛逆精神。\n你能看到别人选择忽视的系统漏洞。\n即使被视为异类，也要坚持做真实的自己，这是你最大的力量。`,
-        description_ja: `【性格分析】\n「みんなやってるから」と言われるのが大嫌いですよね？\n納得できないルールには従いたくない、反骨精神の持ち主です。\n甘い嘘よりも、厳しい真実の方を好みます。\n\n【なぜこの結果なのか？】\nサイバーパンクは、あなたの反逆精神にマッチします。\nあなたは、他の人が無視する社会の歪みを見抜く目を持っています。\n変人扱いされても「本当の自分」でいようとする勇気、それがあなたの最大の武器です。`,
+        description_ja: `[性格分析]
+「みんなやってるから」と言われるのが大嫌いですよね？
+納得できないルールには従いたくない、反骨精神の持ち主です。
+甘い嘘よりも、厳しい真実の方を好みます。
+
+[なぜこの結果なのか？]
+サイバーパンクは、あなたの反逆精神にマッチします。
+あなたは、他の人が無視する社会の歪みを見抜く目を持っています。
+変人扱いされても「本当の自分」でいようとする勇気、それがあなたの最大の武器です。`,
         keywords: ['Rebellion', 'Truth', 'Future', 'Tech', 'Cynicism'],
         keywords_ko: ['반항', '진실', '미래', '기술', '냉소'],
         keywords_zh: ['反叛', '真相', '未来', '科技', '愤世嫉俗'],
@@ -197,7 +245,15 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         description: `[Personality Analysis]\nYou are steady like a rock.\nYou don't chase fast trends. You like things that are proven and last a long time.\nYou have a quiet confidence that doesn't need to show off.\n\n[Why this Result?]\nOld Money shows your love for "Quality."\nYou know that true luxury comes from good character, not flashy logos.\nIn a world that changes too fast, you stand firm with dignity. That is your power.`,
         description_ko: `[성격 분석]\n당신은 쉽게 흔들리지 않는 바위 같은 분이군요.\n유행 따라 우르르 몰려다니는 건 좀 가벼워 보인다고 생각하시나요?\n검증되지 않은 모험보다는 확실하고 안정적인 길을 선호하는 신중한 성격입니다.\n\n[왜 이 결과가 나왔을까?]\n올드머니 룩은 당신이 추구하는 '변치 않는 가치'를 보여줍니다.\n시끄럽게 자랑하지 않아도 은은하게 배어 나오는 기품이 있어요.\n세상이 아무리 빠르게 변해도, 당신만은 묵묵히 자신의 자리를 지킬 것 같네요.`,
         description_zh: `[性格分析]\n你像岩石一样稳重。\n你不追逐快时尚，喜欢那些经久考验、能够长存的事物。\n你有一种无需炫耀的静谧自信。\n\n[为什么是这个结果？]\nOld Money 展现了你对“品质”的追求。\n你深知真正的奢华源于内在的底蕴，而非浮夸的Logo。\n在这个瞬息万变的世界里，你保持着尊严屹立不倒。这就是你的力量。`,
-        description_ja: `【性格分析】\nあなたは岩のように揺るぎない人です。\n流行を追いかけることはしません。確実で長く続くものを好みます。\n見せびらかす必要のない、静かな自信を持っています。\n\n【なぜこの結果なのか？】\nOld Moneyは、あなたの「質」へのこだわりを表しています。\n本当の贅沢とは、派手なロゴではなく、品格から来ることを知っています。\n変化の激しい世界で、威厳を持って立ち続ける。それがあなたの力です。`,
+        description_ja: `[性格分析]
+あなたは岩のように揺るぎない人です。
+流行を追いかけることはしません。確実で長く続くものを好みます。
+見せびらかす必要のない、静かな自信を持っています。
+
+[なぜこの結果なのか？]
+Old Moneyは、あなたの「質」へのこだわりを表しています。
+本当の贅沢とは、派手なロゴではなく、品格から来ることを知っています。
+変化の激しい世界で、威厳を持って立ち続ける。それがあなたの力です。`,
         keywords: ['Status', 'Stability', 'Legacy', 'Dignity', 'Tradition'],
         keywords_ko: ['지위', '안정', '유산', '품위', '전통'],
         keywords_zh: ['地位', '稳定', '传承', '尊严', '传统'],
@@ -220,7 +276,15 @@ export const AESTHETICS: Record<AestheticId, Aesthetic> = {
         description: `[Personality Analysis]\nYou have so much love to give.\nYou get moved easily by small things, and rejection hurts you deeply.\nBut staying soft in a hard world is brave, not weak.\n\n[Why this Result?]\nCoquette is your way of being loved.\nRibbons and pink aren't just cute; they make you look harmless and sweet.\nYou chose to survival by being adorable. And honestly? It works.`,
         description_ko: `[성격 분석]\n사랑받고 싶은 마음도 크지만, 그만큼 사랑을 줄 줄도 아는 '사랑둥이'시네요.\n작은 일에도 감동하고, 남의 말에 상처도 잘 받지만 그만큼 마음이 순수하다는 뜻이에요.\n차가운 세상에서 다정함을 잃지 않는 것, 그건 정말 대단한 용기랍니다.\n\n[왜 이 결과가 나왔을까?]\n코케트는 당신의 사랑스러움을 극대화하는 무기예요.\n리본, 핑크, 레이스... 이런 것들은 당신을 무해하고 지켜주고 싶은 존재로 보이게 하죠.\n"나를 사랑해줘"라고 말하는 대신, 존재 자체로 사랑받기를 선택한 당신. 삭막한 세상엔 당신 같은 로맨티스트가 꼭 필요해요.`,
         description_zh: `[性格分析]\n你拥有满满的爱。\n你会为小事感动，也会因拒绝而深受伤害。\n但在坚硬的世界里保持柔软，是勇敢，而不是软弱。\n\n[为什么是这个结果？]\nCoquette 是你获得爱的方式。\n蝴蝶结和粉色不仅仅是可爱，它们让你看起来无害又甜美。\n你选择通过变得惹人怜爱来生存。说实话？这招很管用。`,
-        description_ja: `【性格分析】\nあなたは溢れるほどの愛を持っています。\n些細なことに感動し、拒絶されると深く傷つきます。\nしかし、厳しい世界で柔らかいままでいることは、弱さではなく勇気です。\n\n[なぜこの結果なのか？]\nCoquetteは、あなたが愛されるための方法です。\nリボンやピンクは単に可愛いだけでなく、あなたを無害で愛らしく見せます。\n愛らしくあることで生き残ることを選んだあなた。正直、その戦略は効果的です。`,
+        description_ja: `[性格分析]
+あなたは溢れるほどの愛を持っています。
+些細なことに感動し、拒絶されると深く傷つきます。
+しかし、厳しい世界で柔らかいままでいることは、弱さではなく勇気です。
+
+[なぜこの結果なのか？]
+Coquetteは、あなたが愛されるための方法です。
+リボンやピンクは単に可愛いだけでなく、あなたを無害で愛らしく見せます。
+愛らしくあることで生き残ることを選んだあなた。正直、その戦略は効果的です。`,
         keywords: ['Romance', 'Affection', 'Softness', 'Desire', 'Charm'],
         keywords_ko: ['로맨스', '애정', '부드러움', '욕망', '매력'],
         keywords_zh: ['浪漫', '深情', '柔软', '渴望', '魅力'],
@@ -424,7 +488,7 @@ export const QUESTIONS: Question[] = [
                 label: 'Appropriateness\n& Cleanliness',
                 label_ko: '상황에 맞고\n단정한지',
                 label_zh: '得体\n与整洁',
-                label_ja: 'TPOに合っていて\n清潔か',
+                label_ja: 'その場に合って\n清潔か',
                 imagePrompt: 'fashion_clean',
                 image: '/images/q_options/q4_b.webp',
                 scores: { conscientiousness: 2, openness: -1 }
