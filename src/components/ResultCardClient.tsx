@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Download, Check, Link2, RotateCcw, Share2, ArrowRight } from 'lucide-react';
+import { Download, Check, Link2, RotateCcw, Share2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface ResultCardClientProps {
@@ -12,7 +12,6 @@ interface ResultCardClientProps {
     description: string;
     image: string;
     keywords: string[];
-    brandMatches: string[];
     colorPalette: string[];
     isKo: boolean;
     lang: string;
@@ -25,7 +24,6 @@ export function ResultCardClient({
     description,
     image,
     keywords,
-    brandMatches,
     colorPalette,
     isKo,
     lang,
@@ -48,12 +46,10 @@ export function ResultCardClient({
             palette: '추천 컬러',
             brand: '추천 브랜드',
             copied: '복사됨!',
-            share: '공유하기',
+        share: '공유하기',
             save: '이미지 저장',
             retest: '처음부터 다시하기',
-            adTitle: 'MOROKA',
-            adDesc: '프리미엄 AI 타로',
-            adCTA: 'Google Play에서 다운로드'
+            adStatus: '광고대기중'
         },
         en: {
             shareTitle: `My Aesthetic Core: ${title}`,
@@ -66,9 +62,7 @@ export function ResultCardClient({
             share: 'Share',
             save: 'Save Image',
             retest: 'Retest',
-            adTitle: 'MOROKA',
-            adDesc: 'Premium AI Tarot',
-            adCTA: 'Get it on Google Play'
+            adStatus: 'Ad Pending'
         },
         zh: {
             shareTitle: `我的美学类型: ${title}`,
@@ -81,9 +75,7 @@ export function ResultCardClient({
             share: '分享',
             save: '保存图片',
             retest: '重新测试',
-            adTitle: 'MOROKA',
-            adDesc: '高级AI塔罗',
-            adCTA: '在Google Play下载'
+            adStatus: '广告待处理'
         },
         ja: {
             shareTitle: `私の感性タイプ: ${title}`,
@@ -96,9 +88,7 @@ export function ResultCardClient({
             share: 'シェアする',
             save: '画像を保存',
             retest: 'もう一度診断する',
-            adTitle: 'MOROKA',
-            adDesc: 'プレミアムAIタロット',
-            adCTA: 'Google Playでダウンロード'
+            adStatus: '広告待機中'
         }
     };
 
@@ -137,7 +127,7 @@ export function ResultCardClient({
                 setShowToast(true);
                 setTimeout(() => setShowToast(false), 2500);
                 return;
-            } catch (err) {
+            } catch {
                 // Ignore error and try fallback
             }
         }
@@ -168,7 +158,7 @@ export function ResultCardClient({
                 // Really failed
                 prompt(t.copyLink, shareUrl);
             }
-        } catch (err) {
+        } catch {
             prompt(t.copyLink, shareUrl);
         }
     };
@@ -319,50 +309,6 @@ export function ResultCardClient({
                 // Ensure icon scales if needed, though usually font-size affects em-based icons
             }
 
-            // 5. Ad Banner Redesign for Capture
-            const adContainer = clone.querySelector('.ad-container');
-            const adIconLink = clone.querySelector('.ad-icon-wrapper'); // Renamed var to match selector logic if needed, or just adIcon
-            const adTitle = clone.querySelector('.ad-title');
-            const adDesc = clone.querySelector('.ad-desc');
-            const adRating = clone.querySelector('.ad-rating');
-            const adCta = clone.querySelector('.ad-cta');
-
-            if (adContainer) {
-                (adContainer as HTMLElement).style.padding = '12px 32px';
-                (adContainer as HTMLElement).style.gap = '24px';
-            }
-            if (adIconLink) {
-                (adIconLink as HTMLElement).style.width = '84px';
-                (adIconLink as HTMLElement).style.height = '84px';
-                (adIconLink as HTMLElement).style.borderRadius = '20px';
-            }
-            if (adTitle) {
-                (adTitle as HTMLElement).style.fontSize = '36px';
-            }
-            if (adDesc) {
-                (adDesc as HTMLElement).style.fontSize = '24px';
-                (adDesc as HTMLElement).style.padding = '6px 16px';
-                (adDesc as HTMLElement).style.borderRadius = '8px';
-                (adDesc as HTMLElement).style.borderWidth = '2px';
-            }
-            if (adRating) {
-                (adRating as HTMLElement).style.gap = '16px';
-                const stars = adRating.querySelectorAll('span'); // or svg
-                // If using SVG stars, scale them
-                const svgs = adRating.querySelectorAll('svg');
-                svgs.forEach(svg => {
-                    (svg as unknown as HTMLElement).style.width = '24px';
-                    (svg as unknown as HTMLElement).style.height = '24px';
-                });
-                stars.forEach(s => {
-                    (s as HTMLElement).style.fontSize = '24px';
-                });
-            }
-            if (adCta) {
-                (adCta as HTMLElement).style.fontSize = '24px';
-            }
-
-
             captureContainer.style.width = `${CAPTURE_WIDTH}px`;
             captureContainer.appendChild(clone);
 
@@ -405,12 +351,12 @@ export function ResultCardClient({
                                     b64 = `${parts[0]},${content}`;
                                 }
                                 img.src = b64;
-                                try { await img.decode(); } catch (e) { }
+                                try { await img.decode(); } catch { }
                                 resolve(true);
                             };
                             reader.readAsDataURL(b);
                         });
-                    } catch (e) {
+                    } catch {
                         img.crossOrigin = 'anonymous';
                     }
                 }));
@@ -499,13 +445,6 @@ export function ResultCardClient({
         }
     };
 
-    const downloadFile = (dataUrl: string) => {
-        const link = document.createElement('a');
-        link.download = `aesthetic-core-${resultId}.png`;
-        link.href = dataUrl;
-        link.click();
-    };
-
     return (
         <>
             {/* Toast Notification */}
@@ -513,7 +452,7 @@ export function ResultCardClient({
                 <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
                     <div className="bg-black/80 backdrop-blur-xl px-6 py-4 rounded-2xl border border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-200">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
                                 <Check className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex flex-col">
@@ -547,7 +486,7 @@ export function ResultCardClient({
                         {/* Copy Link Button */}
                         <button
                             onClick={handleCopyLink}
-                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)]"
+                            className="w-full py-4 rounded-2xl bg-linear-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)]"
                         >
                             <Link2 className="w-5 h-5" />
                             <span>{lang === 'ko' ? '링크 복사하기' : lang === 'ja' ? 'リンクをコピー' : lang === 'zh' ? '复制链接' : 'Copy Link'}</span>
@@ -568,23 +507,25 @@ export function ResultCardClient({
                 {/* Main Result Card - Mobile Optimized Vertical Stack */}
                 <div
                     ref={cardRef}
-                    className={`relative w-full flex flex-col overflow-hidden bg-black text-white rounded-[2rem] ${isKo ? '' : 'font-cinzel'}`}
+                    className={`relative w-full flex flex-col overflow-hidden bg-black text-white rounded-4xl ${isKo ? '' : 'font-cinzel'}`}
                     style={{
                         // Use standard mobile aspect ratio or auto height
                         boxShadow: '0 0 50px -12px rgba(255,255,255,0.1)'
                     }}
                 >
                     {/* Main Image with Premium Overlay Text */}
-                    <div className="relative w-full aspect-[4/3] shrink-0 overflow-hidden">
-                        <img
+                        <div className="relative w-full aspect-4/3 shrink-0 overflow-hidden">
+                        <Image
                             src={image}
                             alt={title}
-                            className="w-full h-full object-cover"
-                            crossOrigin="anonymous"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 768px"
                             loading="eager"
+                            crossOrigin="anonymous"
+                            className="w-full h-full object-cover"
                         />
                         {/* Premium Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/95 z-10" />
+                        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-transparent to-black/95 z-10" />
 
                         {/* Text Overlay */}
                         <div className="absolute inset-0 px-6 pt-6 pb-8 flex flex-col justify-between z-20">
@@ -608,7 +549,7 @@ export function ResultCardClient({
                             {/* BOTTOM LEFT: Archetype, Title, Keywords */}
                             <div className="flex flex-col items-start gap-2">
                                 {/* Archetype Details - PREMIUM CRYSTAL */}
-                                <div className="archetype-wrapper p-[2px] rounded-full bg-gradient-to-r from-rose-200 via-white to-sky-200 shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+                                <div className="archetype-wrapper p-0.5 rounded-full bg-linear-to-r from-rose-200 via-white to-sky-200 shadow-[0_0_20px_rgba(255,255,255,0.4)]">
                                     <div className="archetype-inner px-5 py-1.5 bg-black/80 backdrop-blur-2xl rounded-full flex items-center gap-2">
                                         <span className={`archetype-text text-[11px] md:text-sm font-bold text-white tracking-[0.2em] uppercase whitespace-nowrap drop-shadow-sm ${isKo ? '' : 'font-cinzel'}`}>
                                             {archetype}
@@ -625,7 +566,7 @@ export function ResultCardClient({
 
                                 {/* Keywords */}
                                 <div className="flex flex-wrap gap-1.5 pt-1 keywords-container">
-                                    {keywords.map((k, i) => (
+                                    {keywords.map((k) => (
                                         <span
                                             key={k}
                                             className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-light border backdrop-blur-md ${isKo ? 'font-korean' : 'font-sans'} bg-zinc-900/60 border-white/10 text-gray-300 tracking-wide`}
@@ -652,7 +593,7 @@ export function ResultCardClient({
                                     return (
                                         <div key={index} className="flex flex-col gap-2">
                                             <div className="flex items-center gap-2 mb-1 section-header-wrapper">
-                                                <div className="w-1 h-4 bg-gradient-to-b from-pink-500 to-purple-500 rounded-full section-color-bar" />
+                                                <div className="w-1 h-4 bg-linear-to-b from-pink-500 to-purple-500 rounded-full section-color-bar" />
                                                 <h3 className="text-pink-300 font-bold text-sm tracking-wide uppercase">
                                                     {header}
                                                 </h3>
@@ -674,45 +615,10 @@ export function ResultCardClient({
                         </div>
                     </div>
 
-                    {/* 3.5. Moroka Banner (Restored) */}
-                    <a href="https://play.google.com/store/apps/details?id=com.chlee.morokaapp" target="_blank" rel="noopener noreferrer" className="ad-container w-full bg-[#1A1A1A] p-4 flex items-center justify-between gap-3 border-t border-white/5 active:bg-[#252525] transition-colors group">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="ad-icon-wrapper relative w-12 h-12 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-lg group-hover:scale-105 transition-transform duration-300">
-                                <img
-                                    src="/icon.webp"
-                                    alt="App Icon"
-                                    className="w-full h-full object-cover"
-                                    crossOrigin="anonymous"
-                                />
-                            </div>
-                            <div className="flex flex-col justify-center min-w-0 gap-0.5">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="ad-title text-base font-bold bg-gradient-to-r from-amber-200 to-amber-500 bg-clip-text text-transparent truncate">
-                                        {t.adTitle}
-                                    </span>
-                                    <span className="ad-desc text-[10px] text-amber-400/80 truncate border border-amber-500/30 px-1 rounded-sm">
-                                        {t.adDesc}
-                                    </span>
-                                </div>
-                                <div className="ad-rating flex items-center gap-2">
-                                    <div className="flex items-center gap-0.5">
-                                        {[1, 2, 3, 4, 5].map(i => (
-                                            <svg key={i} className="w-2.5 h-2.5 text-amber-400 fill-current" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                        ))}
-                                        <span className="text-[10px] text-white/80 font-medium ml-1">5.0</span>
-                                    </div>
-                                    <span className="w-0.5 h-2 bg-white/20" />
-                                    <span className="ad-cta text-[10px] text-white/50">{t.adCTA}</span>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Arrow Icon */}
-                        <div className="shrink-0 text-white/30 group-hover:text-amber-400 transition-colors">
-                            <ArrowRight className="w-5 h-5" />
-                        </div>
-                    </a>
+                    {/* 3.5. Ad Placeholder */}
+                    <div className="w-full bg-[#1A1A1A] border-t border-white/5 py-3 px-6">
+                        <p className="text-xs text-center text-white/50 font-semibold">{t.adStatus}</p>
+                    </div>
 
                     {/* 4. Footer: Domain & Telegram */}
                     <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
@@ -743,7 +649,7 @@ export function ResultCardClient({
                     <button
                         onClick={handleDownloadImage}
                         disabled={downloading}
-                        className="flex items-center justify-center gap-2 py-4 rounded-full bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-purple-500 text-white text-sm font-bold transition-all shadow-[0_0_20px_-5px_rgba(236,72,153,0.5)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center gap-2 py-4 rounded-full bg-linear-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-purple-500 text-white text-sm font-bold transition-all shadow-[0_0_20px_-5px_rgba(236,72,153,0.5)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {downloading ? (
                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect, useRef } from "react";
@@ -13,7 +13,7 @@ import { AuroraBackground } from "@/components/ui/aurora-background";
 // ============================================
 type Language = 'ko' | 'en' | 'zh' | 'ja';
 
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 // ============================================
 // LANGUAGE SELECTOR
@@ -26,7 +26,7 @@ function LanguageSelector({
     onSelect: (lang: Language) => void;
 }) {
     const [isOpen, setIsOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
+            const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
@@ -56,8 +56,8 @@ function LanguageSelector({
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             {isOpen && (
-                <div
-                    className={`absolute top-full right-0 mt-2 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 overflow-hidden min-w-[120px] z-50 mobile-fade-in-scale mobile-gpu`}
+            <div
+                    className={`absolute top-full right-0 mt-2 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 overflow-hidden min-w-30 z-50 mobile-fade-in-scale mobile-gpu`}
                 >
                     {(['ko', 'en', 'zh', 'ja'] as Language[]).map((l) => (
                         <button
@@ -83,8 +83,7 @@ function HomeContent() {
     const searchParams = useSearchParams();
     const langParam = searchParams.get('lang');
     const lang: Language = (['ko', 'en', 'zh', 'ja'].includes(langParam || '') ? langParam : 'en') as Language;
-    const prefersReducedMotion = useReducedMotion();
-    const isKorean = lang === 'ko';
+            const isKorean = lang === 'ko';
 
 
 
@@ -137,7 +136,7 @@ function HomeContent() {
                             <h1 className={`text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight tracking-tight 
                            ${isKorean ? 'font-korean' : 'font-serif'}`}>
                                 <span className="block text-white mobile-slide-up">{t.title1}</span>
-                                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 gradient-text-animated mobile-slide-up" style={{ animationDelay: '0.1s' }}>
+                                <span className="block text-transparent bg-clip-text bg-linear-to-r from-pink-300 via-purple-300 to-indigo-300 gradient-text-animated mobile-slide-up" style={{ animationDelay: '0.1s' }}>
                                     {t.title2}
                                 </span>
                             </h1>
@@ -150,7 +149,7 @@ function HomeContent() {
                             {/* CTA 버튼 - 데스크탑 전용 */}
                             <div className="hidden lg:block w-full max-w-sm mt-8">
                                 <Link href={`/test?lang=${lang}`} className="group relative block w-full">
-                                    <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 via-pink-600 to-indigo-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
+                                <div className="absolute -inset-1 bg-linear-to-r from-violet-600 via-pink-600 to-indigo-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
                                     <motion.div
                                         animate={{
                                             scale: [1, 1.02, 1],
@@ -171,9 +170,9 @@ function HomeContent() {
                         {/* ===== 모바일: 이미지 (중앙, 가용 공간 채움) ===== */}
                         {/* flex-1 with min-h-0 allows it to shrink to fit, object-contain preserves ratio */}
                         <div className="flex-1 w-full flex items-center justify-center min-h-0 lg:h-auto lg:w-1/2 lg:max-w-none py-2 lg:py-0">
-                            <div className="relative w-full h-full max-h-[50vh] lg:max-h-none aspect-[4/5] max-w-sm lg:max-w-md mobile-fade-in-scale" style={{ animationDelay: '0.3s' }}>
+                            <div className="relative w-full h-full max-h-[50vh] lg:max-h-none aspect-4/5 max-w-sm lg:max-w-md mobile-fade-in-scale" style={{ animationDelay: '0.3s' }}>
                                 {/* Image Card */}
-                                <div className="relative w-full h-full overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] border border-white/20 shadow-2xl">
+                                <div className="relative w-full h-full overflow-hidden rounded-4xl lg:rounded-[2.5rem] border border-white/20 shadow-2xl">
                                     <Image src="/images/hero.webp" alt="Aesthetic" fill className="object-cover lg:object-cover" priority sizes="(max-width: 768px) 100vw, 50vw" />
                                     {/* Badge */}
 
@@ -184,7 +183,7 @@ function HomeContent() {
                         {/* ===== 모바일: CTA 버튼 (하단 고정) ===== */}
                         <div className="lg:hidden w-full max-w-sm shrink-0 pb-4 z-20 mobile-slide-up" style={{ animationDelay: '0.4s' }}>
                             <Link href={`/test?lang=${lang}`} className="group relative block w-full touch-optimized">
-                                <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-600 via-pink-600 to-indigo-600 rounded-full blur opacity-70 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
+                                <div className="absolute -inset-0.5 bg-linear-to-r from-violet-600 via-pink-600 to-indigo-600 rounded-full blur opacity-70 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
                                 <motion.div
                                     animate={{
                                         scale: [1, 1.02, 1],

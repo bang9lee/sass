@@ -7,7 +7,6 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const title = searchParams.get('title') || 'My Aesthetic Core';
-        const id = searchParams.get('id') || 'clean_girl';
 
         // In a real app, we would load the custom font here
         // const fontData = await fetch(new URL('../../assets/fonts/Inter-Bold.ttf', import.meta.url)).then((res) => res.arrayBuffer());
@@ -83,8 +82,12 @@ export async function GET(request: NextRequest) {
                 height: 630,
             },
         );
-    } catch (e: any) {
-        console.log(`${e.message}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.log(error.message);
+        } else {
+            console.log('Failed to generate OG image');
+        }
         return new Response(`Failed to generate the image`, {
             status: 500,
         });

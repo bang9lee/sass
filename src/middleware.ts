@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const SUPPORTED_KALES = ['ko', 'en', 'zh', 'ja'];
+const SUPPORTED_LOCALES = ['ko', 'en', 'zh', 'ja'] as const;
+const supportedLocales = new Set<string>(SUPPORTED_LOCALES);
 const DEFAULT_LOCALE = 'en';
 
 export function middleware(request: NextRequest) {
@@ -25,6 +26,9 @@ export function middleware(request: NextRequest) {
     if (acceptLanguage.includes('ko')) detectedLang = 'ko';
     else if (acceptLanguage.includes('zh')) detectedLang = 'zh';
     else if (acceptLanguage.includes('ja')) detectedLang = 'ja';
+    if (!supportedLocales.has(detectedLang)) {
+        detectedLang = DEFAULT_LOCALE;
+    }
     // English is default
 
     // 3. Redirect with lang parameter

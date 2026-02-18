@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Share2, Download, Check, Link2 } from 'lucide-react';
+import { Download, Check, Link2 } from 'lucide-react';
 
 interface ShareButtonsProps {
     resultId: string;
@@ -29,7 +29,7 @@ export function ShareButtons({ resultId, title, isKo, aestheticImage }: ShareBut
             try {
                 await navigator.share(shareData);
                 return;
-            } catch (err) {
+            } catch {
                 // User cancelled or error - fall through to clipboard
             }
         }
@@ -39,7 +39,7 @@ export function ShareButtons({ resultId, title, isKo, aestheticImage }: ShareBut
             await navigator.clipboard.writeText(shareUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
+        } catch {
             // Last resort: show prompt
             prompt(isKo ? '링크를 복사하세요:' : 'Copy this link:', shareUrl);
         }
@@ -60,8 +60,8 @@ export function ShareButtons({ resultId, title, isKo, aestheticImage }: ShareBut
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        } catch (err) {
-            console.error('Download failed:', err);
+        } catch {
+            console.error('Download failed');
             // Fallback: open image in new tab
             window.open(aestheticImage, '_blank');
         } finally {
@@ -93,7 +93,7 @@ export function ShareButtons({ resultId, title, isKo, aestheticImage }: ShareBut
             <button
                 onClick={handleDownloadImage}
                 disabled={downloading}
-                className="col-span-1 py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50"
+                className="col-span-1 py-3 px-4 bg-linear-to-r from-pink-500 to-purple-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50"
             >
                 <Download className={`w-4 h-4 ${downloading ? 'animate-bounce' : ''}`} />
                 <span>{downloading ? (isKo ? '저장중...' : 'Saving...') : (isKo ? '이미지 저장' : 'Save Image')}</span>

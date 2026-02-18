@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AESTHETICS, AestheticId } from '@/lib/data';
 import { ResultCardClient } from '@/components/ResultCardClient';
@@ -108,7 +107,6 @@ export default async function ResultPage({ params, searchParams }: Props) {
                     description={content.description}
                     image={aesthetic.image}
                     keywords={content.keywords}
-                    brandMatches={aesthetic.brandMatches}
                     colorPalette={aesthetic.colorPalette}
                     isKo={isKo}
                     lang={currentLang}

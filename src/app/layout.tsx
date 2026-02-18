@@ -32,7 +32,7 @@ export default function RootLayout({
           <div className="absolute top-[30%] left-[30%] w-[40vw] h-[40vw] rounded-full bg-pink-900/20 blur-[80px] animate-pulse-slow translate-z-0" />
 
           {/* Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
+          <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent z-10" />
         </div>
 
         <main className="relative z-10 min-h-screen flex flex-col">

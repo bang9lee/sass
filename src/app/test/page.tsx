@@ -1,11 +1,37 @@
 "use client";
 
-import { useState, Suspense, useEffect, useMemo } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { ChevronLeft } from "lucide-react";
 import { QUESTIONS, calculateResult } from "@/lib/data";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+
+const createDeterministicShuffleSeed = (seed: string): number => {
+    let hash = 2166136261;
+
+    for (let i = 0; i < seed.length; i++) {
+        hash ^= seed.charCodeAt(i);
+        hash = Math.imul(hash, 16777619) >>> 0;
+    }
+
+    return hash >>> 0;
+};
+
+const shuffleOptions = <T,>(options: T[], seed: string): T[] => {
+    const indexed = options.map((option, index) => ({
+        option,
+        index,
+        order: (createDeterministicShuffleSeed(`${seed}:${index}`) * 1664525 + 1013904223) >>> 0,
+    }));
+
+    return indexed
+        .sort((left, right) => {
+            if (left.order !== right.order) return left.order - right.order;
+            return left.index - right.index;
+        })
+        .map(({ option }) => option);
+};
 
 function TestContent() {
     const router = useRouter();
@@ -19,15 +45,10 @@ function TestContent() {
 
     const currentQuestion = QUESTIONS[currentIndex];
 
-    // Server-side / Hydration match: Use default order
-    // Client-side mounted: Shuffle
-    const [isClient, setIsClient] = useState(false);
-    useEffect(() => { setIsClient(true); }, []);
-
-    const shuffledOptions = useMemo(() => {
-        if (!isClient) return currentQuestion.options;
-        return [...currentQuestion.options].sort(() => Math.random() - 0.5);
-    }, [currentQuestion, isClient]);
+    const shuffledOptions = useMemo(
+        () => shuffleOptions(currentQuestion.options, `${currentQuestion.id}`),
+        [currentQuestion.id, currentQuestion.options],
+    );
 
     // Progress for visual bar
     const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
@@ -84,18 +105,18 @@ function TestContent() {
                         <div className="absolute inset-0 border border-white/20 rotate-12 animate-spin-slow duration-[15s] opacity-50" />
 
                         {/* 2. Gyroscopic Rings */}
-                        <div className="absolute inset-[-10px] rounded-full border-t border-b border-pink-500/50 animate-spin duration-[3s]" />
-                        <div className="absolute inset-[-20px] rounded-full border-r border-l border-purple-500/50 animate-spin duration-[4s] direction-reverse" />
+                        <div className="absolute -inset-2.5 rounded-full border-t border-b border-pink-500/50 animate-spin duration-[3s]" />
+                        <div className="absolute -inset-5 rounded-full border-r border-l border-purple-500/50 animate-spin duration-[4s] direction-reverse" />
 
                         {/* 3. Central Core Prism */}
-                        <div className="relative w-16 h-16 bg-gradient-to-br from-white to-transparent opacity-90 blur-md rounded-full animate-float-gentle" />
-                        <div className="absolute w-2 h-32 bg-gradient-to-b from-transparent via-white/50 to-transparent blur-sm animate-pulse" />
-                        <div className="absolute w-32 h-2 bg-gradient-to-r from-transparent via-white/50 to-transparent blur-sm animate-pulse delay-75" />
+                        <div className="relative w-16 h-16 bg-linear-to-br from-white to-transparent opacity-90 blur-md rounded-full animate-float-gentle" />
+                        <div className="absolute w-2 h-32 bg-linear-to-b from-transparent via-white/50 to-transparent blur-sm animate-pulse" />
+                        <div className="absolute w-32 h-2 bg-linear-to-r from-transparent via-white/50 to-transparent blur-sm animate-pulse delay-75" />
                     </div>
 
                     {/* Multilingual Text Display */}
                     <div className="flex flex-col gap-2 h-20 items-center justify-center">
-                        <h2 className={`text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-white to-purple-200 animate-in fade-in slide-in-from-bottom-2 duration-300
+                        <h2 className={`text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-linear-to-r from-pink-200 via-white to-purple-200 animate-in fade-in slide-in-from-bottom-2 duration-300
                             ${lang === 'ko' ? 'font-korean' : lang === 'en' ? 'font-cinzel tracking-widest' : 'font-sans'}`}>
                             {currentMsg.text}
                         </h2>
@@ -123,7 +144,7 @@ function TestContent() {
                 {/* Progress Bar (Top Fixed) - Mobile Optimized */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
                     <div
-                        className="h-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-[0_0_10px_rgba(236,72,153,0.5)] mobile-progress-fill mobile-gpu"
+                        className="h-full bg-linear-to-r from-pink-500 to-purple-500 shadow-[0_0_10px_rgba(236,72,153,0.5)] mobile-progress-fill mobile-gpu"
                         style={{
                             width: `${progress}%`,
                             transition: 'width 0.3s ease-out'
@@ -146,7 +167,7 @@ function TestContent() {
 
                 {/* Question Area - Mobile Optimized */}
                 {/* Mobile: Top-aligned with scroll (safe) | Desktop: High-Center fixed */}
-                <div className="flex-1 max-w-[1600px] mx-auto w-full px-3 md:px-8 min-h-0 relative flex flex-col justify-start md:justify-center overflow-y-auto no-scrollbar pt-6 md:pt-0 pb-10 md:pb-[15vh]">
+                <div className="flex-1 max-w-400 mx-auto w-full px-3 md:px-8 min-h-0 relative flex flex-col justify-start md:justify-center overflow-y-auto no-scrollbar pt-6 md:pt-0 pb-10 md:pb-[15vh]">
                     <div
                         key={currentIndex}
                         className="flex flex-col w-full mobile-slide-right mobile-gpu items-center md:items-start space-y-6 md:space-y-10 shrink-0"
@@ -164,7 +185,7 @@ function TestContent() {
                                 <button
                                     key={option.id}
                                     onClick={() => handleAnswer(option.id)}
-                                    className={`group relative w-full aspect-[3/4] md:aspect-[4/5] overflow-hidden rounded-xl border border-white/10 bg-black/20 mobile-hover touch-optimized mobile-gpu mobile-fade-in-scale focus:outline-none`}
+                                    className={`group relative w-full aspect-3/4 md:aspect-4/5 overflow-hidden rounded-xl border border-white/10 bg-black/20 mobile-hover touch-optimized mobile-gpu mobile-fade-in-scale focus:outline-none`}
                                     style={{
                                         animationDelay: `${idx * 0.03}s`
                                     }}
@@ -181,14 +202,14 @@ function TestContent() {
                                                 className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-200"
                                             />
                                         ) : (
-                                            <div className={`w-full h-full bg-gradient-to-br ${idx % 4 === 0 ? 'from-pink-900/40 to-purple-900/40' :
+                                        <div className={`w-full h-full bg-linear-to-br ${idx % 4 === 0 ? 'from-pink-900/40 to-purple-900/40' :
                                                 idx % 4 === 1 ? 'from-purple-900/40 to-indigo-900/40' :
                                                     idx % 4 === 2 ? 'from-indigo-900/40 to-blue-900/40' :
                                                         'from-blue-900/40 to-pink-900/40'
                                                 }`} />
                                         )}
                                         {/* Gradient Overlay - Stronger at bottom for text readability */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90" />
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/20 to-transparent opacity-90" />
                                     </div>
 
                                     {/* Content - Fixed height container for consistent text start position */}
