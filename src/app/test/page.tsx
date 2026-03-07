@@ -67,9 +67,20 @@ function TestContent() {
 
     const finishTest = async (finalAnswers: string[]) => {
         setIsSubmitting(true);
+
+        // Calculate result immediately to preload the image
+        const result = calculateResult(finalAnswers);
+
+        // Preload the target result image into browser cache during the 2s wait
+        if (typeof window !== 'undefined') {
+            const img = new window.Image();
+            img.crossOrigin = "anonymous"; // Match the ResultCardClient image attributes
+            img.src = result.image;
+        }
+
         // Simulate deeper calculation delay for effect
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        const result = calculateResult(finalAnswers);
+
         router.push(`/result/${result.id}?lang=${lang}`);
     };
 
@@ -202,7 +213,7 @@ function TestContent() {
                                                 className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-200"
                                             />
                                         ) : (
-                                        <div className={`w-full h-full bg-linear-to-br ${idx % 4 === 0 ? 'from-pink-900/40 to-purple-900/40' :
+                                            <div className={`w-full h-full bg-linear-to-br ${idx % 4 === 0 ? 'from-pink-900/40 to-purple-900/40' :
                                                 idx % 4 === 1 ? 'from-purple-900/40 to-indigo-900/40' :
                                                     idx % 4 === 2 ? 'from-indigo-900/40 to-blue-900/40' :
                                                         'from-blue-900/40 to-pink-900/40'
