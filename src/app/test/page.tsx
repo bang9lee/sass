@@ -208,8 +208,8 @@ function TestContent() {
                                                 src={option.image}
                                                 alt={option.label}
                                                 fill
-                                                priority={idx < 4} // Prioritize visible images
-                                                sizes="(max-width: 768px) 50vw, 25vw"
+                                                unoptimized
+                                                priority={true} // Prioritize visible images always
                                                 className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-200"
                                             />
                                         ) : (
@@ -243,19 +243,19 @@ function TestContent() {
                     </div>
                 </div>
 
-                {/* Hidden Image Preloader for Next Question - Optimized */}
+                {/* Hidden Image Preloader for Next Question - Optimized side-effects */}
                 {nextQuestion && (
-                    <div className="hidden absolute w-0 h-0 overflow-hidden pointer-events-none">
+                    <div className="absolute w-0 h-0 overflow-hidden pointer-events-none opacity-0">
                         {nextQuestion.options.map((opt) => (
                             opt.image && (
                                 <Image
                                     key={`preload-${opt.id}`}
                                     src={opt.image}
                                     alt="preload"
-                                    width={1}
-                                    height={1}
+                                    width={10}
+                                    height={10}
+                                    unoptimized
                                     priority={true}
-                                    loading="eager"
                                 />
                             )
                         ))}
