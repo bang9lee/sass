@@ -46,7 +46,7 @@ export function ResultCardClient({
             palette: '추천 컬러',
             brand: '추천 브랜드',
             copied: '복사됨!',
-        share: '공유하기',
+            share: '공유하기',
             save: '이미지 저장',
             retest: '처음부터 다시하기',
             adStatus: '광고대기중'
@@ -514,13 +514,13 @@ export function ResultCardClient({
                     }}
                 >
                     {/* Main Image with Premium Overlay Text */}
-                        <div className="relative w-full aspect-4/3 shrink-0 overflow-hidden">
+                    <div className="relative w-full aspect-4/3 shrink-0 overflow-hidden">
                         <Image
                             src={image}
                             alt={title}
                             fill
-                            sizes="(max-width: 768px) 100vw, 768px"
-                            loading="eager"
+                            priority
+                            unoptimized
                             crossOrigin="anonymous"
                             className="w-full h-full object-cover"
                         />
