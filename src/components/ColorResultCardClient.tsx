@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
-import { Check, Download, Link2, RotateCcw, Share2 } from 'lucide-react';
+import { Check, Download, Link2, RotateCcw, Share2, Home } from 'lucide-react';
 import Link from 'next/link';
 
 interface ColorResultCardClientProps {
@@ -50,7 +50,7 @@ export function ColorResultCardClient({
             copied: '복사됨!',
             share: '공유하기',
             save: '이미지 저장',
-            retest: '처음부터 다시하기',
+            retest: '다시하기',
             adStatus: '광고대기중',
             resultLabel: '퍼스널 컬러',
             best: '베스트 컬러',
@@ -382,9 +382,15 @@ export function ColorResultCardClient({
                         <p className="footer-domain text-white text-[10px] uppercase tracking-[0.2em] font-light">
                             findcore.me
                         </p>
-                        <span className="footer-telegram-id font-serif italic text-[10px] font-light opacity-60">
-                            personal color result
-                        </span>
+                        <a
+                            href="https://t.me/todayshelp"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-1.5 text-white hover:text-cyan-200 transition-colors duration-300"
+                        >
+                            <span className="footer-telegram-label font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
+                            <span className="footer-telegram-id font-serif italic text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
+                        </a>
                     </div>
                 </div>
 
@@ -410,13 +416,20 @@ export function ColorResultCardClient({
                     </button>
                 </div>
 
-                <div className="w-full">
+                <div className="grid grid-cols-2 gap-3 w-full mt-2">
+                    <Link
+                        href={`/?lang=${lang}`}
+                        className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5"
+                    >
+                        <Home className="w-5 h-5" />
+                        <span className="text-sm font-semibold">{lang === 'ko' ? '홈으로' : lang === 'ja' ? 'ホームへ' : lang === 'zh' ? '回首页' : 'Home'}</span>
+                    </Link>
                     <Link
                         href={`/color/test?lang=${lang}`}
-                        className="flex items-center justify-center gap-2 w-full py-3 rounded-full bg-transparent hover:bg-white/5 text-white/40 hover:text-white/80 transition-colors text-sm font-medium"
+                        className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5"
                     >
-                        <RotateCcw className="w-4 h-4" />
-                        <span>{t.retest}</span>
+                        <RotateCcw className="w-5 h-5" />
+                        <span className="text-sm font-semibold">{t.retest}</span>
                     </Link>
                 </div>
             </div>
