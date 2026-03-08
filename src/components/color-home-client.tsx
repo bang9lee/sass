@@ -65,10 +65,6 @@ function ColorHomeContent() {
                             </Link>
                         </nav>
 
-                        <Link href={`/?lang=${lang}`} className="sm:hidden text-[10px] font-medium text-white/60 hover:text-white transition-colors tracking-wider uppercase whitespace-nowrap shrink-0">
-                            Aesthetic Test
-                        </Link>
-
                         <div className="w-px h-4 bg-white/20 hidden sm:block" />
                         <LanguageSelector currentLang={lang} onSelect={(l) => router.push(`/color?lang=${l}`)} />
                     </div>

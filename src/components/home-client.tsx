@@ -87,11 +87,6 @@ function HomeContent() {
                             </Link>
                         </nav>
 
-                        {/* Mobile 'Personal Color' Text Link */}
-                        <Link href={`/color?lang=${lang}`} className="sm:hidden text-[10px] font-medium text-pink-300 hover:text-white transition-colors tracking-wider uppercase whitespace-nowrap shrink-0">
-                            Personal Color
-                        </Link>
-
                         <div className="w-px h-4 bg-white/20 hidden sm:block" />
                         <LanguageSelector currentLang={lang} onSelect={(l) => router.push(`/?lang=${l}`)} />
                     </div>
