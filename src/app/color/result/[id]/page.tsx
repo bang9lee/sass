@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { COLOR_RESULTS, SeasonId } from '@/lib/color-data';
+import { COLOR_RESULTS, SubSeasonId } from '@/lib/color-data';
 import { ColorResultCardClient } from '@/components/ColorResultCardClient';
 import { AuroraBackground } from '@/components/ui/aurora-background';
 
@@ -14,7 +14,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const { lang } = await searchParams;
     const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
 
-    const result = COLOR_RESULTS[id as SeasonId];
+    const result = COLOR_RESULTS[id as SubSeasonId];
 
     if (!result) {
         return { title: 'Not Found' };
@@ -61,7 +61,7 @@ export default async function ColorResultPage({ params, searchParams }: Props) {
     const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
     const isKo = currentLang === 'ko';
 
-    const resultData = COLOR_RESULTS[id as SeasonId];
+    const resultData = COLOR_RESULTS[id as SubSeasonId];
 
     if (!resultData) {
         notFound();

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Upload, RotateCcw, Layers, Check, Undo2 } from "lucide-react";
+import { Upload, RotateCcw, Layers, Check, Undo2, Move, PenTool, ZoomIn, ZoomOut } from "lucide-react";
 import { SeasonId, analyzePersonalColor } from "@/lib/color-data";
 import { analyzePersonalColorAI, preloadModel } from "@/lib/face-color-analysis";
 import { motion } from "framer-motion";
@@ -122,6 +122,51 @@ function ColorTestContent() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
     const sourceImgRef = useRef<HTMLImageElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null); // Added canvasRef
+
+    // =============================================
+    // Custom Cropper States
+    // =============================================
+    const [cropMode, setCropMode] = useState<'move' | 'draw'>('move');
+    const [imgScale, setImgScale] = useState(1);
+    const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
+    const lastPanRef = useRef({ x: 0, y: 0 });
+
+    // =============================================
+    // Desktop Drag-to-Scroll Handlers
+    // =============================================
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const isDragging = useRef(false);
+    const startX = useRef(0);
+    const scrollLeft = useRef(0);
+
+    const onScrollPointerDown = useCallback((e: React.PointerEvent) => {
+        if (!scrollContainerRef.current) return;
+        isDragging.current = true;
+        scrollContainerRef.current.classList.add('cursor-grabbing');
+        startX.current = e.pageX - scrollContainerRef.current.offsetLeft;
+        scrollLeft.current = scrollContainerRef.current.scrollLeft;
+        // Release pointer capture so standard click events still work
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    }, []);
+
+    const onScrollPointerUp = useCallback(() => {
+        isDragging.current = false;
+        if (scrollContainerRef.current) scrollContainerRef.current.classList.remove('cursor-grabbing');
+    }, []);
+
+    const onScrollPointerLeave = useCallback(() => {
+        isDragging.current = false;
+        if (scrollContainerRef.current) scrollContainerRef.current.classList.remove('cursor-grabbing');
+    }, []);
+
+    const onScrollPointerMove = useCallback((e: React.PointerEvent) => {
+        if (!isDragging.current || !scrollContainerRef.current) return;
+        e.preventDefault();
+        const x = e.pageX - scrollContainerRef.current.offsetLeft;
+        const walk = (x - startX.current) * 2; // scroll speed multiplier
+        scrollContainerRef.current.scrollLeft = scrollLeft.current - walk;
+    }, []);
 
     useEffect(() => {
         preloadModel().catch(() => {
@@ -184,15 +229,23 @@ function ColorTestContent() {
         const w = rect.width;
         const h = rect.height;
 
-        // Draw image cover
+        // Draw image with pan & zoom
         const imgAspect = img.naturalWidth / img.naturalHeight;
         const canvasAspect = w / h;
-        let drawW: number, drawH: number, drawX: number, drawY: number;
+
+        let baseScale;
         if (imgAspect > canvasAspect) {
-            drawH = h; drawW = h * imgAspect; drawX = (w - drawW) / 2; drawY = 0;
+            baseScale = h / img.naturalHeight;
         } else {
-            drawW = w; drawH = w / imgAspect; drawX = 0; drawY = (h - drawH) / 2;
+            baseScale = w / img.naturalWidth;
         }
+
+        const currentScale = baseScale * imgScale;
+        const drawW = img.naturalWidth * currentScale;
+        const drawH = img.naturalHeight * currentScale;
+        const drawX = (w - drawW) / 2 + imgOffset.x;
+        const drawY = (h - drawH) / 2 + imgOffset.y;
+
         ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
         // After drawing done: dim outside, brighten inside
@@ -236,7 +289,7 @@ function ColorTestContent() {
         }
 
         // Start point indicator while actively drawing
-        if (isDrawing && points.length > 0) {
+        if (isDrawing && points.length > 0 && cropMode === 'draw') {
             ctx.beginPath();
             ctx.arc(points[0].x, points[0].y, 6, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(255,255,255,0.8)';
@@ -245,7 +298,7 @@ function ColorTestContent() {
             ctx.lineWidth = 2;
             ctx.stroke();
         }
-    }, [points, isDrawing]);
+    }, [points, isDrawing, imgScale, imgOffset, cropMode]);
 
     useEffect(() => {
         if (step === 'crop') requestAnimationFrame(drawCropCanvas);
@@ -273,12 +326,23 @@ function ColorTestContent() {
     };
     const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
         setIsDrawing(true);
-        setPoints([getCanvasPoint(e)]);
+        if (cropMode === 'draw') {
+            setPoints([getCanvasPoint(e)]);
+        } else {
+            lastPanRef.current = { x: e.clientX, y: e.clientY };
+        }
         cropCanvasRef.current?.setPointerCapture(e.pointerId);
     };
     const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
         if (!isDrawing) return;
-        setPoints(prev => [...prev, getCanvasPoint(e)]);
+        if (cropMode === 'draw') {
+            setPoints(prev => [...prev, getCanvasPoint(e)]);
+        } else {
+            const dx = e.clientX - lastPanRef.current.x;
+            const dy = e.clientY - lastPanRef.current.y;
+            setImgOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+            lastPanRef.current = { x: e.clientX, y: e.clientY };
+        }
     };
     const onPointerUp = () => setIsDrawing(false);
 
@@ -304,12 +368,19 @@ function ColorTestContent() {
 
         const imgAspect = img.naturalWidth / img.naturalHeight;
         const canvasAspect = w / h;
-        let drawW: number, drawH: number, drawX: number, drawY: number;
+
+        let baseScale;
         if (imgAspect > canvasAspect) {
-            drawH = h; drawW = h * imgAspect; drawX = (w - drawW) / 2; drawY = 0;
+            baseScale = h / img.naturalHeight;
         } else {
-            drawW = w; drawH = w / imgAspect; drawX = 0; drawY = (h - drawH) / 2;
+            baseScale = w / img.naturalWidth;
         }
+
+        const currentScale = baseScale * imgScale;
+        const drawW = img.naturalWidth * currentScale;
+        const drawH = img.naturalHeight * currentScale;
+        const drawX = (w - drawW) / 2 + imgOffset.x;
+        const drawY = (h - drawH) / 2 + imgOffset.y;
 
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
@@ -373,21 +444,25 @@ function ColorTestContent() {
                     <div className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-purple-900/20 blur-[120px]" />
                 </div>
                 <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-                <div className="relative z-10 flex flex-col items-center gap-10 max-w-lg w-full">
-                    <div className="text-center space-y-4">
-                        <h1 className={`text-4xl md:text-5xl font-bold text-white tracking-tight ${isKorean ? 'font-korean' : 'font-cinzel'}`}>{t.title}</h1>
-                        <p className={`text-zinc-400 text-sm md:text-base leading-relaxed whitespace-pre-line ${isKorean ? 'font-korean word-keep-all' : ''}`}>{t.subtitle}</p>
+                <div className="relative z-10 flex flex-col items-center gap-14 max-w-3xl w-full">
+                    <div className="text-center space-y-6">
+                        <h1 className={`text-4xl md:text-7xl font-extrabold text-white tracking-tighter leading-tight px-4 ${isKorean ? 'font-korean' : 'font-cinzel'}`}>
+                            {t.title}
+                        </h1>
+                        <p className={`text-zinc-400 text-sm md:text-lg leading-relaxed max-w-[300px] md:max-w-md mx-auto ${isKorean ? 'font-korean break-keep' : ''}`}>
+                            {t.subtitle}
+                        </p>
                     </div>
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="group w-full max-w-sm aspect-square rounded-3xl border-2 border-dashed border-white/15 bg-white/3 hover:bg-white/6 transition-all duration-300 flex flex-col items-center justify-center gap-5"
+                        className="group w-full max-w-sm aspect-square rounded-full border-2 border-dashed border-white/10 bg-white/2 hover:bg-white/5 transition-all duration-500 flex flex-col items-center justify-center gap-6 shadow-[inset_0_0_40px_rgba(255,255,255,0.02)] hover:border-white/20"
                     >
-                        <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <Upload className="w-9 h-9 text-white/50 group-hover:text-white/80 transition-colors" />
+                        <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all duration-500 shadow-xl group-hover:shadow-white/5">
+                            <Upload className="w-10 h-10 text-white/40 group-hover:text-white/90 transition-colors" />
                         </div>
-                        <div className="space-y-1 text-center">
-                            <span className={`text-white/70 font-semibold text-base group-hover:text-white transition-colors ${isKorean ? 'font-korean' : ''}`}>{t.upload}</span>
-                            <p className="text-zinc-500 text-xs">{t.uploadHint}</p>
+                        <div className="space-y-2 text-center">
+                            <span className={`text-white/80 font-bold text-lg group-hover:text-white transition-colors block ${isKorean ? 'font-korean' : ''}`}>{t.upload}</span>
+                            <p className="text-zinc-500 text-xs tracking-wider uppercase font-medium">{t.uploadHint}</p>
                         </div>
                     </button>
                 </div>
@@ -409,28 +484,76 @@ function ColorTestContent() {
                 </div>
                 <p className={`text-zinc-400 text-sm text-center px-6 mb-3 shrink-0 ${isKorean ? 'font-korean' : ''}`}>{t.cropHint}</p>
                 <div className="flex-1 w-full max-w-2xl mx-auto px-4 flex items-center justify-center min-h-0">
-                    <canvas
-                        ref={cropCanvasRef}
-                        className="w-full rounded-2xl border border-white/10 touch-none cursor-crosshair"
-                        style={{ aspectRatio: sourceImgRef.current ? `${sourceImgRef.current.naturalWidth}/${sourceImgRef.current.naturalHeight}` : '1/1', maxHeight: '55vh' }}
-                        onPointerDown={onPointerDown}
-                        onPointerMove={onPointerMove}
-                        onPointerUp={onPointerUp}
-                    />
+                    <div className="w-full relative overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl bg-zinc-900/40">
+                        <canvas
+                            ref={cropCanvasRef}
+                            className="w-full h-full block touch-none cursor-crosshair opacity-100"
+                            style={{ aspectRatio: sourceImgRef.current ? `${sourceImgRef.current.naturalWidth}/${sourceImgRef.current.naturalHeight}` : '1/1', maxHeight: '55vh' }}
+                            onPointerDown={onPointerDown}
+                            onPointerMove={onPointerMove}
+                            onPointerUp={onPointerUp}
+                        />
+                    </div>
                 </div>
-                <div className="w-full p-5 pb-8 flex flex-col gap-3 max-w-xl mx-auto shrink-0">
+                <div className="w-full p-5 pb-8 flex flex-col gap-4 max-w-xl mx-auto shrink-0 z-10">
+
+                    {/* Tool Bar: Pan/Zoom vs Draw */}
+                    <div className="flex flex-col gap-4 mb-2">
+                        <div className="flex bg-zinc-900/80 p-1.5 rounded-full border border-white/10 backdrop-blur-md relative">
+                            {/* Animated Background Pill */}
+                            <motion.div
+                                className="absolute inset-y-1.5 w-[calc(50%-6px)] bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                                animate={{ left: cropMode === 'move' ? '6px' : 'calc(50%)' }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            />
+
+                            <button
+                                onClick={() => setCropMode('move')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-colors relative z-10 ${cropMode === 'move' ? 'text-black' : 'text-zinc-400 hover:text-white'}`}
+                            >
+                                <Move className="w-4 h-4" />
+                                {isKorean ? '사진 이동/확대' : 'Move & Zoom'}
+                            </button>
+                            <button
+                                onClick={() => setCropMode('draw')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-colors relative z-10 ${cropMode === 'draw' ? 'text-black' : 'text-zinc-400 hover:text-white'}`}
+                            >
+                                <PenTool className="w-4 h-4" />
+                                {isKorean ? '얼굴 선 그리기' : 'Draw Area'}
+                            </button>
+                        </div>
+
+                        {cropMode === 'move' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex items-center gap-4 px-6 py-3 bg-zinc-900/50 rounded-full border border-white/5 backdrop-blur-sm"
+                            >
+                                <ZoomOut className="w-4 h-4 text-zinc-400 shrink-0" />
+                                <input
+                                    type="range"
+                                    min="0.5" max="3" step="0.05"
+                                    value={imgScale}
+                                    onChange={(e) => setImgScale(parseFloat(e.target.value))}
+                                    className="flex-1 h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer accent-white hover:accent-pink-300 transition-colors"
+                                />
+                                <ZoomIn className="w-4 h-4 text-zinc-400 shrink-0" />
+                            </motion.div>
+                        )}
+                    </div>
+
                     <div className="flex gap-3">
                         <button onClick={() => { setPoints([]); requestAnimationFrame(drawCropCanvas); }}
-                            className={`flex-1 py-3.5 rounded-full border border-white/20 bg-white/5 text-white font-semibold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all ${isKorean ? 'font-korean' : ''}`}>
+                            className={`flex-1 py-4 rounded-full border border-white/10 bg-white/5 text-white font-semibold text-[15px] flex items-center justify-center gap-2 active:scale-95 transition-all focus:outline-hidden ${isKorean ? 'font-korean' : ''}`}>
                             <Undo2 className="w-4 h-4" />{t.cropUndo}
                         </button>
                         <button onClick={applyCrop} disabled={points.length < 3}
-                            className={`flex-1 py-3.5 rounded-full font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all ${isKorean ? 'font-korean' : ''}
-                                ${points.length >= 3 ? 'bg-white text-black shadow-lg' : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'}`}>
+                            className={`flex-1 py-4 rounded-full font-bold text-[15px] flex items-center justify-center gap-2 active:scale-95 transition-all focus:outline-hidden ${isKorean ? 'font-korean' : ''}
+                                ${points.length >= 3 ? 'bg-linear-to-r from-pink-500 to-purple-500 text-white shadow-[0_4px_20px_-5px_rgba(236,72,153,0.5)]' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-white/5'}`}>
                             <Check className="w-4 h-4" />{t.cropDone}
                         </button>
                     </div>
-                    <button onClick={skipCrop} className={`w-full py-3 text-zinc-500 hover:text-zinc-300 text-sm font-medium transition-colors ${isKorean ? 'font-korean' : ''}`}>
+                    <button onClick={skipCrop} className={`w-full py-2 mb-2 text-zinc-500 hover:text-zinc-300 text-sm font-medium transition-colors ${isKorean ? 'font-korean' : ''}`}>
                         {t.cropSkip}
                     </button>
                 </div>
@@ -454,10 +577,10 @@ function ColorTestContent() {
     return (
         <div className="min-h-dvh w-full relative overflow-hidden flex flex-col transition-colors duration-500" style={{ backgroundColor: bgColor }}>
             {/* Top Bar */}
-            <div className="flex justify-between items-center px-5 py-4 z-40 relative shrink-0">
-                <h2 className={`text-sm font-medium tracking-wide uppercase transition-colors duration-300 ${isKorean ? 'font-korean' : ''}`}
-                    style={{ color: isLightBg ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)' }}>
-                    {activeSeason ? seasonMeta[activeSeason].name[lang] : t.none}
+            <div className="flex justify-between items-center px-6 py-6 z-40 relative shrink-0">
+                <h2 className={`text-lg font-bold tracking-widest uppercase transition-colors duration-300 font-mono drop-shadow-sm`}
+                    style={{ color: isLightBg ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.8)' }}>
+                    {activeColor ? activeColor.toUpperCase() : '#FFFFFF'}
                 </h2>
                 <button onClick={handleReset}
                     className={`w-9 h-9 rounded-full backdrop-blur-md flex items-center justify-center border active:scale-95 transition-all
@@ -478,7 +601,7 @@ function ColorTestContent() {
             <div className="z-40 shrink-0 bg-[#121212] rounded-t-[32px] pt-6 pb-10 px-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/5">
                 <div className="max-w-lg mx-auto flex flex-col gap-6">
                     {/* Season Tabs - Transparent with glowing border for active */}
-                    <div className="bg-[#1c1c1c] rounded-xl p-1.5 flex gap-1">
+                    <div className="bg-[#1c1c1c] rounded-full p-2 flex gap-1 shadow-inner relative z-20">
                         {(Object.keys(seasonMeta) as SeasonId[]).map((season) => {
                             const dotColors: Record<SeasonId, string> = {
                                 spring: '#FF8A65', summer: '#4FC3F7', autumn: '#FFD54F', winter: '#BA68C8',
@@ -491,8 +614,8 @@ function ColorTestContent() {
                             return (
                                 <button key={season}
                                     onClick={() => { setActiveSeason(season); setActiveColor(SEASON_SWATCHES[season][0]); }}
-                                    className={`flex-1 py-3 rounded-full text-[13px] font-medium transition-all duration-300 flex items-center justify-center gap-1.5 ${isKorean ? 'font-korean' : ''}
-                                        ${isActive ? 'text-white bg-white/5' : 'text-white/40 hover:text-white/70 border border-transparent'}`}
+                                    className={`flex-1 py-3.5 rounded-full text-[13px] md:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1.5 ${isKorean ? 'font-korean tracking-wide' : 'font-cinzel tracking-wider'}
+                                        ${isActive ? 'text-white bg-white/5' : 'text-white/40 hover:text-white/80 border border-transparent'}`}
                                     style={isActive ? {
                                         borderColor: dotColors[season],
                                         borderWidth: '1px',
@@ -508,14 +631,19 @@ function ColorTestContent() {
                     </div>
 
                     {/* Color Swatches Grid - Large Circles */}
-                    <div className="h-[72px] flex items-center justify-center">
+                    <div className="h-[72px] flex items-center w-full">
                         {activeSeason ? (
                             <motion.div
+                                ref={scrollContainerRef}
                                 key={activeSeason}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.3, ease: 'easeOut' }}
-                                className="flex gap-4 overflow-x-auto no-scrollbar py-2 w-full pl-4 md:pl-0 md:justify-center pr-4 relative"
+                                className="flex gap-4 overflow-x-auto custom-scrollbar pb-3 pt-2 w-full px-4 scroll-smooth relative z-20 cursor-grab active:cursor-grabbing touch-pan-x"
+                                onPointerDown={onScrollPointerDown}
+                                onPointerUp={onScrollPointerUp}
+                                onPointerLeave={onScrollPointerLeave}
+                                onPointerMove={onScrollPointerMove}
                             >
                                 {SEASON_SWATCHES[activeSeason].map((color, i) => {
                                     const isSelected = activeColor === color;

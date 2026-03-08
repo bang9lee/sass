@@ -266,7 +266,7 @@ export function ColorResultCardClient({
                                     {keywords.map((keyword) => (
                                         <span
                                             key={keyword}
-                                            className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-light border backdrop-blur-md ${isKo ? 'font-korean' : 'font-sans'} bg-zinc-900/60 border-white/10 text-gray-300 tracking-wide`}
+                                            className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium border backdrop-blur-md ${isKo ? 'font-korean' : 'font-sans'} bg-zinc-900/60 border-white/20 text-white tracking-wide shadow-sm`}
                                         >
                                             #{keyword}
                                         </span>
@@ -291,7 +291,7 @@ export function ColorResultCardClient({
                                             className="w-full aspect-3/4 rounded-xl sm:rounded-2xl ring-1 ring-white/15"
                                             style={{ backgroundColor: color }}
                                         />
-                                        <span className="text-[9px] sm:text-[10px] text-white/45 font-mono uppercase truncate w-full text-center">
+                                        <span className="text-[9px] sm:text-[10px] text-white font-bold font-mono uppercase truncate w-full text-center drop-shadow-sm tracking-wider">
                                             {color.replace('#', '')}
                                         </span>
                                     </div>
@@ -313,7 +313,7 @@ export function ColorResultCardClient({
                                             className="h-6 w-6 sm:h-8 sm:w-8 shrink-0 rounded-full ring-1 ring-white/10"
                                             style={{ backgroundColor: color }}
                                         />
-                                        <span className="text-[10px] sm:text-xs text-white/60 font-mono uppercase truncate min-w-0">
+                                        <span className="text-[10px] sm:text-xs text-white font-medium font-mono uppercase truncate min-w-0">
                                             {color.replace('#', '')}
                                         </span>
                                     </div>
@@ -375,39 +375,35 @@ export function ColorResultCardClient({
                 <div className="grid grid-cols-2 gap-3 w-full">
                     <button
                         onClick={handleShare}
-                        className="flex items-center justify-center gap-2 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all backdrop-blur-md active:scale-95 border border-white/10"
+                        className="flex items-center justify-center py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold transition-all backdrop-blur-md active:scale-95 border border-white/10"
                     >
-                        <Share2 className="w-5 h-5" />
-                        <span>{t.share}</span>
+                        <Share2 className="w-6 h-6" />
                     </button>
                     <button
                         onClick={handleDownloadImage}
                         disabled={downloading}
-                        className="flex items-center justify-center gap-2 py-4 rounded-full bg-linear-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-purple-500 text-white text-sm font-bold transition-all shadow-[0_0_20px_-5px_rgba(236,72,153,0.5)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center py-4 rounded-full bg-linear-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold transition-all shadow-[0_0_20px_-5px_rgba(236,72,153,0.5)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {downloading ? (
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
-                            <Download className="w-5 h-5" />
+                            <Download className="w-6 h-6" />
                         )}
-                        <span>{t.save}</span>
                     </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 w-full mt-2">
                     <Link
                         href={`/?lang=${lang}`}
-                        className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5"
+                        className="flex items-center justify-center w-full py-4 rounded-full bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5 active:scale-95"
                     >
-                        <Home className="w-5 h-5" />
-                        <span className="text-sm font-semibold">{lang === 'ko' ? '홈으로' : lang === 'ja' ? 'ホームへ' : lang === 'zh' ? '回首页' : 'Home'}</span>
+                        <Home className="w-6 h-6" />
                     </Link>
                     <Link
                         href={`/color/test?lang=${lang}`}
-                        className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5"
+                        className="flex items-center justify-center w-full py-4 rounded-full bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5 active:scale-95"
                     >
-                        <RotateCcw className="w-5 h-5" />
-                        <span className="text-sm font-semibold">{t.retest}</span>
+                        <RotateCcw className="w-6 h-6" />
                     </Link>
                 </div>
             </div>

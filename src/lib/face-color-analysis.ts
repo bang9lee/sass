@@ -12,13 +12,14 @@
 import "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
 
-import type { SeasonId } from "./color-data";
+import type { SeasonId, SubSeasonId } from "./color-data";
 
 // =============================================
 // Types
 // =============================================
 export interface AnalysisResult {
-    season: SeasonId;
+    season: SubSeasonId;
+    baseSeason: SeasonId;
     confidence: number; // 0-100
     skinTone: { r: number; g: number; b: number };
     undertone: "warm" | "cool" | "neutral";
@@ -305,6 +306,31 @@ function calculateSeasonScores(
     return scores;
 }
 
+// Helper to determine the precise 12-season sub-tone based on features
+function determineSubSeason(baseSeason: SeasonId, brightness: 'light' | 'medium' | 'deep', clarity: 'clear' | 'muted', skinLab: { L: number; a: number; b: number }): SubSeasonId {
+    if (baseSeason === 'spring') {
+        if (brightness === 'light') return 'spring-light';
+        if (clarity === 'clear' && skinLab.L < 68) return 'spring-bright'; // more saturated/contrasting skin tone
+        return 'spring-true';
+    }
+    if (baseSeason === 'summer') {
+        if (brightness === 'light') return 'summer-light';
+        if (clarity === 'muted') return 'summer-soft';
+        return 'summer-true';
+    }
+    if (baseSeason === 'autumn') {
+        if (brightness === 'deep') return 'autumn-deep';
+        if (clarity === 'muted' && skinLab.L >= 55) return 'autumn-soft';
+        return 'autumn-true';
+    }
+    if (baseSeason === 'winter') {
+        if (brightness === 'deep') return 'winter-deep';
+        if (clarity === 'clear' && skinLab.L >= 60) return 'winter-bright';
+        return 'winter-true';
+    }
+    return 'spring-true'; // Fallback
+}
+
 // =============================================
 // Main Analysis Function
 // =============================================
@@ -385,9 +411,9 @@ export async function analyzePersonalColorAI(
     // 6. Find winner
     const entries = Object.entries(scores) as [SeasonId, number][];
     entries.sort((a, b) => b[1] - a[1]);
-    const winner = entries[0];
+    const winnerBase = entries[0][0];
     const totalScore = entries.reduce((sum, e) => sum + e[1], 0);
-    const confidence = Math.round((winner[1] / totalScore) * 100);
+    const confidence = Math.round((entries[0][1] / totalScore) * 100);
 
     // 7. Determine descriptors
     const warmth = skinLab.b * 0.6 + skinLab.a * 0.4;
@@ -400,8 +426,11 @@ export async function analyzePersonalColorAI(
     const chroma = Math.sqrt(skinLab.a * skinLab.a + skinLab.b * skinLab.b);
     const clarity: AnalysisResult["clarity"] = chroma > 20 ? "clear" : "muted";
 
+    const subSeason = determineSubSeason(winnerBase, brightness, clarity, skinLab);
+
     return {
-        season: winner[0],
+        season: subSeason,
+        baseSeason: winnerBase,
         confidence,
         skinTone: skinColor,
         undertone,
@@ -443,18 +472,24 @@ function fallbackAnalysis(imageData: ImageData, w: number, h: number): AnalysisR
 
     const entries = Object.entries(scores) as [SeasonId, number][];
     entries.sort((a, b) => b[1] - a[1]);
-    const winner = entries[0];
+    const winnerBase = entries[0][0];
     const totalScore = entries.reduce((sum, e) => sum + e[1], 0);
 
     const warmth = skinLab.b * 0.6 + skinLab.a * 0.4;
+    const undertone: AnalysisResult["undertone"] = warmth > 5 ? "warm" : warmth < -5 ? "cool" : "neutral";
+    const brightness: AnalysisResult["brightness"] = skinLab.L > 65 ? "light" : skinLab.L < 50 ? "deep" : "medium";
+    const clarity: AnalysisResult["clarity"] = Math.sqrt(skinLab.a ** 2 + skinLab.b ** 2) > 20 ? "clear" : "muted";
+
+    const subSeason = determineSubSeason(winnerBase, brightness, clarity, skinLab);
 
     return {
-        season: winner[0],
-        confidence: Math.round((winner[1] / totalScore) * 100),
+        season: subSeason,
+        baseSeason: winnerBase,
+        confidence: Math.round((entries[0][1] / totalScore) * 100),
         skinTone: skinColor,
-        undertone: warmth > 5 ? "warm" : warmth < -5 ? "cool" : "neutral",
-        brightness: skinLab.L > 65 ? "light" : skinLab.L < 50 ? "deep" : "medium",
-        clarity: Math.sqrt(skinLab.a ** 2 + skinLab.b ** 2) > 20 ? "clear" : "muted",
+        undertone,
+        brightness,
+        clarity,
         scores: Object.fromEntries(entries) as Record<SeasonId, number>,
     };
 }
