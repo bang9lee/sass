@@ -299,21 +299,21 @@ export function ColorResultCardClient({
                     </div>
 
                     <div className="flex flex-col px-6 py-6 z-10 bg-black w-full text-left gap-8" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-4 min-w-0 w-full overflow-hidden">
                             <div className="flex items-center gap-2 mb-1 section-header-wrapper">
                                 <div className="w-1 h-4 bg-linear-to-b from-pink-500 to-purple-500 rounded-full section-color-bar" />
                                 <h3 className="text-pink-300 font-bold text-sm tracking-wide uppercase">
                                     {t.best}
                                 </h3>
                             </div>
-                            <div className="grid grid-cols-5 gap-3">
+                            <div className="grid grid-cols-5 max-w-full gap-2 sm:gap-3">
                                 {bestColors.map((color, index) => (
-                                    <div key={`${color}-${index}`} className="flex flex-col items-center gap-2">
+                                    <div key={`${color}-${index}`} className="flex flex-col items-center gap-1 sm:gap-2">
                                         <div
-                                            className="w-full aspect-3/4 rounded-2xl ring-1 ring-white/15"
+                                            className="w-full aspect-3/4 rounded-xl sm:rounded-2xl ring-1 ring-white/15"
                                             style={{ backgroundColor: color }}
                                         />
-                                        <span className="text-[10px] text-white/45 font-mono uppercase">
+                                        <span className="text-[9px] sm:text-[10px] text-white/45 font-mono uppercase truncate w-full text-center">
                                             {color.replace('#', '')}
                                         </span>
                                     </div>
@@ -321,21 +321,21 @@ export function ColorResultCardClient({
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-4 min-w-0 w-full overflow-hidden">
                             <div className="flex items-center gap-2 mb-1 section-header-wrapper">
                                 <div className="w-1 h-4 bg-white/30 rounded-full section-color-bar" />
                                 <h3 className="text-white/70 font-bold text-sm tracking-wide uppercase">
                                     {t.worst}
                                 </h3>
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-3 max-w-full gap-2 sm:gap-3">
                                 {worstColors.map((color, index) => (
-                                    <div key={`${color}-${index}`} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
+                                    <div key={`${color}-${index}`} className="flex items-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 px-2 py-2 sm:px-3 sm:py-3 min-w-0 overflow-hidden">
                                         <div
-                                            className="h-8 w-8 shrink-0 rounded-full ring-1 ring-white/10"
+                                            className="h-6 w-6 sm:h-8 sm:w-8 shrink-0 rounded-full ring-1 ring-white/10"
                                             style={{ backgroundColor: color }}
                                         />
-                                        <span className="text-xs text-white/60 font-mono uppercase">
+                                        <span className="text-[10px] sm:text-xs text-white/60 font-mono uppercase truncate min-w-0">
                                             {color.replace('#', '')}
                                         </span>
                                     </div>
