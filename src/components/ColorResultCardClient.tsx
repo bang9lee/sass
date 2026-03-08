@@ -253,30 +253,8 @@ export function ColorResultCardClient({
                         />
                         <div className="absolute inset-0 bg-linear-to-b from-black/60 via-transparent to-black/95 z-10" />
 
-                        <div className="absolute inset-0 px-6 pt-6 pb-8 flex flex-col justify-between z-20">
-                            <div className="flex justify-end">
-                                <div className="flex gap-2 p-1.5 bg-black/30 backdrop-blur-md rounded-full border border-white/10">
-                                    {palette.map((color, index) => (
-                                        <div
-                                            key={`${color}-${index}`}
-                                            className="w-5 h-5 rounded-full ring-1 ring-white/20"
-                                            style={{
-                                                backgroundColor: color,
-                                                boxShadow: `0 0 10px ${color}50`
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
+                        <div className="absolute inset-0 px-6 pt-6 pb-8 flex flex-col justify-end z-20">
                             <div className="flex flex-col items-start gap-2">
-                                <div className="archetype-wrapper p-0.5 rounded-full bg-linear-to-r from-rose-200 via-white to-sky-200 shadow-[0_0_20px_rgba(255,255,255,0.4)]">
-                                    <div className="archetype-inner px-5 py-1.5 bg-black/80 backdrop-blur-2xl rounded-full flex items-center gap-2">
-                                        <span className={`archetype-text text-[11px] md:text-sm font-bold text-white tracking-[0.2em] uppercase whitespace-nowrap drop-shadow-sm ${isKo ? 'font-korean' : 'font-cinzel'}`}>
-                                            {subtitle || t.resultLabel}
-                                        </span>
-                                    </div>
-                                </div>
 
                                 <h1 className={`font-black leading-none tracking-tight z-0 ${isKo ? 'font-korean' : 'font-cinzel'}`}>
                                     <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] whitespace-nowrap text-2xl sm:text-3xl md:text-4xl">

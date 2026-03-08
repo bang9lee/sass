@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Menu, X, Play } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useRef } from "react";
+import { Suspense, useRef, useState } from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LanguageSelector } from "@/components/language-selector";
 
@@ -14,7 +14,7 @@ import { LanguageSelector } from "@/components/language-selector";
 // ============================================
 type Language = 'ko' | 'en' | 'zh' | 'ja';
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 
 // ============================================
@@ -27,6 +27,8 @@ function HomeContent() {
     const lang: Language = (['ko', 'en', 'zh', 'ja'].includes(langParam || '') ? langParam : 'en') as Language;
     const isKorean = lang === 'ko';
 
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
 
 
     const t = {
@@ -34,33 +36,37 @@ function HomeContent() {
             title1: "나의 감성은",
             title2: "어떤 무드일까?",
             subtitle: "당신만의 특별한 분위기와\n딱 맞는 감성 타입(Aesthetic)을 찾아보세요.",
-            button: "테스트 시작하기",
+            button: "",
             countSuffix: "명 테스트",
-            menuPersonalColor: "퍼스널 컬러"
+            menuPersonalColor: "퍼스널 컬러",
+            menuAesthetic: "감성 테스트"
         },
         en: {
             title1: "Find Your",
             title2: "Aesthetic Soul",
             subtitle: "Discover your unique vibe\nand the perfect Aesthetic type for you.",
-            button: "Start the Journey",
+            button: "",
             countSuffix: " tested",
-            menuPersonalColor: "Personal Color"
+            menuPersonalColor: "Personal Color",
+            menuAesthetic: "Aesthetic Test"
         },
         zh: {
             title1: "寻找你的",
             title2: "专属美学氛围",
             subtitle: "探索你独特的氛围，\n找到最适合你的美学类型 (Aesthetic)。",
-            button: "开始测试",
+            button: "",
             countSuffix: " 人已测试",
-            menuPersonalColor: "个人色彩"
+            menuPersonalColor: "个人色彩",
+            menuAesthetic: "美学测试"
         },
         ja: {
             title1: "私の感性は",
             title2: "どんなムード？",
             subtitle: "あなただけの特別な雰囲気と\nぴったりの感性タイプ(Aesthetic)を見つけましょう。",
-            button: "診断を始める",
+            button: "",
             countSuffix: "人が診断",
-            menuPersonalColor: "パーソナルカラー"
+            menuPersonalColor: "パーソナルカラー",
+            menuAesthetic: "感性テスト"
         }
     }[lang];
 
@@ -68,33 +74,99 @@ function HomeContent() {
         <AuroraBackground className="justify-start">
             <div className="relative z-10 w-full h-dvh flex flex-col overflow-hidden">
                 {/* E-Commerce Style Navigation Bar */}
-                <header className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 shrink-0 w-full z-50 absolute top-0 left-0 right-0 border-b border-white/5 bg-black/10 backdrop-blur-md">
-                    {/* Brand / Logo */}
-                    <div className="flex items-center shrink-0">
+                <header className="flex items-center justify-between sm:grid sm:grid-cols-3 px-4 py-3 sm:px-6 sm:py-4 shrink-0 w-full z-50 absolute top-0 left-0 right-0 border-b border-white/5 bg-black/10 backdrop-blur-md">
+                    {/* Brand / Logo (Left) */}
+                    <div className="flex items-center shrink-0 justify-start">
                         <Link href={`/?lang=${lang}`} className="text-white font-cinzel font-bold text-base sm:text-lg tracking-widest hover:text-white/80 transition-colors">
                             FINDCORE
                         </Link>
                     </div>
 
-                    {/* Navigation Links */}
-                    <div className="flex items-center gap-3 sm:gap-6">
-                        <nav className="hidden sm:flex items-center gap-6">
+                    {/* Navigation Links (Center - Desktop Only) */}
+                    <div className="hidden sm:flex items-center justify-center">
+                        <nav className="flex items-center gap-8">
                             <Link href={`/?lang=${lang}`} className="text-[13px] font-medium text-white/90 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap">
-                                Aesthetic Test
+                                {t.menuAesthetic}
                             </Link>
                             <Link href={`/color?lang=${lang}`} className="text-[13px] font-medium text-white/60 hover:text-pink-300 transition-colors tracking-wide uppercase whitespace-nowrap">
-                                Personal Color
+                                {t.menuPersonalColor}
                             </Link>
                         </nav>
+                    </div>
 
-                        <div className="w-px h-4 bg-white/20 hidden sm:block" />
+                    {/* Language & Mobile Menu Toggle (Right) */}
+                    <div className="flex items-center gap-3 sm:gap-0 justify-end">
                         <LanguageSelector currentLang={lang} onSelect={(l) => router.push(`/?lang=${l}`)} />
+
+                        {/* Mobile Menu Toggle */}
+                        <button
+                            className="sm:hidden p-2 text-white/80 hover:text-white ml-2"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        >
+                            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                        </button>
                     </div>
                 </header>
 
+                {/* Mobile Full-Screen Menu Overlay */}
+                <AnimatePresence>
+                    {isMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed inset-0 z-60 bg-black/95 backdrop-blur-2xl sm:hidden flex flex-col"
+                        >
+                            {/* Close button */}
+                            <div className="flex justify-end px-4 py-3">
+                                <button
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="p-2 text-white/80 hover:text-white"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            {/* Menu items */}
+                            <div className="flex-1 flex flex-col items-center justify-center gap-8">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                >
+                                    <Link
+                                        href={`/?lang=${lang}`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="text-xl font-medium text-white/90 hover:text-white transition-colors tracking-widest uppercase"
+                                    >
+                                        {t.menuAesthetic}
+                                    </Link>
+                                </motion.div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    <Link
+                                        href={`/color?lang=${lang}`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="text-xl font-medium text-pink-300 hover:text-pink-200 transition-colors tracking-widest uppercase"
+                                    >
+                                        {t.menuPersonalColor}
+                                    </Link>
+                                </motion.div>
+                            </div>
+                            {/* Brand at bottom */}
+                            <div className="pb-10 text-center">
+                                <p className="text-white/20 text-xs tracking-[0.3em] uppercase font-cinzel">FINDCORE</p>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* 메인 콘텐츠 - Premium Layout with Dynamic Spacing */}
                 <main className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-0 relative">
-                    <div className="w-full max-w-6xl mx-auto h-full flex flex-col lg:flex-row items-center justify-start lg:justify-center gap-6 lg:gap-16 py-safe-top pt-32 sm:pt-40 lg:pt-0 pb-6 lg:pb-0">
+                    <div className="w-full max-w-6xl mx-auto h-full flex flex-col lg:flex-row items-center justify-start lg:justify-center gap-4 lg:gap-16 pt-20 sm:pt-40 lg:pt-0 pb-4 lg:pb-0">
 
                         {/* ===== 모바일: 타이틀 그룹 (상단) ===== */}
                         <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left gap-2 lg:gap-6 shrink-0 z-10">
@@ -119,15 +191,13 @@ function HomeContent() {
                                     <motion.div
                                         animate={{
                                             scale: [1, 1.02, 1],
-                                            backgroundColor: ["#000000", "#1e1b4b", "#000000"], // Black -> Indigo-950 -> Black
+                                            backgroundColor: ["#000000", "#1e1b4b", "#000000"],
                                             borderColor: ["rgba(255,255,255,0.2)", "rgba(167,139,250,0.5)", "rgba(255,255,255,0.2)"]
                                         }}
                                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                                        className={`relative flex items-center justify-center gap-3 py-5 px-10 rounded-full border border-white/20 text-white text-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ${isKorean ? 'font-korean' : ''}`}
+                                        className="cta-play-btn relative flex items-center justify-center py-5 px-10 rounded-full border border-white/20 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                                     >
-
-                                        <span className="tracking-wide">{t.button}</span>
-
+                                        <Play className="w-5 h-5 fill-white text-white" />
                                     </motion.div>
                                 </Link>
                             </div>
@@ -157,11 +227,9 @@ function HomeContent() {
                                         borderColor: ["rgba(255,255,255,0.2)", "rgba(167,139,250,0.5)", "rgba(255,255,255,0.2)"]
                                     }}
                                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                                    className={`relative flex items-center justify-center gap-2 py-4 px-8 rounded-full border border-white/20 text-white text-lg font-bold shadow-xl active:scale-95 transition-all ${isKorean ? 'font-korean' : ''}`}
+                                    className="cta-play-btn relative flex items-center justify-center py-4 px-8 rounded-full border border-white/20 text-white shadow-xl active:scale-95 transition-all"
                                 >
-
-                                    <span className="tracking-wide">{t.button}</span>
-
+                                    <Play className="w-5 h-5 fill-white text-white" />
                                 </motion.div>
                             </Link>
                         </div>

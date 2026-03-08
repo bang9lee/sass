@@ -11,25 +11,29 @@ import { motion } from "framer-motion";
 // Color swatches per season
 // =============================================
 const SEASON_SWATCHES: Record<SeasonId, string[]> = {
+    // Spring (True/Light/Bright): Warm, clear, bright Coral pink, Lime Zest, Mandarin, Light Peach
     spring: [
-        '#FFB6C1', '#FFA07A', '#FFD700', '#98FB98', '#FFDAB9',
-        '#F0E68C', '#FA8072', '#FF6347', '#FFC0CB', '#FF7F50',
-        '#FFEC8B', '#EEE8AA', '#FAFAD2', '#F5DEB3', '#FFE4B5',
+        '#F4A772', '#F1DCA5', '#FFBF40', '#7FB80E', '#FFB3B3', // True Spring & Bright
+        '#F4ABE2', '#F2ACA4', '#CC2F85', '#2ECC71', '#00BCD4', // Variations
+        '#F5E68C', '#FA9072', '#FF6B4A', '#FF9E66', '#FFE5A3', // Light Spring
     ],
+    // Summer (Light/True/Soft): Cool, muted, light Powder Blue, Pale Lavender, Soft Rose, Muted Turquoise
     summer: [
-        '#E6E6FA', '#ADD8E6', '#FFB6C1', '#D8BFD8', '#B0C4DE',
-        '#C8A2C8', '#87CEEB', '#AFEEEE', '#DDA0DD', '#E0BBE4',
-        '#D4E6F1', '#AED6F1', '#A9CCE3', '#FADBD8', '#F5B7B1',
+        '#99CCEE', '#BDA7DD', '#F3E5F5', '#8CBDBD', '#D1E6D5', // Light & True Summer
+        '#A4C1F3', '#C5D8AB', '#F2EFC9', '#36454F', '#005178', // Soft & Deep
+        '#B0DEF4', '#ECC8F9', '#F0B6F8', '#E6E6FA', '#87CEEB', // True Cool Summer
     ],
+    // Autumn (Soft/True/Deep): Warm, muted, dark Mustard, Olive Green, Rust, Deep Teal
     autumn: [
-        '#8B4513', '#DAA520', '#556B2F', '#A52A2A', '#D2B48C',
-        '#B8860B', '#CD853F', '#BC8F8F', '#A0522D', '#6B4226',
-        '#808000', '#9ACD32', '#BDB76B', '#8B7355', '#C04000',
+        '#BA533A', '#E0AB3D', '#F4BB74', '#F0DC71', '#8ABF67', // True & Warm Autumn
+        '#4C9150', '#A52A2A', '#D2B48C', '#8B4513', '#6B4226', // Soft & Deep Autumn
+        '#347744', '#127379', '#425570', '#CD853F', '#BDB76B', // Muted Tones
     ],
+    // Winter (Bright/True/Deep): Cool, clear, dark Magenta, Navy Blue, True Red, Icy White/Black
     winter: [
-        '#000000', '#FFFFFF', '#DC143C', '#0000CD', '#FF00FF',
-        '#4169E1', '#8B008B', '#191970', '#C71585', '#00008B',
-        '#800020', '#E0E0E0', '#483D8B', '#1C1C1C', '#FF1493',
+        '#000000', '#FFFFFF', '#1D2327', '#E4D5EE', '#CAC2CE', // True/Deep Winter & Icy 
+        '#767676', '#DC143C', '#0F5C6E', '#35415E', '#191970', // Dark & Bold Colors
+        '#FF00FF', '#0000CD', '#4169E1', '#8B008B', '#800020', // Clear/Bright Winter
     ],
 };
 
@@ -125,11 +129,23 @@ function ColorTestContent() {
         });
     }, []);
 
-    const seasonMeta: Record<SeasonId, { name: Record<Lang, string> }> = {
-        spring: { name: { ko: "봄 웜톤", en: "Spring", zh: "春季暖色", ja: "イエベ春" } },
-        summer: { name: { ko: "여름 쿨톤", en: "Summer", zh: "夏季冷色", ja: "ブルベ夏" } },
-        autumn: { name: { ko: "가을 웜톤", en: "Autumn", zh: "秋季暖色", ja: "イエベ秋" } },
-        winter: { name: { ko: "겨울 쿨톤", en: "Winter", zh: "冬季冷色", ja: "ブルベ冬" } },
+    const seasonMeta: Record<SeasonId, { name: Record<Lang, string>, shortName: Record<Lang, string> }> = {
+        spring: {
+            name: { ko: "봄 웜톤", en: "Spring Warm", zh: "春季暖色", ja: "イエベ春" },
+            shortName: { ko: "봄 웜", en: "Spring", zh: "春", ja: "春" }
+        },
+        summer: {
+            name: { ko: "여름 쿨톤", en: "Summer Cool", zh: "夏季冷色", ja: "ブルベ夏" },
+            shortName: { ko: "여름 쿨", en: "Summer", zh: "夏", ja: "夏" }
+        },
+        autumn: {
+            name: { ko: "가을 웜톤", en: "Autumn Warm", zh: "秋季暖色", ja: "イエベ秋" },
+            shortName: { ko: "가을 웜", en: "Autumn", zh: "秋", ja: "秋" }
+        },
+        winter: {
+            name: { ko: "겨울 쿨톤", en: "Winter Cool", zh: "冬季冷色", ja: "ブルベ冬" },
+            shortName: { ko: "겨울 쿨", en: "Winter", zh: "冬", ja: "冬" }
+        },
     };
 
     // =============================================
@@ -426,24 +442,31 @@ function ColorTestContent() {
     // STEP 3: Compare — cropped face on colored bg
     // =============================================
     const bgColor = activeColor || '#111111';
-    const isDark = !activeColor;
+    // Determine if background is light or dark for text contrast
+    const isLightBg = activeColor ? (() => {
+        const hex = activeColor.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return (r * 299 + g * 587 + b * 114) / 1000 > 150;
+    })() : false;
 
     return (
-        <div className="min-h-dvh w-full relative overflow-hidden transition-colors duration-500 flex flex-col" style={{ backgroundColor: bgColor }}>
+        <div className="min-h-dvh w-full relative overflow-hidden flex flex-col transition-colors duration-500" style={{ backgroundColor: bgColor }}>
             {/* Top Bar */}
-            <div className="flex justify-between items-center p-5 z-40 relative shrink-0">
-                <h2 className={`text-lg font-bold drop-shadow-md transition-colors duration-300 ${isKorean ? 'font-korean' : ''}`}
-                    style={{ color: isDark ? '#fff' : '#333' }}>
+            <div className="flex justify-between items-center px-5 py-4 z-40 relative shrink-0">
+                <h2 className={`text-sm font-medium tracking-wide uppercase transition-colors duration-300 ${isKorean ? 'font-korean' : ''}`}
+                    style={{ color: isLightBg ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)' }}>
                     {activeSeason ? seasonMeta[activeSeason].name[lang] : t.none}
                 </h2>
                 <button onClick={handleReset}
-                    className={`w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center border active:scale-95 transition-all
-                        ${isDark ? 'bg-white/10 border-white/20 text-white/80' : 'bg-black/10 border-black/10 text-black/60 hover:text-black'}`}>
-                    <RotateCcw className="w-4 h-4" />
+                    className={`w-9 h-9 rounded-full backdrop-blur-md flex items-center justify-center border active:scale-95 transition-all
+                        ${isLightBg ? 'bg-black/5 border-black/10 text-black/50 hover:text-black' : 'bg-white/5 border-white/10 text-white/50 hover:text-white'}`}>
+                    <RotateCcw className="w-3.5 h-3.5" />
                 </button>
             </div>
 
-            {/* Cropped face image */}
+            {/* Face image — large, no frame */}
             <div className="flex-1 flex items-center justify-center relative z-10 px-4">
                 <motion.div layout className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[440px] lg:h-[440px]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -451,46 +474,134 @@ function ColorTestContent() {
                 </motion.div>
             </div>
 
-            {/* Bottom: Season tabs + Swatches + Result button */}
-            <div className={`z-40 p-5 pb-8 backdrop-blur-xl border-t transition-colors duration-500 shrink-0
-                ${isDark ? 'bg-black/80 border-white/10' : 'bg-white/60 border-black/5'}`}>
-                <div className="max-w-2xl mx-auto flex flex-col gap-4">
-                    {/* Season tabs */}
-                    <div className="flex gap-2 justify-center flex-wrap">
-                        <button onClick={() => { setActiveSeason(null); setActiveColor(null); }}
-                            className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${isKorean ? 'font-korean' : ''}
-                                ${!activeSeason ? 'bg-white text-black shadow-lg' : isDark ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'}`}>
-                            <Layers className="w-4 h-4 inline mr-1" />{t.none}
-                        </button>
-                        {(Object.keys(seasonMeta) as SeasonId[]).map((season) => (
-                            <button key={season}
-                                onClick={() => { setActiveSeason(season); setActiveColor(SEASON_SWATCHES[season][0]); }}
-                                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${isKorean ? 'font-korean' : ''}
-                                    ${activeSeason === season ? 'bg-white text-black shadow-lg' : isDark ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'}`}>
-                                {seasonMeta[season].name[lang]}
-                            </button>
-                        ))}
+            {/* Bottom Panel */}
+            <div className="z-40 shrink-0 bg-[#121212] rounded-t-[32px] pt-6 pb-10 px-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/5">
+                <div className="max-w-lg mx-auto flex flex-col gap-6">
+                    {/* Season Tabs - Transparent with glowing border for active */}
+                    <div className="bg-[#1c1c1c] rounded-xl p-1.5 flex gap-1">
+                        {(Object.keys(seasonMeta) as SeasonId[]).map((season) => {
+                            const dotColors: Record<SeasonId, string> = {
+                                spring: '#FF8A65', summer: '#4FC3F7', autumn: '#FFD54F', winter: '#BA68C8',
+                            };
+                            const glowColors: Record<SeasonId, string> = {
+                                spring: 'rgba(255, 138, 101, 0.4)', summer: 'rgba(79, 195, 247, 0.4)', autumn: 'rgba(255, 213, 79, 0.4)', winter: 'rgba(186, 104, 200, 0.4)',
+                            };
+                            const isActive = activeSeason === season;
+
+                            return (
+                                <button key={season}
+                                    onClick={() => { setActiveSeason(season); setActiveColor(SEASON_SWATCHES[season][0]); }}
+                                    className={`flex-1 py-3 rounded-full text-[13px] font-medium transition-all duration-300 flex items-center justify-center gap-1.5 ${isKorean ? 'font-korean' : ''}
+                                        ${isActive ? 'text-white bg-white/5' : 'text-white/40 hover:text-white/70 border border-transparent'}`}
+                                    style={isActive ? {
+                                        borderColor: dotColors[season],
+                                        borderWidth: '1px',
+                                        borderStyle: 'solid',
+                                        boxShadow: `0 0 12px ${glowColors[season]}, inset 0 0 8px ${glowColors[season]}`
+                                    } : {}}
+                                >
+                                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dotColors[season] }} />
+                                    {seasonMeta[season].shortName[lang]}
+                                </button>
+                            );
+                        })}
                     </div>
 
-                    {/* Individual color swatches */}
-                    {activeSeason && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-                            className="flex gap-2 justify-center flex-wrap">
-                            {SEASON_SWATCHES[activeSeason].map((color, i) => (
-                                <button key={i} onClick={() => setActiveColor(color)}
-                                    className={`w-10 h-10 rounded-xl border-2 transition-all duration-200 hover:scale-110
-                                        ${activeColor === color ? 'border-white scale-110 shadow-[0_0_12px_rgba(255,255,255,0.5)]' : 'border-transparent'}`}
-                                    style={{ backgroundColor: color }} />
-                            ))}
-                        </motion.div>
-                    )}
+                    {/* Color Swatches Grid - Large Circles */}
+                    <div className="h-[72px] flex items-center justify-center">
+                        {activeSeason ? (
+                            <motion.div
+                                key={activeSeason}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className="flex gap-4 overflow-x-auto no-scrollbar py-2 w-full pl-4 md:pl-0 md:justify-center pr-4 relative"
+                            >
+                                {SEASON_SWATCHES[activeSeason].map((color, i) => {
+                                    const isSelected = activeColor === color;
+                                    return (
+                                        <button key={i} onClick={() => setActiveColor(color)}
+                                            className="relative group shrink-0"
+                                        >
+                                            <div className={`w-14 h-14 rounded-full transition-all duration-300
+                                                ${isSelected ? 'scale-100' : 'scale-90 opacity-80 group-hover:scale-95 group-hover:opacity-100'}`}
+                                                style={{
+                                                    backgroundColor: color,
+                                                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
+                                                }}
+                                            />
+                                            {/* Double ring selection indicator */}
+                                            {isSelected && (
+                                                <motion.div
+                                                    layoutId="swatch-selection"
+                                                    className="absolute -inset-[3px] rounded-full border-2 border-white pointer-events-none"
+                                                    style={{ boxShadow: '0 0 10px rgba(255,255,255,0.3)' }}
+                                                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                                />
+                                            )}
+                                        </button>
+                                    );
+                                })}
 
-                    {/* Result button — always enabled, result comes from image analysis */}
+                                {/* Custom Color Picker */}
+                                <div className="relative group shrink-0 ml-2">
+                                    <label className={`w-14 h-14 rounded-full transition-all duration-300 flex items-center justify-center cursor-pointer overflow-hidden border border-white/20 hover:border-white/50 bg-[#1c1c1c]
+                                        ${activeColor && !SEASON_SWATCHES[activeSeason].includes(activeColor) ? 'scale-100 ring-2 ring-white ring-offset-2 ring-offset-[#121212]' : 'scale-90 opacity-80 group-hover:scale-95 group-hover:opacity-100'}`}
+                                        style={activeColor && !SEASON_SWATCHES[activeSeason].includes(activeColor) ? { backgroundColor: activeColor } : {}}
+                                    >
+                                        {/* Rainbow gradient background when no custom color selected */}
+                                        {!(activeColor && !SEASON_SWATCHES[activeSeason].includes(activeColor)) && (
+                                            <div className="absolute inset-0 opacity-40 bg-[linear-gradient(45deg,#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#4b0082,#8b00ff)]" />
+                                        )}
+                                        {/* Plus Icon or Check Icon */}
+                                        {activeColor && !SEASON_SWATCHES[activeSeason].includes(activeColor) ? (
+                                            <motion.svg
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                className="w-5 h-5 z-10"
+                                                viewBox="0 0 24 24" fill="none"
+                                                stroke={
+                                                    // Determine contrast color
+                                                    (() => {
+                                                        const hex = activeColor.replace('#', '');
+                                                        const lum = (parseInt(hex.substring(0, 2), 16) * 299 + parseInt(hex.substring(2, 4), 16) * 587 + parseInt(hex.substring(4, 6), 16) * 114) / 1000;
+                                                        return lum > 150 ? '#000' : '#fff';
+                                                    })()
+                                                }
+                                                strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                                            >
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </motion.svg>
+                                        ) : (
+                                            <div className="w-5 h-5 relative z-10">
+                                                <div className="absolute inset-x-0 inset-y-2.5 h-[2px] bg-white rounded-full" />
+                                                <div className="absolute inset-y-0 inset-x-2.5 w-[2px] bg-white rounded-full" />
+                                            </div>
+                                        )}
+                                        {/* Native color input */}
+                                        <input
+                                            type="color"
+                                            value={activeColor && !SEASON_SWATCHES[activeSeason].includes(activeColor) ? activeColor : '#ffffff'}
+                                            onChange={(e) => setActiveColor(e.target.value)}
+                                            className="absolute opacity-0 w-full h-full cursor-pointer"
+                                        />
+                                    </label>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/20 text-sm font-medium">
+                                {isKorean ? "컬러를 확인할 시즌을 선택해주세요" : "Select a season to view colors"}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Result Button - Dark Premium Style */}
                     <button onClick={handleViewResult} disabled={isAnalyzing}
-                        className={`w-full py-4 rounded-full font-bold text-base transition-all duration-300 active:scale-95 shadow-[0_4px_20px_rgba(0,0,0,0.3)] flex items-center justify-center gap-2
-                            ${isAnalyzing ? 'bg-zinc-800 text-zinc-400 cursor-not-allowed' : 'bg-black text-white hover:bg-zinc-900'}
+                        className={`w-full py-4 mt-2 rounded-full font-bold text-base transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2
+                            bg-[#1c1c1c] text-white border border-white/10 hover:bg-[#252525] shadow-lg
+                            ${isAnalyzing ? 'opacity-50 cursor-not-allowed' : ''}
                             ${isKorean ? 'font-korean' : ''}`}>
-                        {isAnalyzing && <span className="w-5 h-5 border-2 border-zinc-400 border-t-white rounded-full animate-spin" />}
+                        {isAnalyzing && <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                         {isAnalyzing ? t.analyzing : t.select_btn}
                     </button>
                 </div>

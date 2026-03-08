@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Gowun_Batang, Cinzel } from "next/font/google";
+import { Inter, Playfair_Display, Noto_Sans_KR, Cinzel } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
-const gowun = Gowun_Batang({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-gowun" });
+const notoSansKR = Noto_Sans_KR({ weight: ["300", "400", "500", "700"], subsets: ["latin"], variable: "--font-korean" });
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://findcore.me'),
   title: "Find My Aesthetic Core",
-  description: "Discover your unique visual atmosphere.",
+  description: "Discover your unique visual atmosphere and authentic personal color. Find your seasonal palette and aesthetic core.",
+  keywords: ["Aesthetic", "Personal Color", "퍼스널컬러", "Color Analysis", "봄웜", "여름쿨", "가을웜", "겨울쿨", "Visual Identity"],
+  other: {
+    "google-adsense-account": "ca-pub-7537131530412793"
+  }
 };
 
 export default function RootLayout({
@@ -20,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${playfair.variable} ${gowun.variable} ${cinzel.variable} font-sans antialiased min-h-screen bg-black text-white overflow-x-hidden selection:bg-pink-500/30`}>
+      <body className={`${inter.variable} ${playfair.variable} ${notoSansKR.variable} ${cinzel.variable} font-sans antialiased min-h-screen bg-black text-white overflow-x-hidden selection:bg-pink-500/30`}>
         {/* Cinematic Background - Hidden on mobile to prevent double-rendering and GPU overload */}
         <div className="hidden md:block fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
           {/* Static Grain Texture */}
