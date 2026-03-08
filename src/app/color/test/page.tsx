@@ -110,6 +110,8 @@ function ColorTestContent() {
     const t = UI_TEXT[lang];
 
     const [step, setStep] = useState<Step>('upload');
+    const [isStepLoading, setIsStepLoading] = useState(false);
+    const [isAutoDetecting, setIsAutoDetecting] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [croppedSrc, setCroppedSrc] = useState<string | null>(null);
@@ -399,42 +401,49 @@ function ColorTestContent() {
 
     const handleAutoDetect = async () => {
         const img = sourceImgRef.current;
-        if (!img) return;
+        if (!img || isAutoDetecting) return;
 
-        const contour = await getFaceContour(img);
-        if (!contour) {
-            alert(isKorean ? "얼굴을 찾을 수 없습니다. 직접 그려주세요." : "Face not detected. Please draw manually.");
-            return;
+        setIsAutoDetecting(true);
+        try {
+            const contour = await getFaceContour(img);
+            if (!contour) {
+                alert(isKorean ? "얼굴을 찾을 수 없습니다. 직접 그려주세요." : "Face not detected. Please draw manually.");
+                return;
+            }
+
+            const canvas = cropCanvasRef.current;
+            if (!canvas) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
+
+            const imgAspect = img.naturalWidth / img.naturalHeight;
+            const canvasAspect = w / h;
+
+            let baseScale;
+            if (imgAspect > canvasAspect) {
+                baseScale = h / img.naturalHeight;
+            } else {
+                baseScale = w / img.naturalWidth;
+            }
+
+            const currentScale = baseScale * imgScale;
+            const drawX = (w - img.naturalWidth * currentScale) / 2 + imgOffset.x;
+            const drawY = (h - img.naturalHeight * currentScale) / 2 + imgOffset.y;
+
+            // Map image-space landmarks to canvas-space points
+            const canvasPoints = contour.map(p => ({
+                x: drawX + p.x * currentScale,
+                y: drawY + p.y * currentScale
+            }));
+
+            setPoints(canvasPoints);
+        } catch (e) {
+            console.error("Auto detect failed", e);
+        } finally {
+            setIsAutoDetecting(false);
         }
-
-        const canvas = cropCanvasRef.current;
-        if (!canvas) return;
-
-        const rect = canvas.getBoundingClientRect();
-        const w = rect.width;
-        const h = rect.height;
-
-        const imgAspect = img.naturalWidth / img.naturalHeight;
-        const canvasAspect = w / h;
-
-        let baseScale;
-        if (imgAspect > canvasAspect) {
-            baseScale = h / img.naturalHeight;
-        } else {
-            baseScale = w / img.naturalWidth;
-        }
-
-        const currentScale = baseScale * imgScale;
-        const drawX = (w - img.naturalWidth * currentScale) / 2 + imgOffset.x;
-        const drawY = (h - img.naturalHeight * currentScale) / 2 + imgOffset.y;
-
-        // Map image-space landmarks to canvas-space points
-        const canvasPoints = contour.map(p => ({
-            x: drawX + p.x * currentScale,
-            y: drawY + p.y * currentScale
-        }));
-
-        setPoints(canvasPoints);
     };
 
     const skipCrop = () => {
@@ -540,12 +549,21 @@ function ColorTestContent() {
                     {/* Magic Auto Detect Button */}
                     <button
                         onClick={handleAutoDetect}
-                        className="w-full py-4 rounded-full bg-linear-to-r from-purple-500/20 to-blue-500/20 border border-white/20 text-white font-bold flex items-center justify-center gap-2 hover:from-purple-500/30 hover:to-blue-500/30 transition-all shadow-lg active:scale-95 group overflow-hidden relative"
+                        disabled={isAutoDetecting}
+                        className={`w-full py-4 rounded-full bg-linear-to-r from-purple-500/20 to-blue-500/20 border border-white/20 text-white font-bold flex items-center justify-center gap-3 hover:from-purple-500/30 hover:to-blue-500/30 transition-all shadow-lg active:scale-95 group overflow-hidden relative ${isAutoDetecting ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                         <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Sparkles className="w-5 h-5 text-purple-300 group-hover:rotate-12 transition-transform" />
-                        <span className={isKorean ? 'font-korean' : ''}>{isKorean ? 'AI 자동 얼굴 감지' : 'Magic Auto Detect'}</span>
-                        <div className="ml-1 px-2 py-0.5 rounded-full bg-purple-500/20 text-[10px] uppercase tracking-tighter border border-purple-500/30">AI</div>
+
+                        {/* AI Badge on the Left */}
+                        <div className="px-2 py-0.5 rounded-full bg-purple-500/30 text-[10px] font-black uppercase tracking-tighter border border-purple-500/40 z-10">AI</div>
+
+                        {isAutoDetecting && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin z-10" />}
+
+                        <span className={`z-10 ${isKorean ? 'font-korean' : ''}`}>
+                            {isAutoDetecting
+                                ? (isKorean ? 'AI 분석 중...' : 'AI Analyzing...')
+                                : (isKorean ? 'AI 자동 얼굴 감지' : 'AI Auto Detect')}
+                        </span>
                     </button>
 
                     {/* Tool Bar: Pan/Zoom vs Draw */}
