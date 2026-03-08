@@ -112,9 +112,9 @@ function ColorHomeContent() {
 
                         {/* ===== Hero Image (중앙) ===== */}
                         <div className="w-full flex items-center justify-center min-h-0 lg:h-auto lg:w-1/2 lg:max-w-none py-2 lg:py-0 shrink">
-                            <div className="relative w-full h-full max-h-[45vh] lg:max-h-none aspect-4/5 max-w-sm lg:max-w-md mobile-fade-in-scale" style={{ animationDelay: '0.3s' }}>
-                                <div className="relative w-full h-full overflow-hidden rounded-4xl lg:rounded-[2.5rem] border border-white/20 shadow-[-10px_-10px_30px_rgba(236,72,153,0.1),10px_10px_30px_rgba(167,139,250,0.1)]">
-                                    <Image src="/images/personal_color_hero_v2.png" alt="Personal Color Magic" fill className="object-cover lg:object-cover" priority sizes="(max-width: 768px) 100vw, 50vw" />
+                            <div className="relative w-full h-full max-h-[45vh] lg:max-h-none aspect-square max-w-sm lg:max-w-md mobile-fade-in-scale" style={{ animationDelay: '0.3s' }}>
+                                <div className="relative w-full h-full overflow-hidden rounded-full border border-white/20 shadow-[-10px_-10px_30px_rgba(236,72,153,0.1),10px_10px_30px_rgba(167,139,250,0.1)]">
+                                    <Image src="/images/personal_color_hero_v8.png" alt="Personal Color Magic" fill className="object-cover" priority sizes="(max-width: 768px) 100vw, 50vw" />
                                 </div>
                             </div>
                         </div>

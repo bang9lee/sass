@@ -35,10 +35,10 @@ export const COLOR_RESULTS: Record<SeasonId, ColorResult> = {
         keywords_ko: ['생기', '따뜻함', '맑음', '사랑스러움', '프레시'],
         keywords_zh: ['活泼', '温暖', '清透', '可爱', '清新'],
         keywords_ja: ['生き生き', '暖かい', 'クリア', '愛らしい', 'フレッシュ'],
-        bestColors: ['#FFB6C1', '#FFA07A', '#FFD700', '#98FB98', '#FFH0B4'],
+        bestColors: ['#FFB6C1', '#FFA07A', '#FFD700', '#98FB98', '#FF69B4'],
         worstColors: ['#000000', '#000080', '#8B008B'],
         palette: ['#FFB6C1', '#FFA07A', '#FFD700', '#98FB98'],
-        image: '/images/color/spring.webp'
+        image: '/images/color-v3/spring.png'
     },
     summer: {
         id: 'summer',
@@ -57,7 +57,7 @@ export const COLOR_RESULTS: Record<SeasonId, ColorResult> = {
         bestColors: ['#E6E6FA', '#ADD8E6', '#FFB6C1', '#D8BFD8', '#B0C4DE'],
         worstColors: ['#FFA500', '#8B4513', '#FF4500'],
         palette: ['#E6E6FA', '#ADD8E6', '#FFB6C1', '#D8BFD8'],
-        image: '/images/color/summer.webp'
+        image: '/images/color-v3/summer.png'
     },
     autumn: {
         id: 'autumn',
@@ -76,7 +76,7 @@ export const COLOR_RESULTS: Record<SeasonId, ColorResult> = {
         bestColors: ['#8B4513', '#DAA520', '#556B2F', '#A52A2A', '#D2B48C'],
         worstColors: ['#FF00FF', '#00FFFF', '#E6E6FA'],
         palette: ['#8B4513', '#DAA520', '#556B2F', '#A52A2A'],
-        image: '/images/color/autumn.webp'
+        image: '/images/color-v3/autumn.png'
     },
     winter: {
         id: 'winter',
@@ -95,7 +95,7 @@ export const COLOR_RESULTS: Record<SeasonId, ColorResult> = {
         bestColors: ['#000000', '#FFFFFF', '#DC143C', '#0000CD', '#FF00FF'],
         worstColors: ['#BDB76B', '#D2B48C', '#FFA500'],
         palette: ['#000000', '#FFFFFF', '#DC143C', '#0000CD'],
-        image: '/images/color/winter.webp'
+        image: '/images/color-v3/winter.png'
     }
 };
 

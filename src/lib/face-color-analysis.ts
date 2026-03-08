@@ -1,13 +1,16 @@
 /**
- * AI-powered Personal Color Analysis using MediaPipe Face Landmarks
+ * AI-powered Personal Color Analysis using TFJS Face Landmarks
  *
  * Flow:
- * 1. Detect 478 face landmarks via MediaPipe FaceLandmarker
+ * 1. Detect 478 face landmarks via TensorFlow.js FaceLandmarksDetection (WebGL)
  * 2. Sample skin color from forehead, cheeks, chin
  * 3. Sample hair color from above forehead
  * 4. Compute undertone, brightness, contrast, clarity
  * 5. Score each of 4 seasons → return best match with detail
  */
+// Provide TFJS core and WebGL backend globally
+import "@tensorflow/tfjs-core";
+import "@tensorflow/tfjs-backend-webgl";
 
 import type { SeasonId } from "./color-data";
 
@@ -25,14 +28,9 @@ export interface AnalysisResult {
 }
 
 // =============================================
-// MediaPipe FaceLandmarker — lazy singleton
+// TFJS FaceLandmarker — lazy singleton
 // =============================================
-type FaceLandmarkerType = {
-    detect: (image: HTMLImageElement | HTMLCanvasElement | ImageData) => {
-        faceLandmarks: Array<Array<{ x: number; y: number; z: number }>>;
-    };
-    close: () => void;
-};
+type FaceLandmarkerType = any; // Using any to avoid complex type imports here
 
 let landmarkerPromise: Promise<FaceLandmarkerType> | null = null;
 
@@ -41,26 +39,21 @@ async function getFaceLandmarker(): Promise<FaceLandmarkerType> {
 
     landmarkerPromise = (async () => {
         try {
-            const vision = await import("@mediapipe/tasks-vision");
-            const { FaceLandmarker, FilesetResolver } = vision;
+            // Dynamically import the models to avoid breaking Next.js SSR
+            const faceLandmarksDetection = await import("@tensorflow-models/face-landmarks-detection");
 
-            const filesetResolver = await FilesetResolver.forVisionTasks(
-                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm"
-            );
+            const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+            const detectorConfig = {
+                runtime: "tfjs", // Forces TFJS WebGL instead of WASM
+                refineLandmarks: false,
+                maxFaces: 1,
+            };
 
-            const landmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
-                baseOptions: {
-                    modelAssetPath:
-                        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-                    // Removing delegate "CPU" to allow the library to select the best available (WebAssembly/WebGL)
-                },
-                runningMode: "IMAGE",
-                numFaces: 1,
-            });
-
-            return landmarker as unknown as FaceLandmarkerType;
+            // @ts-ignore
+            const detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
+            return detector;
         } catch (err) {
-            console.error("Failed to initialize FaceLandmarker:", err);
+            console.error("Failed to initialize TFJS FaceLandmarker:", err);
             landmarkerPromise = null; // Reset to allow retry
             throw err;
         }
@@ -151,8 +144,12 @@ function samplePixelsAtLandmarks(
     for (const idx of indices) {
         if (idx >= landmarks.length) continue;
         const lm = landmarks[idx];
-        const cx = Math.round(lm.x * width);
-        const cy = Math.round(lm.y * height) + yOffset;
+
+        // TFJS returns absolute pixel coordinates for MediaPipeFaceMesh, unlike tasks-vision which returned 0..1 normalized.
+        // We gracefully support both just in case.
+        const isNormalized = lm.x <= 1 && lm.y <= 1 && width > 1;
+        const cx = Math.round(isNormalized ? lm.x * width : lm.x);
+        const cy = Math.round(isNormalized ? lm.y * height : lm.y) + yOffset;
 
         // Sample a small region around each point
         for (let dy = -radius; dy <= radius; dy++) {
@@ -314,9 +311,6 @@ function calculateSeasonScores(
 export async function analyzePersonalColorAI(
     imageElement: HTMLImageElement
 ): Promise<AnalysisResult> {
-    // 1. Get face landmarks
-    const landmarker = await getFaceLandmarker();
-
     // Draw image to canvas for pixel access
     const canvas = document.createElement("canvas");
     const w = imageElement.naturalWidth;
@@ -327,38 +321,31 @@ export async function analyzePersonalColorAI(
     ctx.drawImage(imageElement, 0, 0);
     const imageData = ctx.getImageData(0, 0, w, h);
 
+    let landmarker;
+    // 1. Get face landmarks
+    try {
+        landmarker = await getFaceLandmarker();
+    } catch (e) {
+        console.warn("[TFJS] Initialization failed, using fallback:", e);
+        return fallbackAnalysis(imageData, w, h);
+    }
+
     let result;
     try {
-        // Create a scaled-down canvas for detection to prevent XNNPACK/Wasm memory crashes on large images
-        // 600px is more than enough for landmark detection
-        const MAX_SIZE = 600;
-        let scale = 1;
-        if (w > MAX_SIZE || h > MAX_SIZE) {
-            scale = Math.min(MAX_SIZE / w, MAX_SIZE / h);
-        }
-
-        const detectW = Math.round(w * scale);
-        const detectH = Math.round(h * scale);
-        const detectCanvas = document.createElement("canvas");
-        detectCanvas.width = detectW;
-        detectCanvas.height = detectH;
-        const detectCtx = detectCanvas.getContext("2d", { willReadFrequently: true })!;
-        detectCtx.drawImage(imageElement, 0, 0, detectW, detectH);
-
-        // Reverting to detectCanvas (HTMLCanvasElement) as it's the more standard and often more stable input type
-        // in many Wasm environments, especially in modern Browsers.
-        result = landmarker.detect(detectCanvas);
+        // TFJS natively supports HTMLImageElement with pure WebGL (highly stable on mobile)
+        result = await landmarker.estimateFaces(imageElement, { flipHorizontal: false });
     } catch (e) {
-        console.error("MediaPipe FaceLandmarker.detect crashed:", e);
+        console.error("TFJS FaceLandmarker.estimateFaces crashed:", e);
         return fallbackAnalysis(imageData, w, h);
     }
 
-    if (!result || !result.faceLandmarks || result.faceLandmarks.length === 0) {
-        // Fallback: no face detected — use center region heuristic
+    if (!result || result.length === 0) {
+        console.warn("[TFJS] No faces detected in the image, using fallback.");
         return fallbackAnalysis(imageData, w, h);
     }
 
-    const landmarks = result.faceLandmarks[0];
+    // TFJS results contain a 'keypoints' array for each detected face
+    const landmarks = result[0].keypoints;
 
     // 2. Sample skin colors from multiple face regions
     const foreheadPixels = samplePixelsAtLandmarks(imageData, w, h, landmarks, FOREHEAD_INDICES);

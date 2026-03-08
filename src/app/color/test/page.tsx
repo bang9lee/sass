@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Upload, RotateCcw, Layers, Check, Undo2 } from "lucide-react";
-import { COLOR_RESULTS, SeasonId } from "@/lib/color-data";
+import { SeasonId, analyzePersonalColor } from "@/lib/color-data";
 import { analyzePersonalColorAI, preloadModel } from "@/lib/face-color-analysis";
 import { motion } from "framer-motion";
 
@@ -120,7 +120,9 @@ function ColorTestContent() {
     const sourceImgRef = useRef<HTMLImageElement | null>(null);
 
     useEffect(() => {
-        preloadModel().catch(console.error);
+        preloadModel().catch(() => {
+            // Keep the UI usable even if MediaPipe fails to warm up.
+        });
     }, []);
 
     const seasonMeta: Record<SeasonId, { name: Record<Lang, string> }> = {
@@ -300,7 +302,11 @@ function ColorTestContent() {
         ctx.clip();
         ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
-        setCroppedSrc(resultCanvas.toDataURL('image/png'));
+        const croppedDataUrl = resultCanvas.toDataURL('image/png');
+        setCroppedSrc(croppedDataUrl);
+        const croppedImage = new window.Image();
+        croppedImage.onload = () => { sourceImgRef.current = croppedImage; };
+        croppedImage.src = croppedDataUrl;
         setStep('compare');
     }, [points]);
 
@@ -325,7 +331,12 @@ function ColorTestContent() {
 
         setIsAnalyzing(true);
         try {
-            const result = await analyzePersonalColorAI(img);
+            let result;
+            try {
+                result = await analyzePersonalColorAI(img);
+            } catch {
+                result = { season: analyzePersonalColor(img) };
+            }
             // Save full result temporarily to sessionStorage to display later if needed
             sessionStorage.setItem('lastAnalysis', JSON.stringify(result));
             router.push(`/color/result/${result.season}?lang=${lang}`);

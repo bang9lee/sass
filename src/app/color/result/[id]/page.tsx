@@ -71,6 +71,7 @@ export default async function ColorResultPage({ params, searchParams }: Props) {
         title: { ko: resultData.title_ko, zh: resultData.title_zh, ja: resultData.title_ja, en: resultData.title }[currentLang] || resultData.title,
         description: { ko: resultData.description_ko, zh: resultData.description_zh, ja: resultData.description_ja, en: resultData.description }[currentLang] || resultData.description,
         keywords: { ko: resultData.keywords_ko, zh: resultData.keywords_zh, ja: resultData.keywords_ja, en: resultData.keywords }[currentLang] || resultData.keywords,
+        subtitle: { ko: 'Personal Color', zh: 'Personal Color', ja: 'Personal Color', en: 'Personal Color' }[currentLang] || 'Personal Color',
     };
 
     return (
@@ -79,8 +80,11 @@ export default async function ColorResultPage({ params, searchParams }: Props) {
                 <ColorResultCardClient
                     resultId={resultData.id}
                     title={content.title}
+                    subtitle={content.subtitle}
                     description={content.description}
+                    image={resultData.image}
                     keywords={content.keywords}
+                    palette={resultData.palette}
                     bestColors={resultData.bestColors}
                     worstColors={resultData.worstColors}
                     isKo={isKo}
