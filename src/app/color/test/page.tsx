@@ -2,9 +2,9 @@
 
 import { useState, useRef, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Upload, RotateCcw, Layers, Check, Undo2, Move, PenTool, ZoomIn, ZoomOut } from "lucide-react";
+import { RotateCcw, Upload, Move, PenTool, ZoomIn, ZoomOut, Undo2, Check, Sparkles } from 'lucide-react';
 import { SeasonId, analyzePersonalColor } from "@/lib/color-data";
-import { analyzePersonalColorAI, preloadModel } from "@/lib/face-color-analysis";
+import { analyzePersonalColorAI, preloadModel, getFaceContour } from "@/lib/face-color-analysis";
 import { motion } from "framer-motion";
 
 // =============================================
@@ -397,6 +397,46 @@ function ColorTestContent() {
         setStep('compare');
     }, [points]);
 
+    const handleAutoDetect = async () => {
+        const img = sourceImgRef.current;
+        if (!img) return;
+
+        const contour = await getFaceContour(img);
+        if (!contour) {
+            alert(isKorean ? "얼굴을 찾을 수 없습니다. 직접 그려주세요." : "Face not detected. Please draw manually.");
+            return;
+        }
+
+        const canvas = cropCanvasRef.current;
+        if (!canvas) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+
+        const imgAspect = img.naturalWidth / img.naturalHeight;
+        const canvasAspect = w / h;
+
+        let baseScale;
+        if (imgAspect > canvasAspect) {
+            baseScale = h / img.naturalHeight;
+        } else {
+            baseScale = w / img.naturalWidth;
+        }
+
+        const currentScale = baseScale * imgScale;
+        const drawX = (w - img.naturalWidth * currentScale) / 2 + imgOffset.x;
+        const drawY = (h - img.naturalHeight * currentScale) / 2 + imgOffset.y;
+
+        // Map image-space landmarks to canvas-space points
+        const canvasPoints = contour.map(p => ({
+            x: drawX + p.x * currentScale,
+            y: drawY + p.y * currentScale
+        }));
+
+        setPoints(canvasPoints);
+    };
+
     const skipCrop = () => {
         setCroppedSrc(imageSrc);
         setStep('compare');
@@ -496,6 +536,17 @@ function ColorTestContent() {
                     </div>
                 </div>
                 <div className="w-full p-5 pb-8 flex flex-col gap-4 max-w-xl mx-auto shrink-0 z-10">
+
+                    {/* Magic Auto Detect Button */}
+                    <button
+                        onClick={handleAutoDetect}
+                        className="w-full py-4 rounded-full bg-linear-to-r from-purple-500/20 to-blue-500/20 border border-white/20 text-white font-bold flex items-center justify-center gap-2 hover:from-purple-500/30 hover:to-blue-500/30 transition-all shadow-lg active:scale-95 group overflow-hidden relative"
+                    >
+                        <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Sparkles className="w-5 h-5 text-purple-300 group-hover:rotate-12 transition-transform" />
+                        <span className={isKorean ? 'font-korean' : ''}>{isKorean ? 'AI 자동 얼굴 감지' : 'Magic Auto Detect'}</span>
+                        <div className="ml-1 px-2 py-0.5 rounded-full bg-purple-500/20 text-[10px] uppercase tracking-tighter border border-purple-500/30">AI</div>
+                    </button>
 
                     {/* Tool Bar: Pan/Zoom vs Draw */}
                     <div className="flex flex-col gap-4 mb-2">

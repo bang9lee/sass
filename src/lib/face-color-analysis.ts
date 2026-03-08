@@ -68,6 +68,13 @@ async function getFaceLandmarker(): Promise<FaceLandmarkerType> {
 // =============================================
 // MediaPipe FaceMesh 478 landmark layout:
 
+// Face oval (silhouette) indices for auto-cropping
+const FACEMESH_FACE_OVAL = [
+    10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378,
+    400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21,
+    54, 103, 67, 109
+];
+
 // Forehead
 const FOREHEAD_INDICES = [10, 67, 69, 104, 108, 109, 151, 299, 297, 332, 334, 338];
 // Left cheek
@@ -495,8 +502,37 @@ function fallbackAnalysis(imageData: ImageData, w: number, h: number): AnalysisR
 }
 
 /**
+ * Detects the face contour (oval) to allow for automatic cropping.
+ */
+export async function getFaceContour(
+    imageElement: HTMLImageElement
+): Promise<{ x: number; y: number }[] | null> {
+    try {
+        const landmarker = await getFaceLandmarker();
+        const result = await landmarker.estimateFaces(imageElement, { flipHorizontal: false });
+
+        if (!result || result.length === 0) return null;
+
+        const landmarks = result[0].keypoints;
+        const width = imageElement.naturalWidth;
+        const height = imageElement.naturalHeight;
+
+        return FACEMESH_FACE_OVAL.map(idx => {
+            const lm = landmarks[idx];
+            const isNormalized = lm.x <= 1 && lm.y <= 1 && width > 1;
+            return {
+                x: isNormalized ? lm.x * width : lm.x,
+                y: isNormalized ? lm.y * height : lm.y
+            };
+        });
+    } catch (e) {
+        console.error("Failed to get face contour:", e);
+        return null;
+    }
+}
+
+/**
  * Pre-load the model so it's ready when the user submits.
- * Call this early (e.g., on page mount) to reduce wait time.
  */
 export async function preloadModel(): Promise<void> {
     await getFaceLandmarker();
