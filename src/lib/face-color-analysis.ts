@@ -517,12 +517,43 @@ export async function getFaceContour(
         const width = imageElement.naturalWidth;
         const height = imageElement.naturalHeight;
 
-        return FACEMESH_FACE_OVAL.map(idx => {
+        // Calculate face dimensions to estimate crown height
+        const top = landmarks[10];
+        const bottom = landmarks[152];
+        const faceHeight = Math.abs(top.y - bottom.y);
+        const crownHeight = faceHeight * 0.35; // Estimate hair/head top
+
+        // Main face oval points
+        const facePoints = FACEMESH_FACE_OVAL.map(idx => {
             const lm = landmarks[idx];
-            const isNormalized = lm.x <= 1 && lm.y <= 1 && width > 1;
+            return { x: lm.x, y: lm.y };
+        });
+
+        // Add 'Crown' points above the forehead to capture hair
+        // We insert them after the top-most point (index 10)
+        const topIdx = FACEMESH_FACE_OVAL.indexOf(10);
+        const p10 = facePoints[topIdx];
+
+        const hairPoints = [
+            { x: landmarks[332].x, y: landmarks[332].y - crownHeight * 0.6 },
+            { x: p10.x, y: p10.y - crownHeight },
+            { x: landmarks[103].x, y: landmarks[103].y - crownHeight * 0.6 },
+        ];
+
+        // Combine: Start from one side of the forehead, go up around the crown, then back to the other side
+        const resultPoints = [
+            ...facePoints.slice(0, topIdx),
+            hairPoints[0],
+            hairPoints[1],
+            hairPoints[2],
+            ...facePoints.slice(topIdx)
+        ];
+
+        return resultPoints.map(p => {
+            const isNormalized = p.x <= 1 && p.y <= 1 && width > 1;
             return {
-                x: isNormalized ? lm.x * width : lm.x,
-                y: isNormalized ? lm.y * height : lm.y
+                x: isNormalized ? p.x * width : p.x,
+                y: isNormalized ? p.y * height : p.y
             };
         });
     } catch (e) {
