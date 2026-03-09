@@ -54,7 +54,17 @@ export function ColorResultCardClient({
             adStatus: '광고대기중',
             resultLabel: '퍼스널 컬러',
             best: '베스트 컬러',
-            worst: '워스트 컬러'
+            worst: '워스트 컬러',
+            faceShapeLabel: 'AI 얼굴형 분석',
+            shapes: {
+                oval: { name: '계란형', tip: '모든 스타일이 잘 어울리는 완벽한 비율입니다.' },
+                round: { name: '둥근형', tip: '각진 프레임의 안경이나 정수리 볼륨을 살린 헤어가 추천됩니다.' },
+                square: { name: '각진형', tip: '부드러운 곡선 프레임이나 옆머리를 가린 스타일이 인상을 부드럽게 합니다.' },
+                heart: { name: '하트형', tip: '아래가 넓은 테의 안경이나 턱선까지 오는 헤어 스타일이 잘 어울립니다.' },
+                oblong: { name: '긴 얼굴형', tip: '가로폭이 넓은 안경이나 앞머리(뱅) 스타일로 시선을 분산해보세요.' },
+                diamond: { name: '다이아몬드형', tip: '타원형 안경이나 턱선 부분에 볼륨을 준 보브 스타일을 추천합니다.' },
+                pear: { name: '삼각형(배형)', tip: '윗부분이 강조된 안경이나 관자놀이 쪽 볼륨을 살린 헤어가 좋습니다.' }
+            }
         },
         en: {
             shareTitle: `My Personal Color: ${title}`,
@@ -68,7 +78,17 @@ export function ColorResultCardClient({
             adStatus: 'Ad Pending',
             resultLabel: 'Personal Color',
             best: 'Best Colors',
-            worst: 'Colors to Avoid'
+            worst: 'Colors to Avoid',
+            faceShapeLabel: 'AI Face Shape Analysis',
+            shapes: {
+                oval: { name: 'Oval', tip: 'A perfectly balanced shape that suits almost any style.' },
+                round: { name: 'Round', tip: 'Angular frames and volume on top are recommended.' },
+                square: { name: 'Square', tip: 'Curved frames and side-swept styles soften your features.' },
+                heart: { name: 'Heart', tip: 'Frames wider at the bottom and chin-length hair look great.' },
+                oblong: { name: 'Oblong', tip: 'Oversized frames and bangs help balance the length.' },
+                diamond: { name: 'Diamond', tip: 'Oval frames and bob styles with volume at the chin work best.' },
+                pear: { name: 'Pear', tip: 'Top-heavy frames and volume at the temples are ideal.' }
+            }
         },
         zh: {
             shareTitle: `我的专属色彩: ${title}`,
@@ -82,7 +102,17 @@ export function ColorResultCardClient({
             adStatus: '广告待处理',
             resultLabel: 'Personal Color',
             best: '最佳颜色',
-            worst: '避雷颜色'
+            worst: '避雷颜色',
+            faceShapeLabel: 'AI 脸型分析',
+            shapes: {
+                oval: { name: '鹅蛋脸', tip: '完美的比例，适合几乎所有风格。' },
+                round: { name: '圆脸', tip: '建议选择棱角分明的镜框，并增加头顶发量。' },
+                square: { name: '方脸', tip: '圆润的镜框和偏分发型能柔化面部线条。' },
+                heart: { name: '心形脸', tip: '适合下半部较宽的镜框和齐腮短发。' },
+                oblong: { name: '长脸', tip: '大框眼镜和刘海造型有助于平衡长度。' },
+                diamond: { name: '菱形脸', tip: '椭圆镜框和下巴处蓬松的波波头最合适。' },
+                pear: { name: '梨形脸', tip: '建议选择上部加宽的镜框，并增加太阳穴处发量。' }
+            }
         },
         ja: {
             shareTitle: `私のパーソナルカラー: ${title}`,
@@ -96,7 +126,7 @@ export function ColorResultCardClient({
             adStatus: '広告待機中',
             resultLabel: 'Personal Color',
             best: 'ベストカラー',
-            worst: 'NGカラー'
+            worst: 'NGカラー',
         }
     };
 

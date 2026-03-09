@@ -6,7 +6,7 @@ import { AuroraBackground } from '@/components/ui/aurora-background';
 
 interface Props {
     params: Promise<{ id: string }>;
-    searchParams: Promise<{ lang?: string }>;
+    searchParams: Promise<{ lang?: string; shape?: string }>;
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -57,7 +57,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function ColorResultPage({ params, searchParams }: Props) {
     const { id } = await params;
-    const { lang } = await searchParams;
+    const { lang, shape } = await searchParams;
     const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
     const isKo = currentLang === 'ko';
 

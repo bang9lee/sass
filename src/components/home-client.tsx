@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, Menu, X, Play } from "lucide-react";
+import { Menu, X, Play } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useState } from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LanguageSelector } from "@/components/language-selector";
+import { getFooterLabels } from "@/lib/site-content";
 
 
 // ============================================
@@ -39,7 +40,8 @@ function HomeContent() {
             button: "",
             countSuffix: "명 테스트",
             menuPersonalColor: "퍼스널 컬러",
-            menuAesthetic: "감성 테스트"
+            menuAesthetic: "감성 테스트",
+            menuFaceShape: "AI얼굴형분석"
         },
         en: {
             title1: "Find Your",
@@ -48,7 +50,8 @@ function HomeContent() {
             button: "",
             countSuffix: " tested",
             menuPersonalColor: "Personal Color",
-            menuAesthetic: "Aesthetic Test"
+            menuAesthetic: "Aesthetic Test",
+            menuFaceShape: "AI Face Shape Analysis"
         },
         zh: {
             title1: "寻找你的",
@@ -57,7 +60,8 @@ function HomeContent() {
             button: "",
             countSuffix: " 人已测试",
             menuPersonalColor: "个人色彩",
-            menuAesthetic: "美学测试"
+            menuAesthetic: "美学测试",
+            menuFaceShape: "脸型分析"
         },
         ja: {
             title1: "私の感性は",
@@ -66,9 +70,11 @@ function HomeContent() {
             button: "",
             countSuffix: "人が診断",
             menuPersonalColor: "パーソナルカラー",
-            menuAesthetic: "感性テスト"
+            menuAesthetic: "感性テスト",
+            menuFaceShape: "顔型分析"
         }
     }[lang];
+    const footer = getFooterLabels(lang);
 
     return (
         <AuroraBackground className="justify-start">
@@ -90,6 +96,9 @@ function HomeContent() {
                             </Link>
                             <Link href={`/color?lang=${lang}`} className="text-[13px] font-medium text-white/60 hover:text-pink-300 transition-colors tracking-wide uppercase whitespace-nowrap">
                                 {t.menuPersonalColor}
+                            </Link>
+                            <Link href={`/face-shape?lang=${lang}`} className="text-[13px] font-medium text-white/60 hover:text-cyan-300 transition-colors tracking-wide uppercase whitespace-nowrap">
+                                {t.menuFaceShape}
                             </Link>
                         </nav>
                     </div>
@@ -153,6 +162,19 @@ function HomeContent() {
                                         className="text-xl font-medium text-pink-300 hover:text-pink-200 transition-colors tracking-widest uppercase"
                                     >
                                         {t.menuPersonalColor}
+                                    </Link>
+                                </motion.div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                >
+                                    <Link
+                                        href={`/face-shape?lang=${lang}`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="text-xl font-medium text-cyan-300 hover:text-cyan-200 transition-colors tracking-widest uppercase"
+                                    >
+                                        {t.menuFaceShape}
                                     </Link>
                                 </motion.div>
                             </div>
@@ -237,19 +259,29 @@ function HomeContent() {
                 </main>
 
                 {/* Footer - minimal full-width premium style */}
-                <footer className="w-full shrink-0 py-6 px-8 flex items-center justify-between z-50 mobile-fade-in-scale mobile-gpu border-t border-white/5 bg-black/20 backdrop-blur-sm" style={{ animationDelay: '0.3s' }}>
-                    <p className="text-white text-[10px] uppercase tracking-[0.2em] font-light">
-                        findcore.me
-                    </p>
-                    <a
-                        href="https://t.me/todayshelp"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex items-center gap-2 text-white hover:text-cyan-200 transition-colors duration-300"
-                    >
-                        <span className="font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
-                        <span className="text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
-                    </a>
+                <footer className="w-full shrink-0 border-t border-white/5 bg-black/20 px-8 py-6 backdrop-blur-sm" style={{ animationDelay: '0.3s' }}>
+                    <div className="mx-auto grid max-w-6xl items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+                        <p className="hidden text-white/38 text-[10px] uppercase tracking-[0.2em] font-light md:block">
+                            findcore.me
+                        </p>
+                        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-white/48">
+                            <Link href={`/about?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.about}</Link>
+                            <Link href={`/guides?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.guides}</Link>
+                            <Link href={`/privacy?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.privacy}</Link>
+                            <Link href={`/terms?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.terms}</Link>
+
+                        </div>
+                        <div className="text-center md:text-right">
+                            <a
+                                href="https://t.me/todayshelp"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-white/44 transition-colors hover:text-white/78"
+                            >
+                                Telegram @todayshelp
+                            </a>
+                        </div>
+                    </div>
                 </footer>
             </div>
         </AuroraBackground>

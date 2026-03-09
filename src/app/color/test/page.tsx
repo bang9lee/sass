@@ -2,9 +2,14 @@
 
 import { useState, useRef, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { RotateCcw, Upload, Move, PenTool, ZoomIn, ZoomOut, Undo2, Check, Sparkles } from 'lucide-react';
-import { SeasonId, analyzePersonalColor } from "@/lib/color-data";
+import { RotateCcw, Upload, Move, PenTool, ZoomIn, ZoomOut, Undo2, Check } from 'lucide-react';
+import { SeasonId, SubSeasonId, analyzePersonalColor } from "@/lib/color-data";
 import { analyzePersonalColorAI, preloadModel, getFaceContour } from "@/lib/face-color-analysis";
+import {
+    analyzeFaceShapeAI,
+    getFaceShapeContour,
+    preloadFaceShapeModel,
+} from "@/lib/face-shape-analysis";
 import { motion } from "framer-motion";
 
 // =============================================
@@ -55,6 +60,10 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         none: "원본",
         select_btn: "결과 보기",
         analyzing: "정밀 분석 중...",
+        shapeTitle: "AI 얼굴형 분석",
+        shapeSubtitle: "셀카를 업로드하여 당신의 얼굴형과\n가장 잘 어울리는 스타일을 찾아보세요.",
+        shapeUploadHint: "정면 사진 권장 - 이마와 헤어라인, 턱선이 모두 보여야 정확도가 올라갑니다.",
+        shapeCropHint: "앞머리와 이마가 보이게 맞춘 뒤 얼굴 윤곽을 따라 그려주세요.",
     },
     en: {
         title: "Personal Color Test",
@@ -69,6 +78,10 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         none: "Original",
         select_btn: "View Result",
         analyzing: "Analyzing...",
+        shapeTitle: "AI Face Shape Analysis",
+        shapeSubtitle: "Upload a selfie to discover your face shape\nand the perfect styles for you.",
+        shapeUploadHint: "Use a near-frontal photo with the forehead, hairline, and jawline fully visible for better accuracy.",
+        shapeCropHint: "Frame the forehead and hairline clearly, then trace around the face outline.",
     },
     zh: {
         title: "个人色彩测试",
@@ -83,6 +96,10 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         none: "原图",
         select_btn: "查看结果",
         analyzing: "深度分析中...",
+        shapeTitle: "AI 脸型分析",
+        shapeSubtitle: "上传自拍，发现您的脸型\n以及最适合您的风格。",
+        shapeUploadHint: "建议上传接近正面的照片，并清楚露出额头、发际线和下颌线。",
+        shapeCropHint: "先确保额头和发际线清晰可见，再沿着脸部轮廓描绘。",
     },
     ja: {
         title: "パーソナルカラーテスト",
@@ -97,20 +114,25 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         none: "オリジナル",
         select_btn: "結果を見る",
         analyzing: "AI分析中...",
+        shapeTitle: "AI 顔型分析",
+        shapeSubtitle: "セルフィーをアップロードして、あなたの顔型と\n最高のスタイルを見つけましょう。",
+        shapeUploadHint: "正面に近く、額と生え際、あごのラインが見える写真の方が精度が上がります。",
+        shapeCropHint: "前髪や額が見えるように合わせてから、顔の輪郭をなぞってください。",
     },
 };
 
-type Step = 'upload' | 'crop' | 'compare';
+type Step = 'upload' | 'crop' | 'compare' | 'analyzing';
 
 function ColorTestContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const lang = (['ko', 'en', 'zh', 'ja'].includes(searchParams.get('lang') || '') ? searchParams.get('lang') : 'en') as Lang;
+    const mode = searchParams.get('mode') || 'color';
     const isKorean = lang === 'ko';
     const t = UI_TEXT[lang];
 
     const [step, setStep] = useState<Step>('upload');
-    const [isStepLoading, setIsStepLoading] = useState(false);
+    const [scanningStatus, setScanningStatus] = useState(0);
     const [isAutoDetecting, setIsAutoDetecting] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -124,7 +146,6 @@ function ColorTestContent() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
     const sourceImgRef = useRef<HTMLImageElement | null>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null); // Added canvasRef
 
     // =============================================
     // Custom Cropper States
@@ -171,10 +192,11 @@ function ColorTestContent() {
     }, []);
 
     useEffect(() => {
-        preloadModel().catch(() => {
-            // Keep the UI usable even if MediaPipe fails to warm up.
+        const preload = mode === 'shape' ? preloadFaceShapeModel : preloadModel;
+        preload().catch(() => {
+            // Keep the UI usable even if model warm-up fails.
         });
-    }, []);
+    }, [mode]);
 
     const seasonMeta: Record<SeasonId, { name: Record<Lang, string>, shortName: Record<Lang, string> }> = {
         spring: {
@@ -351,7 +373,7 @@ function ColorTestContent() {
     // =============================================
     // Apply crop → go to compare step
     // =============================================
-    const applyCrop = useCallback(() => {
+    const applyCrop = () => {
         const img = sourceImgRef.current;
         const canvas = cropCanvasRef.current;
         if (!img || !canvas || points.length < 3) return;
@@ -359,14 +381,12 @@ function ColorTestContent() {
         const rect = canvas.getBoundingClientRect();
         const w = rect.width;
         const h = rect.height;
-        const dpr = window.devicePixelRatio || 1;
 
         const resultCanvas = document.createElement('canvas');
-        resultCanvas.width = w * dpr;
-        resultCanvas.height = h * dpr;
+        resultCanvas.width = img.naturalWidth;
+        resultCanvas.height = img.naturalHeight;
         const ctx = resultCanvas.getContext('2d');
         if (!ctx) return;
-        ctx.scale(dpr, dpr);
 
         const imgAspect = img.naturalWidth / img.naturalHeight;
         const canvasAspect = w / h;
@@ -383,21 +403,36 @@ function ColorTestContent() {
         const drawH = img.naturalHeight * currentScale;
         const drawX = (w - drawW) / 2 + imgOffset.x;
         const drawY = (h - drawH) / 2 + imgOffset.y;
+        const sourcePoints = points.map((point) => ({
+            x: Math.min(img.naturalWidth, Math.max(0, (point.x - drawX) / currentScale)),
+            y: Math.min(img.naturalHeight, Math.max(0, (point.y - drawY) / currentScale)),
+        }));
 
         ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+        ctx.moveTo(sourcePoints[0].x, sourcePoints[0].y);
+        for (let i = 1; i < sourcePoints.length; i++) ctx.lineTo(sourcePoints[i].x, sourcePoints[i].y);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
 
         const croppedDataUrl = resultCanvas.toDataURL('image/png');
         setCroppedSrc(croppedDataUrl);
-        const croppedImage = new window.Image();
-        croppedImage.onload = () => { sourceImgRef.current = croppedImage; };
-        croppedImage.src = croppedDataUrl;
-        setStep('compare');
-    }, [points]);
+
+        if (mode === 'shape') {
+            setStep('analyzing');
+            const croppedImage = new window.Image();
+            croppedImage.onload = () => {
+                sourceImgRef.current = croppedImage;
+                performAnalysis(croppedImage);
+            };
+            croppedImage.src = croppedDataUrl;
+        } else {
+            const croppedImage = new window.Image();
+            croppedImage.onload = () => { sourceImgRef.current = croppedImage; };
+            croppedImage.src = croppedDataUrl;
+            setStep('compare');
+        }
+    };
 
     const handleAutoDetect = async () => {
         const img = sourceImgRef.current;
@@ -405,9 +440,13 @@ function ColorTestContent() {
 
         setIsAutoDetecting(true);
         try {
-            const contour = await getFaceContour(img);
+            const contour = mode === 'shape' ? await getFaceShapeContour(img) : await getFaceContour(img);
             if (!contour) {
-                alert(isKorean ? "얼굴을 찾을 수 없습니다. 직접 그려주세요." : "Face not detected. Please draw manually.");
+                alert(
+                    isKorean
+                        ? "얼굴을 찾지 못했습니다. 앞머리를 넘겨 이마와 헤어라인이 보이게 한 정면 사진으로 다시 시도하거나 직접 그려주세요."
+                        : "Face not detected. Try a near-frontal photo with the forehead and hairline visible, or draw manually."
+                );
                 return;
             }
 
@@ -448,7 +487,14 @@ function ColorTestContent() {
 
     const skipCrop = () => {
         setCroppedSrc(imageSrc);
-        setStep('compare');
+        if (mode === 'shape') {
+            setStep('analyzing');
+            if (sourceImgRef.current) {
+                performAnalysis(sourceImgRef.current);
+            }
+        } else {
+            setStep('compare');
+        }
     };
 
     const handleReset = () => {
@@ -458,34 +504,173 @@ function ColorTestContent() {
         setActiveColor(null);
         setActiveSeason(null);
         setPoints([]);
+        sessionStorage.removeItem('lastFaceShapeAnalysis');
         setStep('upload');
+    };
+
+    const performAnalysis = async (img: HTMLImageElement) => {
+        if (isAnalyzing) return;
+        setIsAnalyzing(true);
+
+        // Start status message cycle
+        const statusInterval = setInterval(() => {
+            setScanningStatus(prev => (prev + 1) % 4);
+        }, 800);
+
+        try {
+            const startTime = Date.now();
+            let colorResult: Awaited<ReturnType<typeof analyzePersonalColorAI>> | { season: SeasonId | SubSeasonId } | null = null;
+            let shapeResult: Awaited<ReturnType<typeof analyzeFaceShapeAI>> | null = null;
+
+            if (mode === 'shape') {
+                shapeResult = await analyzeFaceShapeAI(img);
+            } else {
+                try {
+                    colorResult = await analyzePersonalColorAI(img);
+                } catch {
+                    colorResult = { season: analyzePersonalColor(img) };
+                }
+            }
+
+            // Ensure the scanning animation plays for at least 3.5 seconds for "feel"
+            const elapsed = Date.now() - startTime;
+            const minTime = 3800;
+            if (elapsed < minTime) {
+                await new Promise(resolve => setTimeout(resolve, minTime - elapsed));
+            }
+
+            clearInterval(statusInterval);
+
+            if (mode === 'shape') {
+                if (!shapeResult) {
+                    throw new Error('Face shape analysis result is missing.');
+                }
+                sessionStorage.setItem('lastFaceShapeAnalysis', JSON.stringify(shapeResult));
+                router.push(`/face-shape/result?lang=${lang}`);
+            } else {
+                if (!colorResult || !('season' in colorResult)) {
+                    throw new Error('Color analysis result is missing or invalid.');
+                }
+                sessionStorage.setItem('lastAnalysis', JSON.stringify(colorResult));
+                router.push(`/color/result/${colorResult.season}?lang=${lang}`);
+            }
+        } catch (e) {
+            clearInterval(statusInterval);
+            console.error("Analysis failed", e);
+            setIsAnalyzing(false);
+            if (mode === 'shape') {
+                alert(
+                    isKorean
+                        ? "얼굴을 인식하지 못했습니다. 앞머리를 넘겨 이마와 헤어라인이 보이고, 턱선이 잘리지 않은 정면 사진으로 다시 시도해 주세요."
+                        : "Face detection failed. Try again with a near-frontal photo where the forehead, hairline, and jawline are clearly visible."
+                );
+                setStep('crop');
+            }
+        }
     };
 
     const handleViewResult = async () => {
         const img = sourceImgRef.current;
-        if (!img || isAnalyzing) return;
-
-        setIsAnalyzing(true);
-        try {
-            let result;
-            try {
-                result = await analyzePersonalColorAI(img);
-            } catch {
-                result = { season: analyzePersonalColor(img) };
-            }
-            // Save full result temporarily to sessionStorage to display later if needed
-            sessionStorage.setItem('lastAnalysis', JSON.stringify(result));
-            router.push(`/color/result/${result.season}?lang=${lang}`);
-        } catch (e) {
-            console.error("Analysis failed", e);
-            setIsAnalyzing(false);
-        }
+        if (!img) return;
+        await performAnalysis(img);
     };
 
     // =============================================
     // STEP 1: Upload
     // =============================================
     if (step === 'upload') {
+        if (mode === 'shape') {
+            return (
+                <div className="relative min-h-dvh w-full overflow-hidden bg-[#030712] px-6 py-10 md:px-10 md:py-14">
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute inset-x-0 top-0 h-px bg-white/10" />
+                        <div className="absolute -left-48 -top-32 h-120 w-120 rounded-full bg-cyan-400/10 blur-[120px]" />
+                        <div className="absolute -right-40 top-1/3 h-96 w-[24rem] rounded-full bg-sky-300/8 blur-[120px]" />
+                        <div className="absolute -bottom-48 left-1/2 h-112 w-md -translate-x-1/2 rounded-full bg-white/6 blur-[140px]" />
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+                    <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-6xl items-center">
+                        <div className="grid w-full gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
+                            <div className="flex flex-col justify-center">
+                                <div className="inline-flex w-fit items-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70 backdrop-blur-xl">
+                                    Face Structure Report
+                                </div>
+                                <div className="mt-6 max-w-2xl space-y-6">
+                                    <h1 className={`text-4xl font-semibold tracking-[-0.05em] text-white md:text-6xl ${isKorean ? 'font-korean leading-[1.15]' : 'leading-[1.02]'}`}>
+                                        {t.shapeTitle}
+                                    </h1>
+                                    <p className={`max-w-xl text-base leading-7 text-white/58 md:text-lg ${isKorean ? 'font-korean break-keep' : ''}`}>
+                                        {t.shapeSubtitle}
+                                    </p>
+                                </div>
+                                <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                                    {[
+                                        isKorean ? "이마와 헤어라인 노출" : "Visible forehead",
+                                        isKorean ? "정면에 가까운 구도" : "Near-frontal angle",
+                                        isKorean ? "턱선까지 모두 포함" : "Full jawline in frame",
+                                    ].map((item) => (
+                                        <div
+                                            key={item}
+                                            className="rounded-[1.75rem] border border-white/10 bg-white/4 px-4 py-4 text-sm font-medium text-white/72 backdrop-blur-xl"
+                                        >
+                                            {item}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="relative">
+                                <div className="absolute inset-0 rounded-4xl bg-white/5 blur-3xl" />
+                                <div className="relative overflow-hidden rounded-4xl border border-white/12 bg-white/4.5 p-5 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:p-7">
+                                    <div className="rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 md:p-6">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div>
+                                                <p className={`text-sm font-semibold text-white ${isKorean ? 'font-korean' : ''}`}>{t.upload}</p>
+                                                <p className="mt-2 text-sm leading-6 text-white/55">{t.shapeUploadHint}</p>
+                                            </div>
+                                            <div className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-white/45">
+                                                JPG PNG
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="group mt-6 flex w-full flex-col items-center justify-center gap-5 rounded-[1.75rem] border border-dashed border-white/14 bg-[#0a1220]/70 px-6 py-12 text-center transition hover:border-white/24 hover:bg-[#0d1727]"
+                                        >
+                                            <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition duration-300 group-hover:scale-[1.03] group-hover:bg-white/10">
+                                                <Upload className="h-8 w-8 text-white/70" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className={`text-xl font-semibold tracking-[-0.03em] text-white ${isKorean ? 'font-korean' : ''}`}>{t.upload}</div>
+                                                <p className="text-sm text-white/48">{t.uploadHint}</p>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <div className="mt-4 grid gap-3 text-sm text-white/62 md:grid-cols-2">
+                                        <div className="rounded-[1.5rem] border border-white/8 bg-black/18 px-4 py-4 leading-6">
+                                            <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/38">
+                                                {isKorean ? 'Best Result' : 'Best Result'}
+                                            </div>
+                                            {isKorean
+                                                ? "앞머리를 넘긴 밝은 정면 사진이 가장 안정적입니다."
+                                                : "Bright, near-frontal photos with the hair pushed back work best."}
+                                        </div>
+                                        <div className="rounded-[1.5rem] border border-white/8 bg-black/18 px-4 py-4 leading-6">
+                                            <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/38">
+                                                {isKorean ? 'Avoid' : 'Avoid'}
+                                            </div>
+                                            {isKorean
+                                                ? "광각 셀카, 강한 그림자, 이마 가림, 턱선 잘림"
+                                                : "Wide-angle selfies, heavy shadows, covered forehead, cropped jawline"}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div className="min-h-dvh w-full bg-black flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden">
                 <div className="absolute inset-0 pointer-events-none">
@@ -496,10 +681,10 @@ function ColorTestContent() {
                 <div className="relative z-10 flex flex-col items-center gap-14 max-w-3xl w-full">
                     <div className="text-center space-y-6">
                         <h1 className={`text-4xl md:text-7xl font-extrabold text-white tracking-tighter leading-tight px-4 ${isKorean ? 'font-korean' : 'font-cinzel'}`}>
-                            {t.title}
+                            {mode === 'shape' ? t.shapeTitle : t.title}
                         </h1>
                         <p className={`text-zinc-400 text-sm md:text-lg leading-relaxed max-w-[300px] md:max-w-md mx-auto ${isKorean ? 'font-korean break-keep' : ''}`}>
-                            {t.subtitle}
+                            {mode === 'shape' ? t.shapeSubtitle : t.subtitle}
                         </p>
                     </div>
                     <button
@@ -512,6 +697,11 @@ function ColorTestContent() {
                         <div className="space-y-2 text-center">
                             <span className={`text-white/80 font-bold text-lg group-hover:text-white transition-colors block ${isKorean ? 'font-korean' : ''}`}>{t.upload}</span>
                             <p className="text-zinc-500 text-xs tracking-wider uppercase font-medium">{t.uploadHint}</p>
+                            {mode === 'shape' && (
+                                <p className={`max-w-[18rem] text-xs leading-relaxed text-cyan-200/80 ${isKorean ? 'font-korean break-keep' : ''}`}>
+                                    {t.shapeUploadHint}
+                                </p>
+                            )}
                         </div>
                     </button>
                 </div>
@@ -531,7 +721,9 @@ function ColorTestContent() {
                         <RotateCcw className="w-4 h-4" />
                     </button>
                 </div>
-                <p className={`text-zinc-400 text-sm text-center px-6 mb-3 shrink-0 ${isKorean ? 'font-korean' : ''}`}>{t.cropHint}</p>
+                <p className={`text-zinc-400 text-sm text-center px-6 mb-3 shrink-0 ${isKorean ? 'font-korean' : ''}`}>
+                    {mode === 'shape' ? t.shapeCropHint : t.cropHint}
+                </p>
                 <div className="flex-1 w-full max-w-2xl mx-auto px-4 flex items-center justify-center min-h-0">
                     <div className="w-full relative overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl bg-zinc-900/40">
                         <canvas
@@ -631,8 +823,142 @@ function ColorTestContent() {
     }
 
     // =============================================
-    // STEP 3: Compare — cropped face on colored bg
+    // STEP: Analyzing (High-Tech Scanning UI)
     // =============================================
+    if (step === 'analyzing') {
+        const statuses = [
+            isKorean ? "안면 랜드마크 스캐닝 중..." : "Scanning facial landmarks...",
+            isKorean ? "얼굴 윤곽 및 비율 분석 중..." : "Analyzing contour & proportions...",
+            isKorean ? "황금 비율 매칭 시스템 가동..." : "Running Golden Ratio matching...",
+            isKorean ? "최적의 스타일 가이드 생성 중..." : "Generating style guide..."
+        ];
+
+        return (
+            <div className="min-h-dvh w-full bg-black flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+                {/* Background Tech Effects */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-cyan-950/20 blur-[120px] animate-pulse" />
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-blue-900/10 blur-[100px]" />
+                    {/* Grid Background */}
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #22d3ee 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+                </div>
+
+                <div className="relative z-10 flex flex-col items-center w-full max-w-md">
+                    {/* Analysis Frame */}
+                    <div className="relative w-64 h-64 sm:w-80 sm:h-80 mb-12">
+                        {/* The User's Face */}
+                        <div className="relative w-full h-full rounded-4xl overflow-hidden border border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.15)] bg-zinc-900/50">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={croppedSrc || imageSrc || ''}
+                                alt="Scanning"
+                                className="w-full h-full object-cover grayscale opacity-60"
+                            />
+
+                            {/* High-Tech Mask Overlay (SVG) */}
+                            <motion.svg
+                                viewBox="0 0 100 100"
+                                className="absolute inset-0 w-full h-full text-cyan-400 opacity-40 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: [0.2, 0.5, 0.2] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                            >
+                                <g stroke="currentColor" fill="none" strokeWidth="0.4" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M50,10 L32,15 L20,35 L20,58 L35,85 L50,92 L65,85 L80,58 L80,35 L68,15 Z" />
+                                    <path d="M25,40 L35,38 L43,40 L44,43 L35,46 L26,44 Z" />
+                                    <path d="M57,40 L65,38 L75,40 L74,44 L65,46 L56,43 Z" />
+                                    <path d="M44,40 L50,32 L56,40" />
+                                    <path d="M42,65 L50,70 L58,65 L54,55 L46,55 Z" />
+                                    <path d="M36,75 L45,78 L50,76 L55,78 L64,75 L50,85 Z" />
+                                    <path d="M20,35 L42,65 M80,35 L58,65" strokeWidth="0.15" opacity="0.4" />
+                                </g>
+                            </motion.svg>
+
+                            {/* Scanning Vertical Bar */}
+                            <motion.div
+                                className="absolute left-0 right-0 h-1 bg-cyan-400 shadow-[0_0_20px_#22d3ee] z-20"
+                                initial={{ top: '0%' }}
+                                animate={{ top: ['0%', '100%', '0%'] }}
+                                transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                            />
+
+                            {/* Corner Accents */}
+                            <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-cyan-400" />
+                            <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-cyan-400" />
+                            <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-cyan-400" />
+                            <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-cyan-400" />
+
+                            {/* Data Points (Randomly appearing dots) */}
+                            <div className="absolute inset-0">
+                                {[...Array(6)].map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        className="absolute w-1 h-1 bg-cyan-400 rounded-full"
+                                        style={{ top: `${20 + Math.random() * 60}%`, left: `${20 + Math.random() * 60}%` }}
+                                        animate={{ opacity: [0, 1, 0], scale: [0.5, 1.5, 0.5] }}
+                                        transition={{ duration: 1, delay: i * 0.3, repeat: Infinity }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Outer Tech Ring */}
+                        <motion.div
+                            className="absolute -inset-6 border border-cyan-500/10 rounded-full"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                        />
+                        <motion.div
+                            className="absolute -inset-4 border-t border-b border-cyan-400/20 rounded-full"
+                            animate={{ rotate: -360 }}
+                            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                        />
+                    </div>
+
+                    {/* Status Info */}
+                    <div className="space-y-4 w-full">
+                        <div className="flex items-center justify-center gap-3">
+                            <div className="h-px flex-1 bg-linear-to-r from-transparent to-cyan-500/50" />
+                            <span className="text-cyan-400 text-[10px] font-black tracking-[0.3em] uppercase animate-pulse">Processing Analysis</span>
+                            <div className="h-px flex-1 bg-linear-to-l from-transparent to-cyan-500/50" />
+                        </div>
+
+                        <div className="h-8 flex flex-col items-center justify-center">
+                            <motion.p
+                                key={scanningStatus}
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`text-white text-lg font-bold ${isKorean ? 'font-korean' : 'font-cinzel tracking-wider'}`}
+                            >
+                                {statuses[scanningStatus]}
+                            </motion.p>
+                        </div>
+
+                        <div className="flex justify-center gap-1.5">
+                            {[0, 1, 2, 3].map(i => (
+                                <div
+                                    key={i}
+                                    className={`h-1 rounded-full transition-all duration-300 ${scanningStatus === i ? 'w-8 bg-cyan-400 shadow-[0_0_10px_#22d3ee]' : 'w-2 bg-white/10'}`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Floating Tech Text Items */}
+                <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-12 text-[10px] font-mono text-cyan-500/40">
+                    <div className="flex flex-col items-start">
+                        <span>SYS_AUTH: VERIFIED</span>
+                        <span>LATENCY: 14ms</span>
+                    </div>
+                    <div className="flex flex-col items-start text-blue-500/40">
+                        <span>AI_CORE: ACTIVE</span>
+                        <span>PROB: 0.9982</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     const bgColor = activeColor || '#111111';
     // Determine if background is light or dark for text contrast
     const isLightBg = activeColor ? (() => {

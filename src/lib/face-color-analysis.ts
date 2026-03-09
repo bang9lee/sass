@@ -12,6 +12,10 @@
 import "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
 
+import type {
+    FaceLandmarksDetector,
+    MediaPipeFaceMeshTfjsModelConfig,
+} from "@tensorflow-models/face-landmarks-detection";
 import type { SeasonId, SubSeasonId } from "./color-data";
 
 // =============================================
@@ -26,12 +30,14 @@ export interface AnalysisResult {
     brightness: "light" | "medium" | "deep";
     clarity: "clear" | "muted";
     scores: Record<SeasonId, number>;
+    faceShape: "oval" | "round" | "square" | "heart" | "oblong" | "diamond" | "pear";
 }
 
 // =============================================
 // TFJS FaceLandmarker — lazy singleton
 // =============================================
-type FaceLandmarkerType = any; // Using any to avoid complex type imports here
+type FaceLandmarkerType = FaceLandmarksDetector;
+type FaceKeypoint = { x: number; y: number; z?: number };
 
 let landmarkerPromise: Promise<FaceLandmarkerType> | null = null;
 
@@ -44,13 +50,12 @@ async function getFaceLandmarker(): Promise<FaceLandmarkerType> {
             const faceLandmarksDetection = await import("@tensorflow-models/face-landmarks-detection");
 
             const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-            const detectorConfig = {
+            const detectorConfig: MediaPipeFaceMeshTfjsModelConfig = {
                 runtime: "tfjs", // Forces TFJS WebGL instead of WASM
                 refineLandmarks: false,
                 maxFaces: 1,
             };
 
-            // @ts-ignore
             const detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
             return detector;
         } catch (err) {
@@ -142,7 +147,7 @@ function samplePixelsAtLandmarks(
     imageData: ImageData,
     width: number,
     height: number,
-    landmarks: Array<{ x: number; y: number; z: number }>,
+    landmarks: Array<{ x: number; y: number; z?: number }>,
     indices: number[],
     yOffset = 0
 ): { r: number; g: number; b: number }[] {
@@ -313,6 +318,57 @@ function calculateSeasonScores(
     return scores;
 }
 
+// =============================================
+// Face Shape Calculation
+// =============================================
+function calculateFaceShape(landmarks: FaceKeypoint[]): AnalysisResult["faceShape"] {
+    if (!landmarks || landmarks.length < 454) return "oval";
+
+    // Key points (MediaPipe indices)
+    const top = landmarks[10];
+    const bottom = landmarks[152];
+    const leftCheek = landmarks[234];
+    const rightCheek = landmarks[454];
+    const leftForehead = landmarks[103];
+    const rightForehead = landmarks[332];
+    const leftJaw = landmarks[58];
+    const rightJaw = landmarks[288];
+
+    const faceHeight = Math.abs(top.y - bottom.y);
+    const faceWidth = Math.abs(rightCheek.x - leftCheek.x);
+    const foreheadWidth = Math.abs(rightForehead.x - leftForehead.x);
+    const jawWidth = Math.abs(rightJaw.x - leftJaw.x);
+
+    const ratio = faceHeight / faceWidth; // H/W ratio
+
+    // 1. Oblong (Long): Significantly longer than wide
+    if (ratio > 1.45) return "oblong";
+
+    // 2. Round vs Square vs Oval (Ratio closer to 1 or 1.25)
+    if (ratio < 1.2) {
+        // Round or Square
+        if (jawWidth > foreheadWidth * 0.95) return "square";
+        return "round";
+    }
+
+    // 3. Heart vs Diamond (Forehead width vs Cheek width)
+    if (foreheadWidth > faceWidth * 0.85 && jawWidth < faceWidth * 0.7) {
+        return "heart";
+    }
+
+    if (faceWidth > foreheadWidth * 1.15 && faceWidth > jawWidth * 1.15) {
+        return "diamond";
+    }
+
+    // 4. Pear (Jaw wider than forehead)
+    if (jawWidth > foreheadWidth * 1.1) {
+        return "pear";
+    }
+
+    // Default
+    return "oval";
+}
+
 // Helper to determine the precise 12-season sub-tone based on features
 function determineSubSeason(baseSeason: SeasonId, brightness: 'light' | 'medium' | 'deep', clarity: 'clear' | 'muted', skinLab: { L: number; a: number; b: number }): SubSeasonId {
     if (baseSeason === 'spring') {
@@ -434,6 +490,7 @@ export async function analyzePersonalColorAI(
     const clarity: AnalysisResult["clarity"] = chroma > 20 ? "clear" : "muted";
 
     const subSeason = determineSubSeason(winnerBase, brightness, clarity, skinLab);
+    const faceShape = calculateFaceShape(landmarks);
 
     return {
         season: subSeason,
@@ -443,6 +500,7 @@ export async function analyzePersonalColorAI(
         undertone,
         brightness,
         clarity,
+        faceShape,
         scores: Object.fromEntries(entries) as Record<SeasonId, number>,
     };
 }
@@ -497,6 +555,7 @@ function fallbackAnalysis(imageData: ImageData, w: number, h: number): AnalysisR
         undertone,
         brightness,
         clarity,
+        faceShape: "oval", // Fallback
         scores: Object.fromEntries(entries) as Record<SeasonId, number>,
     };
 }
@@ -517,26 +576,7 @@ export async function getFaceContour(
         const width = imageElement.naturalWidth;
         const height = imageElement.naturalHeight;
 
-        // Calculate face dimensions to estimate crown height
-        const top = landmarks[10];
-        const bottom = landmarks[152];
-        const faceHeight = Math.abs(top.y - bottom.y);
-        const crownHeight = faceHeight * 0.35; // Estimate hair/head top
-
         // Main face oval points
-        const facePoints = FACEMESH_FACE_OVAL.map(idx => {
-            const lm = landmarks[idx];
-            return { x: lm.x, y: lm.y };
-        });
-
-        // 103 (Left Forehead), 332 (Right Forehead)
-        const leftAnchorIdx = FACEMESH_FACE_OVAL.indexOf(103);
-        const rightAnchorIdx = FACEMESH_FACE_OVAL.indexOf(332);
-
-        // Jawline: from Right Forehead (332) around the chin to Left Forehead (103)
-        const jawlinePoints = facePoints.slice(rightAnchorIdx, leftAnchorIdx + 1);
-
-        // Revert to clean face oval for 100% stability and premium look
         const resultPoints = FACEMESH_FACE_OVAL.map(idx => {
             const lm = landmarks[idx];
             return { x: lm.x, y: lm.y };

@@ -7,6 +7,7 @@ import { Menu, X, Play } from "lucide-react";
 import Image from "next/image";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LanguageSelector } from "@/components/language-selector";
+import { getFooterLabels } from "@/lib/site-content";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Language = 'ko' | 'en' | 'zh' | 'ja';
@@ -27,7 +28,8 @@ function ColorHomeContent() {
             subtitle: "셀카 한 장으로 당신의 피부 톤에 완벽하게 맞는\n퍼스널 컬러 계절과 찰떡 팔레트를 즉시 알아보세요.",
             button: "",
             menuAesthetic: "감성 테스트",
-            menuPersonalColor: "퍼스널 컬러"
+            menuPersonalColor: "퍼스널 컬러",
+            menuFaceShape: "AI얼굴형분석"
         },
         en: {
             title1: "Find Your",
@@ -35,7 +37,8 @@ function ColorHomeContent() {
             subtitle: "Upload a selfie to instantly discover your\npersonal color season and perfect palette.",
             button: "",
             menuAesthetic: "Aesthetic Test",
-            menuPersonalColor: "Personal Color"
+            menuPersonalColor: "Personal Color",
+            menuFaceShape: "AI Face Shape Analysis"
         },
         zh: {
             title1: "寻找你的",
@@ -43,7 +46,8 @@ function ColorHomeContent() {
             subtitle: "上传一张自拍，立即发现你的\n专属四季色彩与完美色盘。",
             button: "",
             menuAesthetic: "美学测试",
-            menuPersonalColor: "个人色彩"
+            menuPersonalColor: "个人色彩",
+            menuFaceShape: "脸型分析"
         },
         ja: {
             title1: "あなただけの",
@@ -51,9 +55,11 @@ function ColorHomeContent() {
             subtitle: "自撮り写真をアップロードして、あなたの\nパーソナルカラーと完璧なパレットをすぐに見つけましょう。",
             button: "",
             menuAesthetic: "感性テスト",
-            menuPersonalColor: "パーソナルカラー"
+            menuPersonalColor: "パーソナルカラー",
+            menuFaceShape: "顔型分析"
         }
     }[lang];
+    const footer = getFooterLabels(lang);
 
     return (
         <AuroraBackground className="justify-start">
@@ -75,6 +81,9 @@ function ColorHomeContent() {
                             </Link>
                             <Link href={`/color?lang=${lang}`} className="text-[13px] font-medium text-pink-300 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap">
                                 {t.menuPersonalColor}
+                            </Link>
+                            <Link href={`/face-shape?lang=${lang}`} className="text-[13px] font-medium text-white/60 hover:text-cyan-300 transition-colors tracking-wide uppercase whitespace-nowrap">
+                                {t.menuFaceShape}
                             </Link>
                         </nav>
                     </div>
@@ -140,6 +149,19 @@ function ColorHomeContent() {
                                         {t.menuPersonalColor}
                                     </Link>
                                 </motion.div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                >
+                                    <Link
+                                        href={`/face-shape?lang=${lang}`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="text-xl font-medium text-cyan-300 hover:text-cyan-200 transition-colors tracking-widest uppercase"
+                                    >
+                                        {t.menuFaceShape}
+                                    </Link>
+                                </motion.div>
                             </div>
                             {/* Brand at bottom */}
                             <div className="pb-10 text-center">
@@ -168,7 +190,7 @@ function ColorHomeContent() {
 
                             {/* CTA 버튼 - 데스크탑 전용 */}
                             <div className="hidden lg:block w-full max-w-sm mt-8">
-                                <Link href={`/color/test?lang=${lang}`} className="group relative block w-full">
+                                <Link href={`/color/test?lang=${lang}&mode=color`} className="group relative block w-full">
                                     <div className="absolute -inset-1 bg-linear-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
                                     <motion.div
                                         animate={{
@@ -196,7 +218,7 @@ function ColorHomeContent() {
 
                         {/* CTA 버튼 - 모바일 전용 (하단 고정) */}
                         <div className="lg:hidden w-full max-w-sm shrink-0 z-20 mobile-slide-up mt-auto" style={{ animationDelay: '0.4s' }}>
-                            <Link href={`/color/test?lang=${lang}`} className="group relative block w-full touch-optimized">
+                            <Link href={`/color/test?lang=${lang}&mode=color`} className="group relative block w-full touch-optimized">
                                 <div className="absolute -inset-0.5 bg-linear-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full blur opacity-70 group-hover:opacity-100 transition duration-500 animate-tilt"></div>
                                 <motion.div
                                     animate={{
@@ -216,19 +238,29 @@ function ColorHomeContent() {
                 </main>
 
                 {/* Footer */}
-                <footer className="w-full shrink-0 py-6 px-8 flex items-center justify-between z-50 border-t border-white/5 bg-black/20 backdrop-blur-sm relative">
-                    <p className="text-white text-[10px] uppercase tracking-[0.2em] font-light">
-                        findcore.me
-                    </p>
-                    <a
-                        href="https://t.me/todayshelp"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex items-center gap-2 text-white hover:text-cyan-200 transition-colors duration-300"
-                    >
-                        <span className="font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
-                        <span className="text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
-                    </a>
+                <footer className="w-full shrink-0 border-t border-white/5 bg-black/20 px-8 py-6 backdrop-blur-sm relative">
+                    <div className="mx-auto grid max-w-6xl items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+                        <p className="hidden text-white/38 text-[10px] uppercase tracking-[0.2em] font-light md:block">
+                            findcore.me
+                        </p>
+                        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-white/48">
+                            <Link href={`/about?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.about}</Link>
+                            <Link href={`/guides?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.guides}</Link>
+                            <Link href={`/privacy?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.privacy}</Link>
+                            <Link href={`/terms?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.terms}</Link>
+
+                        </div>
+                        <div className="text-center md:text-right">
+                            <a
+                                href="https://t.me/todayshelp"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-white/44 transition-colors hover:text-white/78"
+                            >
+                                Telegram @todayshelp
+                            </a>
+                        </div>
+                    </div>
                 </footer>
             </div>
         </AuroraBackground>
