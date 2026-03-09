@@ -69,7 +69,7 @@ const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
             },
             {
                 title: "문의",
-                body: "사이트 주소: https://findcore.me · 텔레그램: @todayshelp",
+                body: "https://findcore.me · 텔레그램 : @todayshelp",
             },
         ],
     },
@@ -133,7 +133,7 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
         sections: [
             {
                 title: "1. 브라우저 기반 100% 로컬 처리",
-                body: "FINDCORE의 모든 분석(얼굴형, 퍼스널 컬러) 모델은 TensorFlow.js 및 MediaPipe를 기반으로 오직 사용자의 브라우저 내에서만 구동됩니다. 사용자가 등록한 이미지는 저희 서버로 전송(POST API)되는 로직 자체가 코드에 단 하나도 존재하지 않으며, 페이지를 벗어나는 즉시 브라우저 메모리에서 사라집니다.",
+                body: "FINDCORE의 모든 분석(얼굴형, 퍼스널 컬러) 모델은 오직 사용자의 브라우저 내에서만 구동됩니다. 사용자가 등록한 이미지는 저희 서버로 전송(POST API)되는 로직 자체가 코드에 단 하나도 존재하지 않으며, 페이지를 벗어나는 즉시 브라우저 메모리에서 사라집니다.",
             },
             {
                 title: "2. 데이터베이스 및 트래커 무존재",
@@ -147,10 +147,6 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
                 title: "4. 수집 불가 원칙 및 아동 보호",
                 body: "입력 데이터를 전달받을 어떠한 서버 API가 시스템에 구현조차 되어있지 않기 때문에, 아동의 정보는 물론 그 어떤 서비스 이용자의 어떠한 민감 데이터도 당사가 수집할 물리적, 구조적 방법이 전혀 없습니다.",
             },
-            {
-                title: "5. 기술적 문의",
-                body: "어플리케이션의 구현 방식, 코드 무수집 원리 등에 대해 개발자나 엔지니어 관점의 구체적인 답변이 필요하신 경우, 텔레그램(@todayshelp)으로 편하게 문의해주시면 투명하게 답변해 드리겠습니다.",
-            },
         ],
     },
     en: {
@@ -162,7 +158,7 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
         sections: [
             {
                 title: "1. 100% Local In-Browser Processing",
-                body: "All of FINDCORE's analysis tools rely on TensorFlow.js and MediaPipe to compute everything directly inside your active browser instance. Your uploaded photos are never POST-requested to our servers, as there is absolutely zero backend code to receive them. The images literally wipe from memory once you reload.",
+                body: "All of FINDCORE's analysis tools compute everything directly inside your active browser instance. Your uploaded photos are never POST-requested to our servers, as there is absolutely zero backend code to receive them. The images literally wipe from memory once you reload.",
             },
             {
                 title: "2. No Database & No Analytics Trackers",
@@ -176,10 +172,6 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
                 title: "4. Structurally Impossible to Collect Data",
                 body: "Since our entire codebase lacks server APIs entirely for handling user input, the technical capability to harvest your personal information, or any minors' information, literally stands at zero percent. ",
             },
-            {
-                title: "5. Technical Inquiries",
-                body: "If you have developer-oriented questions regarding our zero-data framework or how local execution works, feel free to drop a message at our Telegram channel (@todayshelp).",
-            },
         ],
     },
     zh: {
@@ -191,7 +183,7 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
         sections: [
             {
                 title: "1. 100%浏览器本地处理",
-                body: "FINDCORE的所有核心分析（如脸型、个人色彩）均由 TensorFlow.js 和 MediaPipe 完全在您的浏览器端驱动。代码库中没有任何将照片上传到服务器（POST 请求）的逻辑，只要您离开页面，内存即立刻清空重置。",
+                body: "FINDCORE的所有核心分析（如脸型、个人色彩）均完全在您的浏览器端驱动。代码库中没有任何将照片上传到服务器（POST 请求）的逻辑，只要您离开页面，内存即立刻清空重置。",
             },
             {
                 title: "2. 无数据库与跟踪器",
@@ -205,10 +197,6 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
                 title: "4. 数据截获之结构性不可能",
                 body: "由于整个系统中根本不存在接收用户照片数据的后端 API，系统在物理、结构上根本不可能存储有关儿童或任何普通用户的敏感数据隐私。",
             },
-            {
-                title: "5. 技术询问",
-                body: "若您需要从前端工程师的角度了解我们的具体免收集实现机制安全，请随时向官方技术支持通道（Telegram @todayshelp）提出询问。",
-            },
         ],
     },
     ja: {
@@ -220,7 +208,7 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
         sections: [
             {
                 title: "1. 100％ブラウザ内ローカル処理",
-                body: "当サイトの分析機能（顔型測定やカラー分析等）はTensorFlow.jsとMediaPipeに依存し、すべてユーザーの実行ブラウザ環境のみで処理されます。アップロード画像を弊社のサーバーへ送信（POST API）するコードロジック自体がソース内に一切存在せず、分析後はメモリから直ちに消去されます。",
+                body: "当サイトの分析機能（顔型測定やカラー分析等）はすべてユーザーの実行ブラウザ環境のみで処理されます。アップロード画像を弊社のサーバーへ送信（POST API）するコードロジック自体がソース内に一切存在せず、分析後はメモリから直ちに消去されます。",
             },
             {
                 title: "2. データベースおよびトラッカーの非実装",
@@ -233,10 +221,6 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
             {
                 title: "4. データ収集の物理的不可能性",
                 body: "システム全体に入力データを受け取るサーバーのAPI自体が実装すらされていないため、未成年者のみならず全てのユーザーの情報を当社が収集する物理的・構造的な方法は皆無です。安心してご利用ください。",
-            },
-            {
-                title: "5. 技術的なお問い合わせ窓口",
-                body: "コードの動作原理やゼロデータ処理の技術的仕様について、開発者視点での詳しい回答をお求めの場合は、サポートのTelegram（@todayshelp）までお気軽にお問い合わせください。",
             },
         ],
     },

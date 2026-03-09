@@ -79,8 +79,21 @@ type DetectionCanvas = {
     drawHeight: number;
 };
 
-type MediaPipeVisionModule = typeof import("@mediapipe/tasks-vision");
-type FaceLandmarkerInstance = Awaited<ReturnType<typeof createFaceLandmarker>>;
+import * as tf from "@tensorflow/tfjs-core";
+import "@tensorflow/tfjs-backend-webgl";
+import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
+
+type FaceLandmarkerType = faceLandmarksDetection.FaceLandmarksDetector;
+
+type FaceVerticalBounds = {
+    top: FacePoint;
+    bottom: FacePoint;
+    topShift: number;
+    bottomShift: number;
+};
+
+const TOP_CONTOUR_SMOOTH_RADIUS = 0.14;
+const BOTTOM_CONTOUR_SMOOTH_RADIUS = 0.12;
 
 const FACE_OVAL_INDICES = [
     10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378,
@@ -111,8 +124,23 @@ const NOSE_BRIDGE_INDICES = [168, 6, 197, 195, 5, 4];
 const NOSE_BASE_INDICES = [129, 98, 97, 2, 326, 327, 358];
 const OUTER_LIP_INDICES = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
 
-let visionPromise: Promise<MediaPipeVisionModule> | null = null;
-let landmarkerPromise: Promise<FaceLandmarkerInstance> | null = null;
+let landmarkerPromise: Promise<FaceLandmarkerType> | null = null;
+let tfReadyPromise: Promise<void> | null = null;
+
+async function ensureTfReady() {
+    if (tfReadyPromise) return tfReadyPromise;
+    tfReadyPromise = (async () => {
+        await tf.ready();
+        if (tf.getBackend() !== "webgl") {
+            try {
+                await tf.setBackend("webgl");
+            } catch (e) {
+                console.warn("WebGL backend failed, falling back to default:", e);
+            }
+        }
+    })();
+    return tfReadyPromise;
+}
 
 function clamp(value: number, min: number, max: number) {
     return Math.min(max, Math.max(min, value));
@@ -150,50 +178,74 @@ function normalizedScore(value: number, start: number, end: number) {
     return clamp((value - start) / (end - start), 0, 1);
 }
 
-async function getVisionModule() {
-    if (!visionPromise) {
-        visionPromise = import("@mediapipe/tasks-vision");
-    }
-    return visionPromise;
+function resolveFaceVerticalBounds(landmarks: NormalizedLandmark[]): FaceVerticalBounds {
+    const meshTop = getPoint(landmarks, 10);
+    const meshBottom = getPoint(landmarks, 152);
+    const faceHeight = distance(meshTop, meshBottom);
+
+    // index 10 is the top edge of the 478 mesh (forehead center-ish)
+    // Professional heuristic: Hairline is typically ~13.5% of face height above the mesh top
+    const shiftFactor = 0.135;
+    const topY = clamp(meshTop.y - faceHeight * shiftFactor, 0, meshTop.y);
+    const bottomY = meshBottom.y;
+
+    return {
+        top: { x: meshTop.x, y: topY },
+        bottom: { x: meshBottom.x, y: bottomY },
+        topShift: meshTop.y - topY,
+        bottomShift: 0,
+    };
 }
 
-async function createFaceLandmarker() {
-    const vision = await getVisionModule();
-    const resolver = await vision.FilesetResolver.forVisionTasks("/wasm");
+function buildAdjustedContour(landmarks: NormalizedLandmark[], bounds: FaceVerticalBounds) {
+    const rawTop = getPoint(landmarks, LANDMARKS.top);
+    const rawBottom = getPoint(landmarks, LANDMARKS.chin);
 
-    try {
-        return await vision.FaceLandmarker.createFromOptions(resolver, {
-            baseOptions: {
-                modelAssetPath: "/models/face_landmarker.task",
-                delegate: "GPU",
-            },
-            runningMode: "IMAGE",
-            numFaces: 1,
-            outputFaceBlendshapes: false,
-            outputFacialTransformationMatrixes: false,
-        });
-    } catch {
-        return await vision.FaceLandmarker.createFromOptions(resolver, {
-            baseOptions: {
-                modelAssetPath: "/models/face_landmarker.task",
-                delegate: "CPU",
-            },
-            runningMode: "IMAGE",
-            numFaces: 1,
-            outputFaceBlendshapes: false,
-            outputFacialTransformationMatrixes: false,
-        });
-    }
+    return FACE_OVAL_INDICES.map((index) => {
+        const point = getPoint(landmarks, index);
+        let dy = 0;
+
+        const distFromTop = distance(point, rawTop);
+        if (point.y < (rawTop.y + 0.05) && distFromTop < TOP_CONTOUR_SMOOTH_RADIUS) {
+            const weight = Math.pow(clamp(1 - distFromTop / TOP_CONTOUR_SMOOTH_RADIUS, 0, 1), 1.5);
+            dy -= bounds.topShift * weight;
+        }
+
+        const distFromBottom = distance(point, rawBottom);
+        if (point.y > (rawBottom.y - 0.05) && distFromBottom < BOTTOM_CONTOUR_SMOOTH_RADIUS) {
+            const weight = Math.pow(clamp(1 - distFromBottom / BOTTOM_CONTOUR_SMOOTH_RADIUS, 0, 1), 1.5);
+            dy += bounds.bottomShift * weight;
+        }
+
+        return { x: point.x, y: clamp(point.y + dy, 0, 1) };
+    });
 }
 
-async function getFaceLandmarker() {
-    if (!landmarkerPromise) {
-        landmarkerPromise = createFaceLandmarker().catch((error) => {
+async function getFaceLandmarker(): Promise<FaceLandmarkerType> {
+    if (landmarkerPromise) return landmarkerPromise;
+
+    landmarkerPromise = (async () => {
+        try {
+            await ensureTfReady();
+            const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+            const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
+                runtime: "tfjs",
+                refineLandmarks: true,
+                maxFaces: 1,
+            };
+            return await faceLandmarksDetection.createDetector(model, detectorConfig);
+        } catch (err) {
+            console.error("Failed to initialize TF.js FaceLandmarker:", err);
             landmarkerPromise = null;
-            throw error;
-        });
-    }
+            throw err;
+        }
+    })();
+
     return landmarkerPromise;
+}
+
+export async function preloadFaceShapeModel() {
+    await getFaceLandmarker();
 }
 
 async function ensureImageReady(imageElement: HTMLImageElement) {
@@ -202,33 +254,30 @@ async function ensureImageReady(imageElement: HTMLImageElement) {
             try {
                 await imageElement.decode();
             } catch {
-                // Some browsers throw on already-decoded blob/data images.
+                // Ignore decode errors
             }
         }
         return;
     }
 
     await new Promise<void>((resolve, reject) => {
-        const cleanup = () => {
+        const handleLoad = async () => {
             imageElement.removeEventListener("load", handleLoad);
             imageElement.removeEventListener("error", handleError);
-        };
-
-        const handleLoad = async () => {
-            cleanup();
             if (typeof imageElement.decode === "function") {
                 try {
                     await imageElement.decode();
                 } catch {
-                    // Ignore decode race on already-ready images.
+                    // Ignore decode race
                 }
             }
             resolve();
         };
 
         const handleError = () => {
-            cleanup();
-            reject(new Error("Image failed to load for face analysis."));
+            imageElement.removeEventListener("load", handleLoad);
+            imageElement.removeEventListener("error", handleError);
+            reject(new Error("Image failed to load."));
         };
 
         imageElement.addEventListener("load", handleLoad, { once: true });
@@ -252,9 +301,7 @@ function createInputCanvas(imageElement: HTMLImageElement, options: DetectionCan
     canvas.height = drawHeight + offsetY * 2;
 
     const context = canvas.getContext("2d", { willReadFrequently: true });
-    if (!context) {
-        throw new Error("Canvas context unavailable for face analysis.");
-    }
+    if (!context) throw new Error("Canvas context unavailable.");
 
     if (backgroundColor) {
         context.fillStyle = backgroundColor;
@@ -278,50 +325,126 @@ function remapLandmarksToImageSpace(landmarks: NormalizedLandmark[], detectionCa
     });
 }
 
+export async function detectLandmarks(imageElement: HTMLImageElement): Promise<NormalizedLandmark[]> {
+    await ensureImageReady(imageElement);
+    const detector = await getFaceLandmarker();
+
+    // Pass 1: Coarse
+    const coarseInputs: DetectionCanvas[] = [
+        createInputCanvas(imageElement, { targetLongestEdge: 800 }),
+        createInputCanvas(imageElement, { backgroundColor: "#000000" }),
+    ];
+
+    let landmarks: NormalizedLandmark[] | null = null;
+    for (const input of coarseInputs) {
+        try {
+            const faces = await detector.estimateFaces(input.canvas, { staticImageMode: true });
+            if (faces && faces.length > 0) {
+                const rawPoints = faces[0].keypoints.map(kp => ({
+                    x: kp.x / input.canvas.width,
+                    y: kp.y / input.canvas.height,
+                    z: kp.z
+                }));
+                if (rawPoints.length >= 400) {
+                    landmarks = remapLandmarksToImageSpace(rawPoints as NormalizedLandmark[], input);
+                    break;
+                }
+            }
+        } catch (e) {
+            console.error("Coarse detection failed:", e);
+        }
+    }
+
+    if (!landmarks) throw new Error("No face detected");
+
+    // Pass 2: Fine
+    try {
+        let minX = 1, maxX = 0, minY = 1, maxY = 0;
+        landmarks.forEach(p => {
+            minX = Math.min(minX, Math.max(0, p.x));
+            maxX = Math.max(maxX, Math.min(1, p.x));
+            minY = Math.min(minY, Math.max(0, p.y));
+            maxY = Math.max(maxY, Math.min(1, p.y));
+        });
+
+        const w = maxX - minX;
+        const h = maxY - minY;
+        const cx = minX + w / 2;
+        const cy = minY + h / 2;
+        const side = Math.max(w, h) * 1.45;
+
+        const cropX = clamp(cx - side / 2, 0, 1);
+        const cropY = clamp(cy - side / 2, 0, 1);
+        const cropW = clamp(cx + side / 2, 0, 1) - cropX;
+        const cropH = clamp(cy + side / 2, 0, 1) - cropY;
+
+        const cropCanvas = document.createElement("canvas");
+        cropCanvas.width = 640;
+        cropCanvas.height = 640;
+        const ctx = cropCanvas.getContext("2d");
+        if (ctx) {
+            ctx.drawImage(
+                imageElement,
+                cropX * imageElement.naturalWidth,
+                cropY * imageElement.naturalHeight,
+                cropW * imageElement.naturalWidth,
+                cropH * imageElement.naturalHeight,
+                0, 0, 640, 640
+            );
+
+            const fineFaces = await detector.estimateFaces(cropCanvas, { staticImageMode: true });
+            if (fineFaces && fineFaces.length > 0) {
+                const finePoints = fineFaces[0].keypoints;
+                if (finePoints && finePoints.length >= 400) {
+                    return finePoints.map(p => ({
+                        x: (p.x / 640) * cropW + cropX,
+                        y: (p.y / 640) * cropH + cropY,
+                        z: p.z
+                    }));
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Fine pass failed:", e);
+    }
+
+    return landmarks;
+}
+
 function buildMetrics(landmarks: NormalizedLandmark[]): FaceShapeMetrics {
-    const top = getPoint(landmarks, LANDMARKS.top);
-    const chin = getPoint(landmarks, LANDMARKS.chin);
+    const bounds = resolveFaceVerticalBounds(landmarks);
     const browCenter = getPoint(landmarks, LANDMARKS.browCenter);
     const noseBase = getPoint(landmarks, LANDMARKS.noseBase);
-    const leftForehead = getPoint(landmarks, LANDMARKS.leftForehead);
-    const rightForehead = getPoint(landmarks, LANDMARKS.rightForehead);
-    const leftCheek = getPoint(landmarks, LANDMARKS.leftCheek);
-    const rightCheek = getPoint(landmarks, LANDMARKS.rightCheek);
-    const leftJaw = getPoint(landmarks, LANDMARKS.leftJaw);
-    const rightJaw = getPoint(landmarks, LANDMARKS.rightJaw);
-    const leftChin = getPoint(landmarks, LANDMARKS.leftChin);
-    const rightChin = getPoint(landmarks, LANDMARKS.rightChin);
+    const chin = getPoint(landmarks, LANDMARKS.chin);
 
-    const faceLength = distance(top, chin);
-    const foreheadWidth = distance(leftForehead, rightForehead);
-    const cheekboneWidth = distance(leftCheek, rightCheek);
-    const jawWidth = distance(leftJaw, rightJaw);
-    const chinWidth = distance(leftChin, rightChin);
+    const faceLength = distance(bounds.top, bounds.bottom);
+    const cheekboneWidth = distance(getPoint(landmarks, LANDMARKS.leftCheek), getPoint(landmarks, LANDMARKS.rightCheek));
+    // Forehead recovery: +5% to account for hair covering temples
+    const foreheadWidth = distance(getPoint(landmarks, LANDMARKS.leftForehead), getPoint(landmarks, LANDMARKS.rightForehead)) * 1.05;
+    const jawWidth = distance(getPoint(landmarks, LANDMARKS.leftJaw), getPoint(landmarks, LANDMARKS.rightJaw));
+    const chinWidth = distance(getPoint(landmarks, LANDMARKS.leftChin), getPoint(landmarks, LANDMARKS.rightChin));
 
-    const leftJawAngle = angle(leftCheek, leftJaw, chin);
-    const rightJawAngle = angle(rightCheek, rightJaw, chin);
-    const jawAngle = (leftJawAngle + rightJawAngle) / 2;
+    const leftJawAngle = angle(getPoint(landmarks, LANDMARKS.leftCheek), getPoint(landmarks, LANDMARKS.leftJaw), chin);
+    const rightJawAngle = angle(getPoint(landmarks, LANDMARKS.rightCheek), getPoint(landmarks, LANDMARKS.rightJaw), chin);
 
-    const cheekSymmetry = Math.abs(distance(leftCheek, noseBase) - distance(rightCheek, noseBase));
-    const jawSymmetry = Math.abs(distance(leftJaw, noseBase) - distance(rightJaw, noseBase));
-    const symmetryPenalty = ((cheekSymmetry + jawSymmetry) / 2) * 180;
-    const symmetry = clamp(Math.round(100 - symmetryPenalty), 72, 99);
+    const cheekSymmetry = Math.abs(distance(getPoint(landmarks, LANDMARKS.leftCheek), noseBase) - distance(getPoint(landmarks, LANDMARKS.rightCheek), noseBase));
+    const symmetry = clamp(Math.round(100 - (cheekSymmetry * 180)), 72, 99);
 
-    const totalVertical = Math.max(chin.y - top.y, 0.0001);
-    const upperThird = ((browCenter.y - top.y) / totalVertical) * 100;
+    const totalVertical = Math.max(bounds.bottom.y - bounds.top.y, 0.0001);
+    const upperThird = ((browCenter.y - bounds.top.y) / totalVertical) * 100;
     const middleThird = ((noseBase.y - browCenter.y) / totalVertical) * 100;
-    const lowerThird = ((chin.y - noseBase.y) / totalVertical) * 100;
+    const lowerThird = ((bounds.bottom.y - noseBase.y) / totalVertical) * 100;
 
     return {
         faceLengthToWidth: faceLength / cheekboneWidth,
         foreheadToJaw: foreheadWidth / jawWidth,
         cheekboneToJaw: cheekboneWidth / jawWidth,
         chinToJaw: chinWidth / jawWidth,
-        jawAngle,
+        jawAngle: (leftJawAngle + rightJawAngle) / 2,
         symmetry,
-        upperThird: clamp(upperThird, 20, 45),
-        middleThird: clamp(middleThird, 20, 45),
-        lowerThird: clamp(lowerThird, 20, 50),
+        upperThird: clamp(upperThird, 28, 42),
+        middleThird: clamp(middleThird, 28, 42),
+        lowerThird: clamp(lowerThird, 30, 45),
     };
 }
 
@@ -332,132 +455,48 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
     const chinJaw = metrics.chinToJaw;
     const angularity = normalizedScore(128 - metrics.jawAngle, 0, 24);
     const softness = 1 - angularity;
-    const longLowerThird = normalizedScore(metrics.lowerThird, 34, 43);
-    const balancedThirds =
-        1 -
-        clamp(
-            (Math.abs(metrics.upperThird - 33.3) +
-                Math.abs(metrics.middleThird - 33.3) +
-                Math.abs(metrics.lowerThird - 33.3)) /
-                28,
-            0,
-            1
-        );
 
     return {
-        oval:
-            closeness(length, 1.42, 0.22) * 3.2 +
-            closeness(foreheadJaw, 1.02, 0.18) * 2.1 +
-            closeness(cheekJaw, 1.08, 0.18) * 1.6 +
-            softness * 1.5 +
-            balancedThirds * 1.4,
-        round:
-            closeness(length, 1.16, 0.16) * 3.2 +
-            closeness(foreheadJaw, 1, 0.14) * 1.8 +
-            closeness(cheekJaw, 1.02, 0.12) * 1.5 +
-            softness * 2.4 +
-            closeness(chinJaw, 0.82, 0.16) * 1.1,
-        square:
-            closeness(length, 1.22, 0.18) * 2.8 +
-            closeness(foreheadJaw, 1, 0.12) * 2.4 +
-            closeness(cheekJaw, 1.03, 0.12) * 1.3 +
-            angularity * 2.7 +
-            closeness(chinJaw, 0.84, 0.16) * 0.8,
-        heart:
-            closeness(length, 1.33, 0.22) * 1.5 +
-            normalizedScore(foreheadJaw, 1.08, 1.24) * 2.8 +
-            normalizedScore(0.78 - chinJaw, 0, 0.18) * 2.4 +
-            closeness(cheekJaw, 1.06, 0.16) * 1.1 +
-            softness * 0.9,
-        oblong:
-            normalizedScore(length, 1.48, 1.72) * 3.5 +
-            closeness(foreheadJaw, 1, 0.16) * 1.7 +
-            closeness(cheekJaw, 1, 0.16) * 1.4 +
-            longLowerThird * 1.3 +
-            balancedThirds * 0.8,
-        diamond:
-            closeness(length, 1.42, 0.24) * 1.5 +
-            normalizedScore(cheekJaw, 1.1, 1.24) * 2.6 +
-            normalizedScore(1.08 - foreheadJaw, 0, 0.18) * 1.8 +
-            normalizedScore(0.76 - chinJaw, 0, 0.18) * 2.2 +
-            softness * 0.8,
-        pear:
-            closeness(length, 1.24, 0.2) * 1.3 +
-            normalizedScore(1.02 - foreheadJaw, 0, 0.18) * 3.2 +
-            closeness(cheekJaw, 0.98, 0.16) * 1.5 +
-            angularity * 0.8 +
-            closeness(chinJaw, 0.9, 0.2) * 0.8,
+        oval: closeness(length, 1.42, 0.22) * 3.4 + closeness(foreheadJaw, 1.02, 0.18) * 2.1 + softness * 1.5,
+        round: closeness(length, 1.16, 0.16) * 3.2 + closeness(cheekJaw, 1.02, 0.12) * 1.5 + softness * 2.4,
+        square: closeness(length, 1.22, 0.18) * 2.8 + closeness(foreheadJaw, 1, 0.12) * 2.4 + angularity * 2.7,
+        heart: normalizedScore(foreheadJaw, 1.1, 1.24) * 2.8 + normalizedScore(0.78 - chinJaw, 0, 0.18) * 2.4 + softness * 0.9,
+        oblong: normalizedScore(length, 1.52, 1.72) * 3.5 + closeness(foreheadJaw, 1, 0.16) * 1.7,
+        diamond: normalizedScore(cheekJaw, 1.1, 1.24) * 2.6 + normalizedScore(1.08 - foreheadJaw, 0, 0.18) * 1.8 + normalizedScore(0.76 - chinJaw, 0, 0.18) * 2.2,
+        pear: normalizedScore(1.05 - foreheadJaw, 0, 0.2) * 2.8 + closeness(cheekJaw, 0.98, 0.16) * 1.5 + angularity * 0.8,
     };
-}
-
-function pickTopShapes(scores: Record<FaceShapeId, number>) {
-    const sorted = (Object.entries(scores) as Array<[FaceShapeId, number]>).sort((a, b) => b[1] - a[1]);
-    return sorted;
 }
 
 function getHorizontalGuide(contour: FacePoint[], y: number): [FacePoint, FacePoint] | null {
     const intersections: number[] = [];
-
-    for (let index = 0; index < contour.length; index += 1) {
-        const start = contour[index];
-        const end = contour[(index + 1) % contour.length];
-        const minY = Math.min(start.y, end.y);
-        const maxY = Math.max(start.y, end.y);
-
-        if (y < minY || y > maxY) {
-            continue;
+    for (let i = 0; i < contour.length; i++) {
+        const s = contour[i];
+        const e = contour[(i + 1) % contour.length];
+        if (y >= Math.min(s.y, e.y) && y <= Math.max(s.y, e.y) && s.y !== e.y) {
+            intersections.push(s.x + (e.x - s.x) * (y - s.y) / (e.y - s.y));
         }
-
-        if (start.y === end.y) {
-            intersections.push(start.x, end.x);
-            continue;
-        }
-
-        const progress = (y - start.y) / (end.y - start.y);
-        if (progress < 0 || progress > 1) {
-            continue;
-        }
-
-        intersections.push(start.x + (end.x - start.x) * progress);
     }
-
-    if (intersections.length < 2) {
-        return null;
-    }
-
+    if (intersections.length < 2) return null;
     intersections.sort((a, b) => a - b);
-    return [
-        { x: intersections[0], y },
-        { x: intersections[intersections.length - 1], y },
-    ];
+    return [{ x: intersections[0], y }, { x: intersections[intersections.length - 1], y }];
 }
 
 function buildOverlay(landmarks: NormalizedLandmark[]) {
-    const contour = FACE_OVAL_INDICES.map((index) => getPoint(landmarks, index));
-    const top = getPoint(landmarks, LANDMARKS.top);
-    const chin = getPoint(landmarks, LANDMARKS.chin);
-    const browCenter = getPoint(landmarks, LANDMARKS.browCenter);
+    const bounds = resolveFaceVerticalBounds(landmarks);
+    const contour = buildAdjustedContour(landmarks, bounds);
     const noseBase = getPoint(landmarks, LANDMARKS.noseBase);
+    const browCenter = getPoint(landmarks, LANDMARKS.browCenter);
 
     return {
         contour,
-        faceHeight: [top, chin] as [FacePoint, FacePoint],
-        foreheadWidth: [
-            getPoint(landmarks, LANDMARKS.leftForehead),
-            getPoint(landmarks, LANDMARKS.rightForehead),
-        ] as [FacePoint, FacePoint],
-        cheekboneWidth: [
-            getPoint(landmarks, LANDMARKS.leftCheek),
-            getPoint(landmarks, LANDMARKS.rightCheek),
-        ] as [FacePoint, FacePoint],
+        faceHeight: [bounds.top, bounds.bottom] as [FacePoint, FacePoint],
+        foreheadWidth: [getPoint(landmarks, LANDMARKS.leftForehead), getPoint(landmarks, LANDMARKS.rightForehead)] as [FacePoint, FacePoint],
+        cheekboneWidth: [getPoint(landmarks, LANDMARKS.leftCheek), getPoint(landmarks, LANDMARKS.rightCheek)] as [FacePoint, FacePoint],
         jawWidth: [getPoint(landmarks, LANDMARKS.leftJaw), getPoint(landmarks, LANDMARKS.rightJaw)] as [FacePoint, FacePoint],
-        chinWidth: [
-            getPoint(landmarks, LANDMARKS.leftChin),
-            getPoint(landmarks, LANDMARKS.rightChin),
-        ] as [FacePoint, FacePoint],
+        chinWidth: [getPoint(landmarks, LANDMARKS.leftChin), getPoint(landmarks, LANDMARKS.rightChin)] as [FacePoint, FacePoint],
         browLine: browCenter,
         noseBase,
-        centerLine: [top, chin] as [FacePoint, FacePoint],
+        centerLine: [bounds.top, bounds.bottom] as [FacePoint, FacePoint],
         upperThirdGuide: getHorizontalGuide(contour, browCenter.y),
         middleThirdGuide: getHorizontalGuide(contour, noseBase.y),
         leftEyebrow: getPoints(landmarks, LEFT_EYEBROW_INDICES),
@@ -470,54 +509,30 @@ function buildOverlay(landmarks: NormalizedLandmark[]) {
     };
 }
 
-async function detectLandmarks(imageElement: HTMLImageElement) {
-    await ensureImageReady(imageElement);
-    const landmarker = await getFaceLandmarker();
-    const detectionInputs: DetectionCanvas[] = [
-        createInputCanvas(imageElement),
-        createInputCanvas(imageElement, { backgroundColor: "#000000" }),
-        createInputCanvas(imageElement, { backgroundColor: "#111111", paddingRatio: 0.12 }),
-        createInputCanvas(imageElement, { backgroundColor: "#ffffff", paddingRatio: 0.18 }),
-    ];
-
-    for (const detectionInput of detectionInputs) {
-        try {
-            const result = landmarker.detect(detectionInput.canvas);
-            const landmarks = result.faceLandmarks?.[0];
-            if (landmarks && landmarks.length >= 400) {
-                return remapLandmarksToImageSpace(landmarks as NormalizedLandmark[], detectionInput);
-            }
-        } catch {
-            // Try the next canvas variant.
-        }
-    }
-
-    throw new Error("No face detected");
+async function imageElementToDataUrl(img: HTMLImageElement): Promise<string> {
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return "";
+    ctx.drawImage(img, 0, 0);
+    return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-export async function preloadFaceShapeModel() {
-    await getFaceLandmarker();
+function pickTopShapes(scores: Record<FaceShapeId, number>) {
+    return (Object.entries(scores) as Array<[FaceShapeId, number]>).sort((a, b) => b[1] - a[1]);
 }
 
 export async function getFaceShapeContour(imageElement: HTMLImageElement) {
     const landmarks = await detectLandmarks(imageElement);
-    return FACE_OVAL_INDICES.map((index) => getPoint(landmarks, index));
-}
+    const bounds = resolveFaceVerticalBounds(landmarks);
+    const width = imageElement.naturalWidth;
+    const height = imageElement.naturalHeight;
 
-export async function imageElementToDataUrl(imageElement: HTMLImageElement) {
-    const canvas = document.createElement("canvas");
-    const maxWidth = 1400;
-    const ratio = imageElement.naturalWidth > maxWidth ? maxWidth / imageElement.naturalWidth : 1;
-    canvas.width = Math.round(imageElement.naturalWidth * ratio);
-    canvas.height = Math.round(imageElement.naturalHeight * ratio);
-
-    const context = canvas.getContext("2d");
-    if (!context) {
-        throw new Error("Canvas not supported");
-    }
-
-    context.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.92);
+    return buildAdjustedContour(landmarks, bounds).map((p) => ({
+        x: p.x * width,
+        y: p.y * height,
+    }));
 }
 
 export async function analyzeFaceShapeAI(
@@ -528,20 +543,13 @@ export async function analyzeFaceShapeAI(
     const landmarks = await detectLandmarks(imageElement);
     const metrics = buildMetrics(landmarks);
     const scores = scoreFaceShape(metrics);
-    const rankedShapes = pickTopShapes(scores);
-    const [primaryShape, topScore] = rankedShapes[0];
-    const [secondaryShape, secondaryScore] = rankedShapes[1];
-    const margin = topScore - secondaryScore;
-    const confidence = clamp(
-        Math.round(64 + normalizedScore(margin, 0.05, 1.2) * 20 + normalizedScore(topScore, 2.2, 7.8) * 10),
-        62,
-        96
-    );
+    const ranked = pickTopShapes(scores);
+    const [primary] = ranked[0];
 
     return {
-        faceShape: primaryShape,
-        secondaryShape,
-        confidence,
+        faceShape: primary,
+        secondaryShape: ranked[1][0],
+        confidence: Math.round(clamp(ranked[0][1] / 6 * 100, 75, 98)),
         profile,
         measuredAt: new Date().toISOString(),
         metrics,

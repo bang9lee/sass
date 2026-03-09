@@ -1,4 +1,4 @@
-import type { FaceShapeAnalysisResult, FaceShapeId } from "./face-shape-analysis";
+import type { FaceShapeAnalysisResult, FaceShapeId } from "./face-shape-analysis-official";
 
 type SupportedLanguage = "ko" | "en";
 

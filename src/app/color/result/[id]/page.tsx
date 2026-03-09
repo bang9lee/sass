@@ -75,8 +75,8 @@ export default async function ColorResultPage({ params, searchParams }: Props) {
     };
 
     return (
-        <AuroraBackground>
-            <div className="flex flex-col min-h-screen w-full items-center justify-start p-4 md:p-8 overflow-y-auto">
+        <div className="flex flex-col min-h-screen w-full bg-zinc-50 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-start p-4 md:p-12 lg:p-16">
                 <ColorResultCardClient
                     resultId={resultData.id}
                     title={content.title}
@@ -91,6 +91,6 @@ export default async function ColorResultPage({ params, searchParams }: Props) {
                     lang={currentLang}
                 />
             </div>
-        </AuroraBackground>
+        </div>
     );
 }
