@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { COLOR_RESULTS, SubSeasonId } from '@/lib/color-data';
 import { ColorResultCardClient } from '@/components/ColorResultCardClient';
 import { AuroraBackground } from '@/components/ui/aurora-background';
+import { LayoutShell } from '@/components/layout-shell';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -75,22 +76,22 @@ export default async function ColorResultPage({ params, searchParams }: Props) {
     };
 
     return (
-        <div className="flex flex-col min-h-screen w-full bg-zinc-50 overflow-y-auto">
-            <div className="flex-1 flex flex-col items-center justify-start p-4 md:p-12 lg:p-16">
-                <ColorResultCardClient
-                    resultId={resultData.id}
-                    title={content.title}
-                    subtitle={content.subtitle}
-                    description={content.description}
-                    image={resultData.image}
-                    keywords={content.keywords}
-                    palette={resultData.palette}
-                    bestColors={resultData.bestColors}
-                    worstColors={resultData.worstColors}
-                    isKo={isKo}
-                    lang={currentLang}
-                />
-            </div>
-        </div>
+        <AuroraBackground>
+            <LayoutShell lang={currentLang}>
+                <div className="flex flex-col min-h-screen w-full items-center justify-start p-4 md:p-8 overflow-y-auto">
+                    <ColorResultCardClient
+                        resultId={resultData.id}
+                        title={content.title}
+                        description={content.description}
+                        image={resultData.image}
+                        keywords={content.keywords}
+                        bestColors={resultData.bestColors}
+                        worstColors={resultData.worstColors}
+                        isKo={isKo}
+                        lang={currentLang}
+                    />
+                </div>
+            </LayoutShell>
+        </AuroraBackground>
     );
 }

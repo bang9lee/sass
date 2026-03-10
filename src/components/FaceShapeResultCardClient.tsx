@@ -1,27 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Download, Home, RotateCcw, Share2, Check, Sparkles } from "lucide-react";
-import { getFaceShapeCopy, getMetricSummary } from "@/lib/face-shape-content";
+import {
+    Check,
+    Download,
+    Home,
+    Link2,
+    RotateCcw,
+    Share2,
+    Scissors,
+    Glasses,
+    Sparkles,
+    ChevronRight,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { getFaceShapeCopy } from "@/lib/face-shape-content";
 import type {
     FacePoint,
     FaceShapeAnalysisResult,
-    FaceShapeId,
     FaceShapeQuality,
     FaceShapeQualityFlag,
 } from "@/lib/face-shape-analysis-official";
-
-interface FaceShapeResultCardProps {
-    result: FaceShapeAnalysisResult;
-    lang: string;
-    isKo: boolean;
-}
-
-function formatPercent(value: number) {
-    return `${Math.round(value)}%`;
-}
 
 function clamp(value: number, min: number, max: number) {
     return Math.min(max, Math.max(min, value));
@@ -41,24 +42,7 @@ function deriveLegacyQuality(result: FaceShapeAnalysisResult): FaceShapeQuality 
     const lighting = clamp(image + 4, 50, 95);
     const coverage = clamp(image - 6, 48, 90);
     const flags: FaceShapeQualityFlag[] = [];
-
-    if (classification < 68 || margin < 65) flags.push("ambiguous_shape");
-    if (frame < 62) flags.push("low_frame_alignment");
-    if (hairline < 60) flags.push("low_hairline");
-    if (image < 62) flags.push("low_lighting");
-
-    return {
-        classification,
-        measurement,
-        image,
-        frame,
-        margin,
-        pose,
-        sharpness,
-        lighting,
-        coverage,
-        flags,
-    };
+    return { classification, measurement, image, frame, margin, pose, sharpness, lighting, coverage, flags };
 }
 
 function toPercent(point: FacePoint) {
@@ -66,10 +50,7 @@ function toPercent(point: FacePoint) {
 }
 
 function linePath(points: FacePoint[], close = false) {
-    if (points.length === 0) {
-        return "";
-    }
-
+    if (!points.length) return "";
     return points
         .map((point, index) => {
             const { x, y } = toPercent(point);
@@ -79,430 +60,283 @@ function linePath(points: FacePoint[], close = false) {
         .concat(close ? " Z" : "");
 }
 
-function getTopShapeMix(result: FaceShapeAnalysisResult) {
-    const entries = Object.entries(result.scores).sort((left, right) => right[1] - left[1]);
-    const primaryScore = entries[0]?.[1] ?? 0;
-    const secondaryScore = entries[1]?.[1] ?? 0;
-    const total = Math.max(primaryScore + secondaryScore, 0.0001);
-
-    return {
-        primaryShare: Math.round((primaryScore / total) * 100),
-        secondaryShare: Math.round((secondaryScore / total) * 100),
-    };
+function pairPath(points?: [FacePoint, FacePoint] | null) {
+    if (!points) return "";
+    const [start, end] = points;
+    const a = toPercent(start);
+    const b = toPercent(end);
+    return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
 }
 
-function getRankedShapes(result: FaceShapeAnalysisResult) {
-    const entries = (Object.entries(result.scores) as Array<[FaceShapeId, number]>).sort((left, right) => right[1] - left[1]);
-    const topScore = Math.max(entries[0]?.[1] ?? 0, 0.0001);
-
-    return entries.slice(0, 3).map(([shape, score], index) => ({
-        rank: index + 1,
-        shape,
-        strength: Math.round((score / topScore) * 100),
-    }));
+function getKeywords(shape: string, isKo: boolean) {
+    const keywords: Record<string, { ko: string[], en: string[] }> = {
+        oval: { ko: ["계란형", "매끄러운", "황금비율"], en: ["EggShape", "Smooth", "GoldenRatio"] },
+        round: { ko: ["부드러운", "동안얼굴", "곡선미"], en: ["Soft", "Youthful", "Curved"] },
+        square: { ko: ["세련된", "이지적인", "귀족턱"], en: ["Sophisticated", "Intellectual", "DefinedJaw"] },
+        heart: { ko: ["입체적인", "샤프한턱선", "매혹적인"], en: ["Dimensional", "SharpChin", "Charming"] },
+        oblong: { ko: ["우아한", "성숙미", "슬림한"], en: ["Elegant", "Mature", "Slim"] },
+        diamond: { ko: ["유니크한", "시크한", "광대매력"], en: ["Unique", "Chic", "AttractiveCheekbones"] },
+        pear: { ko: ["안정감있는", "부드러운턱선"], en: ["Stable", "SoftJawline"] }
+    };
+    return keywords[shape] ? (isKo ? keywords[shape].ko : keywords[shape].en) : [];
 }
 
-function getShapeTheme(shape: FaceShapeId) {
-    const themes: Record<
-        FaceShapeId,
-        {
-            accent: string;
-            accentSoft: string;
-            accentDeep: string;
-            heroGradient: string;
-            shellGradient: string;
-            glow: string;
-        }
-    > = {
-        oval: {
-            accent: "#b86b42",
-            accentSoft: "#f4dfd0",
-            accentDeep: "#2f1d15",
-            heroGradient: "linear-gradient(135deg, #fff5ed 0%, #f3dfd0 52%, #eadfd8 100%)",
-            shellGradient: "linear-gradient(145deg, rgba(184,107,66,0.22) 0%, rgba(255,255,255,0.06) 45%, rgba(184,107,66,0.1) 100%)",
-            glow: "rgba(184,107,66,0.22)",
-        },
-        round: {
-            accent: "#bc6f5f",
-            accentSoft: "#f5ddd7",
-            accentDeep: "#311d1a",
-            heroGradient: "linear-gradient(135deg, #fff1ee 0%, #f1ddd6 50%, #e7ddd8 100%)",
-            shellGradient: "linear-gradient(145deg, rgba(188,111,95,0.2) 0%, rgba(255,255,255,0.06) 45%, rgba(188,111,95,0.1) 100%)",
-            glow: "rgba(188,111,95,0.22)",
-        },
-        square: {
-            accent: "#4c6f68",
-            accentSoft: "#d9ebe6",
-            accentDeep: "#182420",
-            heroGradient: "linear-gradient(135deg, #eef7f4 0%, #d7e8e3 50%, #dde4e2 100%)",
-            shellGradient: "linear-gradient(145deg, rgba(76,111,104,0.2) 0%, rgba(255,255,255,0.06) 45%, rgba(76,111,104,0.1) 100%)",
-            glow: "rgba(76,111,104,0.22)",
-        },
-        heart: {
-            accent: "#ad5d68",
-            accentSoft: "#f3d9df",
-            accentDeep: "#2c171b",
-            heroGradient: "linear-gradient(135deg, #fff0f3 0%, #f2d9de 54%, #eadfdf 100%)",
-            shellGradient: "linear-gradient(145deg, rgba(173,93,104,0.2) 0%, rgba(255,255,255,0.06) 45%, rgba(173,93,104,0.1) 100%)",
-            glow: "rgba(173,93,104,0.22)",
-        },
-        oblong: {
-            accent: "#5d6e88",
-            accentSoft: "#dde4f0",
-            accentDeep: "#1b2230",
-            heroGradient: "linear-gradient(135deg, #f1f5fb 0%, #dde4f0 52%, #e4e2e8 100%)",
-            shellGradient: "linear-gradient(145deg, rgba(93,110,136,0.2) 0%, rgba(255,255,255,0.06) 45%, rgba(93,110,136,0.1) 100%)",
-            glow: "rgba(93,110,136,0.22)",
-        },
-        diamond: {
-            accent: "#8a634d",
-            accentSoft: "#efdfd3",
-            accentDeep: "#2b201a",
-            heroGradient: "linear-gradient(135deg, #fdf5ef 0%, #efdfd3 55%, #e7dfda 100%)",
-            shellGradient: "linear-gradient(145deg, rgba(138,99,77,0.22) 0%, rgba(255,255,255,0.06) 45%, rgba(138,99,77,0.1) 100%)",
-            glow: "rgba(138,99,77,0.22)",
-        },
-        pear: {
-            accent: "#8a7035",
-            accentSoft: "#efe4c7",
-            accentDeep: "#292114",
-            heroGradient: "linear-gradient(135deg, #fcf6e7 0%, #efe4c7 55%, #e8e2d7 100%)",
-            shellGradient: "linear-gradient(145deg, rgba(138,112,53,0.22) 0%, rgba(255,255,255,0.06) 45%, rgba(138,112,53,0.1) 100%)",
-            glow: "rgba(138,112,53,0.22)",
-        },
-    };
-
-    return themes[shape];
+interface FaceShapeResultCardProps {
+    result: FaceShapeAnalysisResult;
+    lang: string;
+    isKo: boolean;
 }
 
 export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResultCardProps) {
     const cardRef = useRef<HTMLDivElement>(null);
     const [showToast, setShowToast] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     const [downloading, setDownloading] = useState(false);
-    const [imageAspectRatio, setImageAspectRatio] = useState(1);
+    const [imageAspectRatio, setImageAspectRatio] = useState(3 / 4); // Default portrait
+    const contourGradientId = useId().replace(/:/g, "");
 
-    const shapeCopy = getFaceShapeCopy(result.faceShape, lang);
-    const secondaryCopy = getFaceShapeCopy(result.secondaryShape, lang);
-    const summaries = getMetricSummary(result, lang);
-    const quality = result.quality ?? deriveLegacyQuality(result);
-    const mix = getTopShapeMix(result);
-    const rankedShapes = getRankedShapes(result);
-    const theme = getShapeTheme(result.faceShape);
-    const isPortraitImage = imageAspectRatio < 0.92;
-
+    // Measure natural image aspect ratio to prevent SVG distortion
     useEffect(() => {
-        const image = new window.Image();
-        image.onload = () => {
-            if (image.naturalWidth > 0 && image.naturalHeight > 0) {
-                setImageAspectRatio(image.naturalWidth / image.naturalHeight);
+        const img = new window.Image();
+        img.onload = () => {
+            if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                setImageAspectRatio(img.naturalWidth / img.naturalHeight);
             }
         };
-        image.src = result.imageDataUrl;
+        img.src = result.imageDataUrl;
     }, [result.imageDataUrl]);
 
-    const labels = useMemo(
-        () => ({
-            title: isKo ? "AI 얼굴형 분석" : "AI Face Analysis",
-            subtitle: isKo ? "FACIAL ARCHITECTURE REPORT" : "FACIAL ARCHITECTURE REPORT",
-            confidence: isKo ? "신뢰도" : "Confidence",
-            readScore: isKo ? "해석 점수" : "Read Score",
-            primaryShape: isKo ? "주요 얼굴형" : "Face Shape",
-            coreMetrics: isKo ? "핵심 지표" : "Key Metrics",
-            structureRead: isKo ? "골든 비율 분석" : "Golden Ratio Analysis",
-            hairstyle: isKo ? "추천 헤어스타일" : "Hair Direction",
-            eyewear: isKo ? "안경 프레임" : "Eyewear",
-            contour: isKo ? "메이크업 팁" : "Makeup Tips",
-            share: isKo ? "공유" : "Share",
-            save: isKo ? "이미지 저장" : "Save",
-            widthRatio: isKo ? "가로 폭 비율" : "Width Ratios",
-            verticalRatio: isKo ? "상중하 비율" : "Vertical Ratios",
-            manualFrame: isKo ? "수동 보정 프레임 적용" : "Manual Frame Applied",
-            confidenceRead: isKo ? "결과 해석" : "Result Read",
-            classificationConfidence: isKo ? "결과 일관성" : "Result Consistency",
-            measurementQuality: isKo ? "측정 안정성" : "Measurement Stability",
-            imageQuality: isKo ? "사진 상태" : "Photo Quality",
-            frameQuality: isKo ? "프레임 상태" : "Frame Quality",
-            improve: isKo ? "정확도 개선 포인트" : "Accuracy Improvements",
-            primaryMix: isKo ? "주 형태" : "Primary Blend",
-            secondaryMix: isKo ? "보조 형태" : "Secondary Blend",
-            confidenceMeaningTitle: isKo ? "신뢰도는 정답 확률이 아닙니다." : "Confidence is not a correctness probability.",
-            shapeRanking: isKo ? "가깝게 읽힌 순서" : "Closest Reads",
-            whyThisResult: isKo ? "왜 이렇게 읽혔는지" : "Why This Result",
-            mixedRead: isKo ? "혼합형 판독" : "Mixed Read",
-            dominantRead: isKo ? "단일형에 가까움" : "Closer to a Single Type",
-        }),
-        [isKo]
-    );
-
-    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const shapeCopy = getFaceShapeCopy(result.faceShape, lang);
+    const quality = result.quality ?? deriveLegacyQuality(result);
     const overlayContour = linePath(result.overlay.contour, true);
-    const overlayStroke = result.overlay.frameSource === "manual" ? "#dc2626" : "black";
-
+    const hairlineReliability = typeof result.overlay.hairlineReliability === "number" ? result.overlay.hairlineReliability : 64;
+    const hairlinePath = linePath(result.overlay.hairlineContour ?? []);
     const facialFeaturePaths = [
-        { points: result.overlay.leftEyebrow ?? [], color: "rgba(0, 0, 0, 0.3)", width: 0.3, close: false },
-        { points: result.overlay.rightEyebrow ?? [], color: "rgba(0, 0, 0, 0.3)", width: 0.3, close: false },
-        { points: result.overlay.leftEye ?? [], color: "rgba(0, 0, 0, 0.4)", width: 0.25, close: true },
-        { points: result.overlay.rightEye ?? [], color: "rgba(0, 0, 0, 0.4)", width: 0.25, close: true },
-        { points: result.overlay.mouthOuter ?? [], color: "rgba(0, 0, 0, 0.4)", width: 0.25, close: true },
-    ].filter((item) => item.points.length > 1);
+        { key: "leftEyebrow", path: linePath(result.overlay.leftEyebrow ?? []) },
+        { key: "rightEyebrow", path: linePath(result.overlay.rightEyebrow ?? []) },
+        { key: "leftEye", path: linePath(result.overlay.leftEye ?? [], true) },
+        { key: "rightEye", path: linePath(result.overlay.rightEye ?? [], true) },
+        { key: "noseBridge", path: linePath(result.overlay.noseBridge ?? []) },
+        { key: "noseBaseGuide", path: linePath(result.overlay.noseBaseGuide ?? []) },
+        { key: "mouthOuter", path: linePath(result.overlay.mouthOuter ?? [], true) },
+    ].filter((item) => item.path);
+    const overlayGuides = [
+        { key: "faceHeight", path: pairPath(result.overlay.faceHeight), stroke: "rgba(255,255,255,0.5)", width: 0.35, dash: "1.8 1.3" },
+        { key: "centerLine", path: pairPath(result.overlay.centerLine), stroke: "rgba(255,255,255,0.25)", width: 0.25, dash: "1.1 1.1" },
+        { key: "foreheadWidth", path: pairPath(result.overlay.foreheadWidth), stroke: "rgba(255,255,255,0.55)", width: 0.32 },
+        { key: "cheekboneWidth", path: pairPath(result.overlay.cheekboneWidth), stroke: "rgba(255,255,255,0.55)", width: 0.32 },
+        { key: "jawWidth", path: pairPath(result.overlay.jawWidth), stroke: "rgba(255,255,255,0.55)", width: 0.32 },
+        { key: "chinWidth", path: pairPath(result.overlay.chinWidth), stroke: "rgba(255,255,255,0.45)", width: 0.3 },
+        { key: "upperThirdGuide", path: pairPath(result.overlay.upperThirdGuide), stroke: "rgba(255,255,255,0.3)", width: 0.24, dash: "1.1 1.2" },
+        { key: "middleThirdGuide", path: pairPath(result.overlay.middleThirdGuide), stroke: "rgba(255,255,255,0.3)", width: 0.24, dash: "1.1 1.2" },
+    ].filter((guide) => guide.path);
 
-    const precisionGuides = [
-        { points: result.overlay.foreheadWidth, label: isKo ? "이마" : "Forehead" },
-        { points: result.overlay.cheekboneWidth, label: isKo ? "광대" : "Cheek" },
-        { points: result.overlay.jawWidth, label: isKo ? "턱폭" : "Jaw" }
-    ];
+    const locale = lang === "ko" ? "ko-KR" : lang === "ja" ? "ja-JP" : lang === "zh" ? "zh-CN" : "en-US";
+    const measuredDate = Number.isNaN(Date.parse(result.measuredAt)) ? new Date() : new Date(result.measuredAt);
+    const timestamp = measuredDate.toLocaleString(locale, {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
 
-    const professionalMetrics = [
-        { label: isKo ? "세로 : 가로 비율" : "Length : Width", value: `1 : ${result.metrics.faceLengthToWidth.toFixed(2)}`, bar: Math.min(result.metrics.faceLengthToWidth / 1.8, 1) * 100 },
-        { label: isKo ? "이마 : 하관 비율" : "Forehead : Jaw", value: result.metrics.foreheadToJaw.toFixed(2), bar: Math.min(result.metrics.foreheadToJaw / 1.3, 1) * 100 },
-        { label: isKo ? "안면 대칭점" : "Facial Symmetry", value: `${result.metrics.symmetry}%`, bar: result.metrics.symmetry }
-    ];
+    const keywords = getKeywords(result.faceShape, isKo);
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
-    const confidenceMetrics = [
-        {
-            label: labels.classificationConfidence,
-            value: formatPercent(quality.classification),
-            bar: quality.classification,
-            description: isKo
-                ? "1순위 얼굴형의 점수와 2순위와의 간격이 얼마나 안정적인지입니다."
-                : "How stable the top face-shape read is against the runner-up.",
+    const uiText = {
+        ko: {
+            shareTitle: `나의 얼굴형 분석: ${shapeCopy.name} ✨`,
+            shareText: `저의 얼굴형은 "${shapeCopy.name}"이에요!\n\n당신만의 골격을 파악하고 스타일링을 추천받으세요 👇\nhttps://findcore.me/face-shape`,
+            copied: "복사됨!",
+            share: "공유하기",
+            save: "이미지 저장",
+            reportTitle: "AI 얼굴형 분석",
+            generatedOn: "분석 일시",
+            determinedType: "분석 결과",
+            probLabel: "분석 정확도",
+            structAnalysis: "골격 수치",
+            ratio: "가로세로 비율",
+            widthRatio: "상하 너비 비율",
+            jawAngle: "하악각",
+            thirds: "안면 3분할",
+            upperThird: "상안부",
+            middleThird: "중안부",
+            lowerThird: "하안부",
+            prescriptions: "스타일 처방",
+            hair: "헤어스타일",
+            eye: "아이웨어",
+            contour: "컨투어링",
+            confidenceLevel: "분석 점수",
+            symmetryLabel: "대칭성",
+            hairlineLabel: "헤어라인 신뢰도",
+            summaryLabel: "분석 요약",
+            strengthsLabel: "핵심 강점",
+            retest: "다시하기",
+            ideal: "이상적 비율 1:1:1",
+            adStatus: "광고대기중",
+            copyLink: "링크를 복사하세요:",
+            failedSave: "이미지 저장에 실패했습니다.",
         },
-        {
-            label: labels.measurementQuality,
-            value: formatPercent(quality.measurement),
-            bar: quality.measurement,
-            description: isKo
-                ? "같은 프레임으로 다시 재도 비율값이 크게 흔들리지 않을 가능성입니다."
-                : "How likely the measured ratios remain stable when the same frame is re-read.",
+        en: {
+            shareTitle: `My Face Shape: ${shapeCopy.name} ✨`,
+            shareText: `My face shape is "${shapeCopy.name}"!\n\nFind out your face shape and get styling tips 👇\nhttps://findcore.me/face-shape`,
+            copied: "Copied!",
+            share: "Share",
+            save: "Save Image",
+            reportTitle: "AI Face Architecture",
+            generatedOn: "Analyzed",
+            determinedType: "Result",
+            probLabel: "Analysis Confidence",
+            structAnalysis: "Structural Metrics",
+            ratio: "Length : Width",
+            widthRatio: "Forehead : Jaw",
+            jawAngle: "Jaw Angle",
+            thirds: "Facial Thirds",
+            upperThird: "Upper",
+            middleThird: "Middle",
+            lowerThird: "Lower",
+            prescriptions: "Style Guide",
+            hair: "Hairstyle",
+            eye: "Eyewear",
+            contour: "Contouring",
+            confidenceLevel: "Confidence",
+            symmetryLabel: "Symmetry",
+            hairlineLabel: "Hairline",
+            summaryLabel: "Summary",
+            strengthsLabel: "Key Strengths",
+            retest: "Retest",
+            ideal: "Ideal 1:1:1",
+            adStatus: "Ad Pending",
+            copyLink: "Copy this link:",
+            failedSave: "Failed to save image.",
         },
-        {
-            label: labels.imageQuality,
-            value: formatPercent(quality.image),
-            bar: quality.image,
-            description: isKo
-                ? "정면성, 선명도, 조명, 얼굴 점유율을 합친 사진 상태입니다."
-                : "Combined photo state from pose, sharpness, lighting, and face coverage.",
+        zh: {
+            shareTitle: `我的脸型: ${shapeCopy.name} ✨`,
+            shareText: `我的脸型是 "${shapeCopy.name}"!\n\n快来测试你的专属脸型 👇\nhttps://findcore.me/face-shape`,
+            copied: "已复制!",
+            share: "分享",
+            save: "保存图片",
+            reportTitle: "AI 面部轮廓分析",
+            generatedOn: "分析时间",
+            determinedType: "分析结果",
+            probLabel: "分析准确度",
+            structAnalysis: "骨骼比例",
+            ratio: "长宽比",
+            widthRatio: "额颌比",
+            jawAngle: "下颌角",
+            thirds: "面部三庭",
+            upperThird: "上庭",
+            middleThird: "中庭",
+            lowerThird: "下庭",
+            prescriptions: "造型建议",
+            hair: "发型",
+            eye: "眼镜",
+            contour: "修容",
+            confidenceLevel: "分析得分",
+            symmetryLabel: "对称性",
+            hairlineLabel: "发际线",
+            summaryLabel: "分析摘要",
+            strengthsLabel: "核心优势",
+            retest: "重新测试",
+            ideal: "理想比例 1:1:1",
+            adStatus: "广告待处理",
+            copyLink: "复制链接:",
+            failedSave: "图片保存失败。",
         },
-        {
-            label: labels.frameQuality,
-            value: formatPercent(quality.frame),
-            bar: quality.frame,
-            description: isKo
-                ? "이마, 옆선, 턱 프레임이 실제 바깥 외곽을 얼마나 잘 감싸는지입니다."
-                : "How well the forehead, side, and chin frame wraps the real outer contour.",
-        },
-    ];
-
-    const mixSummary = isKo
-        ? `${shapeCopy.name} 베이스에 ${secondaryCopy.name} 요소가 같이 읽힌 결과입니다.`
-        : `This reads as a ${shapeCopy.name} base with ${secondaryCopy.name} traits layered in.`;
-
-    const confidenceMeaning = isKo
-        ? `현재 ${result.confidence}%는 "${shapeCopy.name}가 맞을 확률"이 아니라, 사진 상태·프레임 상태·결과 일관성을 합친 종합 해석 점수입니다.`
-        : `The current ${result.confidence}% is not the probability that "${shapeCopy.name}" is correct. It combines photo quality, frame quality, and result consistency.`;
-
-    const readModeLabel = mix.secondaryShare >= 35 || quality.margin < 72 ? labels.mixedRead : labels.dominantRead;
-    const readModeText = isKo
-        ? mix.secondaryShare >= 35 || quality.margin < 72
-            ? `주 형태 ${shapeCopy.name}에 ${secondaryCopy.name} 특징이 꽤 함께 남아 있습니다.`
-            : `${shapeCopy.name} 쪽으로 비교적 또렷하게 기운 결과입니다.`
-        : mix.secondaryShare >= 35 || quality.margin < 72
-          ? `${secondaryCopy.name} traits still remain noticeably inside the ${shapeCopy.name} read.`
-          : `This leans relatively cleanly toward ${shapeCopy.name}.`;
-
-    const interpretationReasons = [
-        isKo
-            ? result.metrics.faceLengthToWidth > 1.48
-                ? `세로 : 가로 비율이 1 : ${result.metrics.faceLengthToWidth.toFixed(2)}라 길이감이 분명해서 긴형 계열 점수가 같이 올라갑니다.`
-                : result.metrics.faceLengthToWidth < 1.2
-                  ? `세로 : 가로 비율이 1 : ${result.metrics.faceLengthToWidth.toFixed(2)}라 길이가 짧게 읽혀 둥근형·각진형 쪽으로 무게가 실립니다.`
-                  : `세로 : 가로 비율이 1 : ${result.metrics.faceLengthToWidth.toFixed(2)}라 길이감이 중간대여서 극단적인 긴형·둥근형보다는 중간형 판독에 가깝습니다.`
-            : result.metrics.faceLengthToWidth > 1.48
-              ? `The length-to-width ratio is 1 : ${result.metrics.faceLengthToWidth.toFixed(2)}, so longer-face reads remain active.`
-              : result.metrics.faceLengthToWidth < 1.2
-                ? `The length-to-width ratio is 1 : ${result.metrics.faceLengthToWidth.toFixed(2)}, so shorter rounder reads stay in play.`
-                : `The length-to-width ratio is 1 : ${result.metrics.faceLengthToWidth.toFixed(2)}, which keeps the read in the middle range instead of an extreme long or short type.`,
-        isKo
-            ? result.metrics.foreheadToJaw > 1.08
-                ? `이마 : 턱 비율이 ${result.metrics.foreheadToJaw.toFixed(2)}라 상부 폭이 조금 더 강해서 하트형 성분이 일부 섞입니다.`
-                : result.metrics.foreheadToJaw < 0.95
-                  ? `이마 : 턱 비율이 ${result.metrics.foreheadToJaw.toFixed(2)}라 하관 폭이 더 강하게 읽혀 배형·각진형 쪽 점수를 밀어 올립니다.`
-                  : `이마 : 턱 비율이 ${result.metrics.foreheadToJaw.toFixed(2)}라 상하 폭 밸런스가 비슷해서 타원형·각진형 판독에 유리합니다.`
-            : result.metrics.foreheadToJaw > 1.08
-              ? `The forehead-to-jaw ratio is ${result.metrics.foreheadToJaw.toFixed(2)}, so upper-face width still adds some heart-type influence.`
-              : result.metrics.foreheadToJaw < 0.95
-                ? `The forehead-to-jaw ratio is ${result.metrics.foreheadToJaw.toFixed(2)}, so the lower face reads stronger and supports pear or square traits.`
-                : `The forehead-to-jaw ratio is ${result.metrics.foreheadToJaw.toFixed(2)}, which keeps forehead and jaw width relatively balanced.`,
-        isKo
-            ? result.metrics.jawAngle < 120
-                ? `턱 각도가 ${Math.round(result.metrics.jawAngle)}°라 하악각 존재감이 있어 각진형 요소가 붙습니다.`
-                : result.metrics.jawAngle > 132
-                  ? `턱 각도가 ${Math.round(result.metrics.jawAngle)}°라 턱선이 부드럽게 읽혀 둥근형·타원형 쪽 점수가 올라갑니다.`
-                  : `턱 각도가 ${Math.round(result.metrics.jawAngle)}°라 각짐과 부드러움이 중간이라 보조 형태가 같이 남습니다.`
-            : result.metrics.jawAngle < 120
-              ? `The jaw angle is ${Math.round(result.metrics.jawAngle)}°, so the mandibular presence keeps square traits active.`
-              : result.metrics.jawAngle > 132
-                ? `The jaw angle is ${Math.round(result.metrics.jawAngle)}°, which reads softer and helps rounder or oval traits.`
-                : `The jaw angle is ${Math.round(result.metrics.jawAngle)}°, so it sits between angular and soft and leaves room for a secondary read.`,
-    ];
-
-    const qualityFlagCopy: Record<FaceShapeQualityFlag, string> = {
-        ambiguous_shape: isKo ? "1순위와 2순위 얼굴형 점수 차가 아직 작습니다." : "The top two face-shape candidates are still close.",
-        low_pose: isKo ? "정면 각도와 좌우 수평을 더 맞추면 판별력이 올라갑니다." : "A straighter, more level front-facing photo will improve classification.",
-        low_sharpness: isKo ? "사진 선명도가 낮아 턱선과 헤어라인 경계가 약합니다." : "The photo is too soft, which weakens jawline and hairline boundaries.",
-        low_lighting: isKo ? "조명을 더 고르게 맞추면 이마와 턱 경계 판독이 좋아집니다." : "More even lighting will improve forehead and jaw boundary reading.",
-        low_coverage: isKo ? "얼굴이 화면에서 조금 더 크게 차지하면 측정 안정성이 올라갑니다." : "A tighter face crop will improve measurement stability.",
-        low_frame_alignment: isKo ? "이마·옆선·턱 프레임을 한 번 더 맞추면 측정 품질이 올라갑니다." : "Refining the forehead, side frame, and chin will improve measurement quality.",
-        low_hairline: isKo ? "헤어라인 경계가 불안정합니다. 머리를 넘기거나 빛을 균일하게 해보세요." : "The hairline boundary is unstable. Push hair back or use more even light.",
+        ja: {
+            shareTitle: `私の顔型: ${shapeCopy.name} ✨`,
+            shareText: `私の顔型は「${shapeCopy.name}」でした！\n\n診断してスタイリング提案を受けましょう 👇\nhttps://findcore.me/face-shape`,
+            copied: "コピー完了!",
+            share: "共有する",
+            save: "画像保存",
+            reportTitle: "AI 顔型分析",
+            generatedOn: "分析日時",
+            determinedType: "分析結果",
+            probLabel: "分析信頼度",
+            structAnalysis: "骨格数値",
+            ratio: "縦横比",
+            widthRatio: "額顎比",
+            jawAngle: "顎の角度",
+            thirds: "顔の3分位",
+            upperThird: "上部",
+            middleThird: "中部",
+            lowerThird: "下部",
+            prescriptions: "スタイルガイド",
+            hair: "ヘアスタイル",
+            eye: "眼鏡",
+            contour: "メイク",
+            confidenceLevel: "スコア",
+            symmetryLabel: "対称性",
+            hairlineLabel: "ヘアライン",
+            summaryLabel: "分析サマリー",
+            strengthsLabel: "強み",
+            retest: "もう一度",
+            ideal: "理想比率 1:1:1",
+            adStatus: "広告待機中",
+            copyLink: "リンクをコピー:",
+            failedSave: "画像の保存に失敗しました。",
+        }
     };
 
-    const qualityInsights = quality.flags.slice(0, 4).map((flag) => qualityFlagCopy[flag]);
-
-    if (typeof result.overlay.hairlineReliability === "number") {
-        professionalMetrics.push({
-            label: isKo ? "헤어라인 신뢰도" : "Hairline Confidence",
-            value: `${result.overlay.hairlineReliability}%`,
-            bar: result.overlay.hairlineReliability,
-        });
-    }
-
-    const verticalThirds = [
-        { label: isKo ? "상안부" : "Upper", value: `${Math.round(result.metrics.upperThird)}%` },
-        { label: isKo ? "중안부" : "Middle", value: `${Math.round(result.metrics.middleThird)}%` },
-        { label: isKo ? "하안부" : "Lower", value: `${Math.round(result.metrics.lowerThird)}%` }
-    ];
-
-    const traitPills = [
-        result.metrics.faceLengthToWidth >= 1.34
-            ? isKo ? "세로 인상 우세" : "Length-led"
-            : result.metrics.faceLengthToWidth <= 1.2
-              ? isKo ? "가로 인상 우세" : "Width-led"
-              : isKo ? "길이-폭 균형" : "Balanced span",
-        result.metrics.foreheadToJaw > 1.08
-            ? isKo ? "상부 폭 강조" : "Upper width"
-            : result.metrics.foreheadToJaw < 0.95
-              ? isKo ? "하부 폭 강조" : "Lower width"
-              : isKo ? "상하 폭 균형" : "Width balance",
-        result.metrics.jawAngle < 120
-            ? isKo ? "선명한 하악각" : "Angular jaw"
-            : result.metrics.jawAngle > 132
-              ? isKo ? "부드러운 턱선" : "Soft jaw"
-              : isKo ? "중간 각도 턱선" : "Moderate jaw",
-    ];
+    const t = uiText[lang as keyof typeof uiText] || uiText.en;
 
     const heroMetrics = [
-        {
-            label: isKo ? "메인 판독" : "Primary Read",
-            value: shapeCopy.name,
-            note: `${mix.primaryShare}%`,
-        },
-        {
-            label: isKo ? "보조 성향" : "Secondary Trait",
-            value: secondaryCopy.name,
-            note: `${mix.secondaryShare}%`,
-        },
-        {
-            label: isKo ? "해석 점수" : "Read Score",
-            value: formatPercent(result.confidence),
-            note: isKo ? "정답 확률 아님" : "Not probability",
-        },
-        {
-            label: isKo ? "프레임 소스" : "Frame Source",
-            value: result.overlay.frameSource === "manual" ? (isKo ? "수동 보정" : "Manual") : (isKo ? "자동 추정" : "Auto"),
-            note: typeof result.overlay.hairlineReliability === "number" ? `${isKo ? "헤어라인" : "Hairline"} ${result.overlay.hairlineReliability}%` : "Mesh",
-        },
+        { label: t.ratio, value: `1 : ${result.metrics.faceLengthToWidth.toFixed(2)}` },
+        { label: t.widthRatio, value: `${result.metrics.foreheadToJaw.toFixed(2)} : 1` },
+        { label: t.jawAngle, value: `${result.metrics.jawAngle.toFixed(1)}°` },
     ];
 
-    const precisionTiles = [
-        {
-            label: isKo ? "세로 : 가로" : "Length : Width",
-            value: `1 : ${result.metrics.faceLengthToWidth.toFixed(2)}`,
-            note:
-                result.metrics.faceLengthToWidth >= 1.48
-                    ? isKo ? "긴형 쪽으로 기웁니다." : "Leans long."
-                    : result.metrics.faceLengthToWidth <= 1.2
-                      ? isKo ? "짧은형 쪽으로 기웁니다." : "Leans short."
-                      : isKo ? "중간 길이대입니다." : "Sits in the middle range.",
-        },
-        {
-            label: isKo ? "이마 : 턱" : "Forehead : Jaw",
-            value: result.metrics.foreheadToJaw.toFixed(2),
-            note:
-                result.metrics.foreheadToJaw > 1.08
-                    ? isKo ? "상부 폭이 더 강합니다." : "Upper width leads."
-                    : result.metrics.foreheadToJaw < 0.95
-                      ? isKo ? "하부 폭이 더 강합니다." : "Lower width leads."
-                      : isKo ? "폭 균형이 가깝습니다." : "Widths stay balanced.",
-        },
-        {
-            label: isKo ? "턱 각도" : "Jaw Angle",
-            value: `${Math.round(result.metrics.jawAngle)}°`,
-            note:
-                result.metrics.jawAngle < 120
-                    ? isKo ? "각진 감이 있습니다." : "More angular."
-                    : result.metrics.jawAngle > 132
-                      ? isKo ? "곡선감이 강합니다." : "More curved."
-                      : isKo ? "중간 강도입니다." : "Moderate definition.",
-        },
-        {
-            label: isKo ? "대칭성" : "Symmetry",
-            value: `${result.metrics.symmetry}%`,
-            note: isKo ? "정면성 포함" : "Front alignment included",
-        },
+    const qualityMetrics = [
+        { label: t.probLabel, value: `${quality.frame.toFixed(1)}%` },
+        { label: t.confidenceLevel, value: `${result.confidence.toFixed(1)}%` },
+        { label: t.symmetryLabel, value: `${result.metrics.symmetry.toFixed(1)}%` },
+        { label: t.hairlineLabel, value: `${hairlineReliability.toFixed(1)}%` },
     ];
 
-    const qualityHeadline =
-        quality.classification >= 80 && quality.frame >= 72
-            ? isKo
-                ? "결과를 읽는 구조는 꽤 안정적입니다."
-                : "The read itself is structurally stable."
-            : quality.margin < 65 || mix.secondaryShare >= 35
-              ? isKo
-                  ? "단일형보다 혼합형으로 읽는 편이 더 정확합니다."
-                  : "This is better read as a mixed type than a single hard label."
-              : isKo
-                ? "결과는 유효하지만 사진과 프레임 품질 영향을 받고 있습니다."
-                : "The result is valid, but still sensitive to photo and frame quality.";
-
-    const styleSections = [
-        {
-            title: labels.hairstyle,
-            number: "01",
-            items: shapeCopy.hairstyle,
-            tint: "rgba(255,255,255,0.06)",
-        },
-        {
-            title: labels.eyewear,
-            number: "02",
-            items: shapeCopy.eyewear,
-            tint: "rgba(255,255,255,0.04)",
-        },
-        {
-            title: labels.contour,
-            number: "03",
-            items: shapeCopy.contour,
-            tint: "rgba(255,255,255,0.03)",
-        },
+    const thirds = [
+        { label: t.upperThird, value: result.metrics.upperThird },
+        { label: t.middleThird, value: result.metrics.middleThird },
+        { label: t.lowerThird, value: result.metrics.lowerThird },
     ];
 
     const handleShare = async () => {
         if (typeof navigator !== "undefined" && navigator.share) {
             try {
-                await navigator.share({
-                    title: `${labels.title} - ${shapeCopy.name}`,
-                    text: shapeCopy.summary,
-                    url: shareUrl,
-                });
+                await navigator.share({ url: shareUrl });
                 return;
             } catch (error) {
                 if ((error as Error).name === "AbortError") return;
             }
         }
+        setShowShareModal(true);
+    };
+
+    const handleCopyLink = async () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                setShowShareModal(false);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 2500);
+                return;
+            } catch { }
+        }
         try {
-            await navigator.clipboard.writeText(shareUrl);
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 2500);
-        } catch { }
+            const textArea = document.createElement('textarea');
+            textArea.value = shareUrl;
+            textArea.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (ok) {
+                setShowShareModal(false);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 2500);
+            } else {
+                prompt(t.copyLink, shareUrl);
+            }
+        } catch {
+            prompt(t.copyLink, shareUrl);
+        }
     };
 
     const handleDownloadImage = async () => {
@@ -510,8 +344,9 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
         setDownloading(true);
         try {
             const mod = await import("html-to-image");
+            // Find the image wrapper inside to get its dimensions
             const dataUrl = await mod.toPng(cardRef.current, {
-                backgroundColor: "#17120f",
+                backgroundColor: "#000000",
                 pixelRatio: 2,
                 cacheBust: true,
             });
@@ -520,466 +355,293 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
             link.href = dataUrl;
             link.click();
             setShowToast(true);
-            setTimeout(() => setShowToast(false), 2200);
+            setTimeout(() => setShowToast(false), 2500);
+        } catch (error) {
+            console.error("Capture failed", error);
+            alert(t.failedSave);
         } finally {
             setDownloading(false);
         }
     };
 
-    const reportId = `FC-FACE-${result.faceShape.toUpperCase()}-${Math.floor(Date.now() / 100000).toString().slice(-4)}`;
-    const timestamp = new Date().toLocaleString(lang === 'ko' ? 'ko-KR' : 'en-US', {
-        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
+    const prescriptionIcons = [Scissors, Glasses, Sparkles];
 
     return (
-        <div className="w-full max-w-[1380px] mx-auto flex flex-col gap-6 pb-24">
+        <div className="w-full bg-[#161618] min-h-screen py-10 px-4 md:px-8">
+            {/* Toast Notification */}
             {showToast && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-                    <div className="rounded-full border border-white/20 bg-black/80 px-6 py-3 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in duration-200">
+                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center pointer-events-none">
+                    <div className="bg-[#2C2C2E]/90 backdrop-blur-3xl px-6 py-4 rounded-full border border-white/10 shadow-2xl animate-in slide-in-from-top-4 duration-300">
                         <div className="flex items-center gap-3">
-                            <div
-                                className="flex h-8 w-8 items-center justify-center rounded-full text-white"
-                                style={{ backgroundColor: theme.accent }}
-                            >
-                                <Check className="w-4 h-4" />
+                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                                <Check className="w-3.5 h-3.5 text-white" />
                             </div>
-                            <span className="text-sm font-semibold text-white">
-                                {isKo ? "작업이 완료되었습니다." : "Action completed."}
-                            </span>
+                            <span className="text-white font-medium text-[15px]">{t.copied}</span>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-black/8 bg-white/72 px-4 py-3 shadow-[0_20px_50px_rgba(33,24,14,0.08)] backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                    <Link
-                        href={`/face-shape?lang=${lang}`}
-                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-black/8 bg-white text-zinc-700 transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-95"
+            {/* Share Modal */}
+            {showShareModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowShareModal(false)}>
+                    <div
+                        className="w-full max-w-sm bg-[#1C1C1E] rounded-[32px] p-8 animate-in zoom-in-95 duration-200 shadow-2xl border border-white/10"
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        <RotateCcw className="w-5 h-5" />
-                    </Link>
-                    <Link
-                        href={`/?lang=${lang}`}
-                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-black/8 bg-white text-zinc-700 transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-95"
-                    >
-                        <Home className="w-5 h-5" />
-                    </Link>
-                    <div className="hidden sm:block">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-zinc-400">Face Architecture</p>
-                        <p className={`mt-1 text-sm text-zinc-700 ${isKo ? "font-korean break-keep" : "font-serif"}`}>
-                            {isKo ? "단일 정답이 아니라 구조 읽기 중심으로 결과를 정리했습니다." : "Rebuilt around structural reading instead of a fake single-label report."}
-                        </p>
+                        <h3 className="text-white font-semibold text-xl text-center mb-6">{t.share}</h3>
+                        <div className="bg-white/5 rounded-2xl p-4 mb-6 border border-white/5">
+                            <p className="text-white/90 text-sm truncate font-medium text-center">{shareUrl}</p>
+                        </div>
+                        <button
+                            onClick={handleCopyLink}
+                            className="w-full py-4 rounded-2xl bg-blue-500 text-white font-semibold text-input flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-blue-600"
+                        >
+                            <Link2 className="w-5 h-5" />
+                            <span className="text-[15px]">{lang === 'ko' ? '링크 복사' : lang === 'ja' ? 'リンクをコピー' : lang === 'zh' ? '复制链接' : 'Copy Link'}</span>
+                        </button>
                     </div>
                 </div>
+            )}
 
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleShare}
-                        className="flex items-center gap-2 rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-95"
-                    >
-                        <Share2 className="w-4 h-4" />
-                        <span>{labels.share}</span>
-                    </button>
-                    <button
-                        onClick={handleDownloadImage}
-                        disabled={downloading}
-                        className="flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(0,0,0,0.18)] transition-all hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
-                        style={{ backgroundColor: theme.accent }}
-                    >
-                        {downloading ? (
-                            <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" />
-                        ) : (
-                            <Download className="w-4 h-4" />
-                        )}
-                        <span>{labels.save}</span>
-                    </button>
-                </div>
-            </div>
+            {/* ═══════════════ MAIN WIDE CARD (Apple Style) ═══════════════ */}
+            <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
 
-            <div
-                ref={cardRef}
-                className="relative w-full overflow-hidden rounded-[40px] border border-black/10 bg-[#17120f] text-[#faf6ef] shadow-[0_40px_120px_rgba(41,28,17,0.28)]"
-            >
-                <div className="absolute inset-0 opacity-90" style={{ backgroundImage: theme.shellGradient }} />
-                <div className="absolute -left-20 top-10 h-72 w-72 rounded-full blur-3xl" style={{ backgroundColor: theme.glow }} />
-                <div className="absolute right-[-80px] top-1/3 h-80 w-80 rounded-full bg-white/6 blur-3xl" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_35%)]" />
-
-                <div className="relative flex flex-wrap items-center justify-between gap-4 border-b border-white/10 px-5 py-5 md:px-8 md:py-6">
-                    <div>
-                        <p className="text-[10px] uppercase tracking-[0.32em] text-white/45">Findcore Face Read</p>
-                        <div className="mt-2 flex flex-wrap items-center gap-3">
-                            <h2 className="font-cinzel text-2xl font-black tracking-[0.26em] text-white">FINDCORE</h2>
-                            <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] font-mono uppercase tracking-[0.22em] text-white/60">
-                                {reportId}
-                            </span>
+                <div
+                    ref={cardRef}
+                    className="relative w-full flex flex-col overflow-hidden bg-[#0A0A0A] border border-white/10 rounded-[40px] shadow-2xl"
+                >
+                    {/* Header Strip inside Card */}
+                    <div className="flex items-center justify-between px-8 py-5 border-b border-white/5 bg-black/50 backdrop-blur-md">
+                        <div className="flex items-center gap-3">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                            <h2 className="text-sm font-cinzel tracking-[0.2em] font-medium text-white/50">FINDCORE</h2>
                         </div>
+                        <p className="text-[11px] text-white/50 font-medium uppercase tracking-wider">{t.reportTitle} &bull; {timestamp.split("오")[0]}</p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 text-right">
-                        <div className="rounded-full border border-white/10 bg-white/6 px-4 py-2">
-                            <p className="text-[10px] uppercase tracking-[0.22em] text-white/45">
-                                {isKo ? "판독 모드" : "Read Mode"}
-                            </p>
-                            <p className={`mt-1 text-sm font-semibold text-white ${isKo ? "font-korean" : ""}`}>{readModeLabel}</p>
-                        </div>
-                        <div className="rounded-full border border-white/10 bg-white/6 px-4 py-2">
-                            <p className="text-[10px] uppercase tracking-[0.22em] text-white/45">
-                                {isKo ? "생성 시각" : "Generated"}
-                            </p>
-                            <p className="mt-1 text-sm text-white/80">{timestamp}</p>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-1 gap-6 px-5 py-5 md:px-8 md:py-8 xl:grid-cols-[0.96fr_1.04fr]">
-                    <div className="space-y-5">
-                        <div className="rounded-[32px] border border-white/10 bg-[#f6efe6] p-3 text-zinc-950 shadow-[0_24px_60px_rgba(0,0,0,0.2)]">
+                    {/* HORIZONTAL GRID SPLIT */}
+                    <div className="flex flex-col md:flex-row w-full h-full">
+
+                        {/* ── LEFT COLUMN: Image & Tags (Perfect Aspect Ratio) ── */}
+                        <div className="w-full md:w-[45%] flex flex-col bg-black border-r border-white/5 relative items-center justify-center p-6 md:p-8">
+
+                            {/* The Image Container locking to exact aspect ratio to prevent SVG distortion */}
                             <div
-                                className={`relative overflow-hidden rounded-[24px] bg-zinc-100 shadow-inner ${
-                                    isPortraitImage ? "mx-auto w-full max-w-[360px] md:max-w-[390px]" : "w-full"
-                                }`}
+                                className="relative w-full rounded-[24px] overflow-hidden bg-[#161618] border border-white/10 shadow-xl"
                                 style={{ aspectRatio: imageAspectRatio }}
                             >
                                 <Image
                                     src={result.imageDataUrl}
-                                    alt={labels.title}
+                                    alt="Face Scan"
                                     fill
                                     priority
                                     unoptimized
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    className="object-cover"
                                 />
+                                <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/80 z-10" />
 
-                                <div className="absolute inset-0 bg-linear-to-b from-black/10 via-transparent to-black/35" />
-                                <svg className="absolute inset-0 h-full w-full opacity-85" viewBox="0 0 100 100" preserveAspectRatio="none">
-                                    <path d={overlayContour} fill="rgba(255,255,255,0.04)" stroke={overlayStroke} strokeWidth="0.42" strokeDasharray="1.4 1.6" />
-                                    {facialFeaturePaths.map((feature, idx) => (
-                                        <path key={idx} d={linePath(feature.points, feature.close)} fill="none" stroke="rgba(17,18,19,0.55)" strokeWidth={feature.width} strokeLinecap="round" />
+                                {/* Perfect 1:1 mapped SVG overlay */}
+                                <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id={contourGradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8" />
+                                            <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.4" />
+                                        </linearGradient>
+                                    </defs>
+                                    {overlayContour && (
+                                        <path d={overlayContour} fill="rgba(59,130,246,0.05)" stroke={`url(#${contourGradientId})`} strokeWidth="0.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                                    )}
+                                    {hairlinePath && (
+                                        <path d={hairlinePath} fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" strokeDasharray="2 2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                                    )}
+                                    {overlayGuides.map((guide) => (
+                                        <path key={guide.key} d={guide.path} fill="none" stroke={guide.stroke} strokeWidth={guide.width} strokeDasharray={guide.dash} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
                                     ))}
-                                    {precisionGuides.map((guide, idx) => {
-                                        const start = toPercent(guide.points[0]);
-                                        const end = toPercent(guide.points[1]);
-                                        return (
-                                            <g key={idx}>
-                                                <line x1={start.x} y1={start.y} x2={end.x} y2={end.y} stroke="rgba(255,255,255,0.42)" strokeWidth="0.22" strokeDasharray="0.8 0.7" />
-                                                <circle cx={start.x} cy={start.y} r="0.45" fill={theme.accent} />
-                                                <circle cx={end.x} cy={end.y} r="0.45" fill={theme.accent} />
-                                            </g>
-                                        );
-                                    })}
+                                    {facialFeaturePaths.map((feature) => (
+                                        <path key={feature.key} d={feature.path} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                                    ))}
                                 </svg>
 
-                                <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
-                                    {traitPills.map((pill) => (
-                                        <span
-                                            key={pill}
-                                            className={`rounded-full border border-white/25 bg-black/35 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md ${isKo ? "font-korean" : ""}`}
-                                        >
-                                            {pill}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[20px] bg-white px-4 py-3 shadow-sm">
-                                <div>
-                                    <p className="text-[10px] uppercase tracking-[0.24em] text-zinc-400">{labels.primaryShape}</p>
-                                    <p className={`mt-1 text-lg font-semibold text-zinc-900 ${isKo ? "font-korean" : "font-cinzel tracking-wide"}`}>
-                                        {shapeCopy.name}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] uppercase tracking-[0.24em] text-zinc-400">{labels.confidenceRead}</p>
-                                    <p className={`mt-1 text-sm text-zinc-600 ${isKo ? "font-korean break-keep" : ""}`}>{readModeText}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                            {precisionTiles.map((tile) => (
-                                <div
-                                    key={tile.label}
-                                    className="rounded-[24px] border border-white/10 bg-white/6 p-4 backdrop-blur-md"
-                                >
-                                    <p className="text-[10px] uppercase tracking-[0.22em] text-white/45">{tile.label}</p>
-                                    <p className="mt-3 text-2xl font-semibold text-white">{tile.value}</p>
-                                    <p className={`mt-2 text-sm leading-relaxed text-white/60 ${isKo ? "font-korean break-keep" : ""}`}>{tile.note}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        <div
-                            className="rounded-[32px] p-6 text-zinc-950 shadow-[0_26px_70px_rgba(0,0,0,0.24)] md:p-8"
-                            style={{ backgroundImage: theme.heroGradient }}
-                        >
-                            <div className="flex flex-wrap items-start justify-between gap-4">
-                                <div>
-                                    <div className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white/70 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-700">
-                                        <Sparkles className="h-3.5 w-3.5" />
-                                        {labels.subtitle}
+                                {/* Badges */}
+                                <div className="absolute top-4 left-4 right-4 flex justify-between z-30">
+                                    <div className="backdrop-blur-md bg-black/40 border border-white/20 rounded-full px-3 py-1 flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                                        <span className="text-[10px] font-medium text-white/90">AI Verified {result.confidence.toFixed(0)}%</span>
                                     </div>
-                                    <h1 className={`mt-5 text-4xl font-black tracking-tight text-zinc-950 sm:text-5xl lg:text-6xl ${isKo ? "font-korean" : "font-cinzel"}`}>
+                                </div>
+
+                                {/* Text embedded in image */}
+                                <div className="absolute bottom-6 left-6 right-6 z-30 flex flex-col gap-2">
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {keywords.map((k) => (
+                                            <span key={k} className="px-2.5 py-1 rounded-md text-[11px] font-medium backdrop-blur-md bg-white/10 text-white/90 border border-white/10">
+                                                #{k}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <h1 className={`text-4xl font-bold tracking-tight text-white drop-shadow-md`}>
                                         {shapeCopy.name}
                                     </h1>
-                                    <p className={`mt-3 max-w-2xl text-base leading-relaxed text-zinc-700 ${isKo ? "font-korean break-keep" : "font-serif"}`}>
-                                        {shapeCopy.summary}
-                                    </p>
-                                </div>
-
-                                <div className="rounded-[28px] border border-black/8 bg-black/85 px-6 py-5 text-white shadow-2xl">
-                                    <p className="text-[10px] uppercase tracking-[0.24em] text-white/45">{labels.readScore}</p>
-                                    <p className="mt-2 text-5xl font-black leading-none">{result.confidence}</p>
-                                    <p className="mt-2 text-sm text-white/65">{isKo ? "정답 확률 아님" : "not probability"}</p>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 flex flex-wrap gap-2">
-                                {result.overlay.frameSource === "manual" && (
-                                    <span className="rounded-full border border-black/8 bg-white/70 px-3 py-1 text-xs font-semibold text-zinc-700">
-                                        {labels.manualFrame}
-                                    </span>
-                                )}
-                                <span className="rounded-full border border-black/8 bg-white/70 px-3 py-1 text-xs font-semibold text-zinc-700">
-                                    {mix.primaryShare}% {labels.primaryMix}
-                                </span>
-                                <span className="rounded-full border border-black/8 bg-white/70 px-3 py-1 text-xs font-semibold text-zinc-700">
-                                    {mix.secondaryShare}% {labels.secondaryMix}
-                                </span>
-                            </div>
-
-                            <div className="mt-6 rounded-[26px] border border-black/8 bg-white/72 p-5">
-                                <p className={`text-sm leading-relaxed text-zinc-700 ${isKo ? "font-korean break-keep" : ""}`}>{mixSummary}</p>
-                                <div className="mt-4 h-3 overflow-hidden rounded-full bg-black/10">
-                                    <div className="flex h-full">
-                                        <div style={{ width: `${mix.primaryShare}%`, backgroundColor: theme.accent }} />
-                                        <div className="h-full bg-zinc-900/28" style={{ width: `${mix.secondaryShare}%` }} />
-                                    </div>
-                                </div>
-                                <div className="mt-3 flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                                    <span>{shapeCopy.name}</span>
-                                    <span>{secondaryCopy.name}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            {heroMetrics.map((metric) => (
-                                <div
-                                    key={metric.label}
-                                    className="rounded-[24px] border border-white/10 bg-white/6 p-4 backdrop-blur-md"
-                                >
-                                    <p className="text-[10px] uppercase tracking-[0.22em] text-white/45">{metric.label}</p>
-                                    <p className={`mt-3 text-2xl font-semibold text-white ${isKo ? "font-korean" : ""}`}>{metric.value}</p>
-                                    <p className="mt-2 text-sm text-white/60">{metric.note}</p>
+                        {/* ── RIGHT COLUMN: Tight Apple-Style Grid ── */}
+                        <div className={`w-full md:w-[55%] flex flex-col justify-between p-6 md:p-8 md:pl-10 lg:p-12 gap-8 ${isKo ? 'font-korean' : 'font-sans'}`}>
+
+                            {/* Summary Core Block */}
+                            <div className="flex flex-col gap-4">
+                                <h3 className="text-white text-xl font-bold">{t.summaryLabel}</h3>
+                                <p className="text-[15px] md:text-base text-white/80 leading-relaxed font-medium">
+                                    {shapeCopy.summary}
+                                </p>
+                            </div>
+
+                            {/* Metrics Grid (Compact) */}
+                            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                                {heroMetrics.map((metric) => (
+                                    <div key={metric.label} className="flex flex-col p-4 rounded-3xl bg-[#1C1C1E] border border-white/5 items-center justify-center text-center gap-1">
+                                        <p className="text-[11px] text-white/50 font-semibold">{metric.label}</p>
+                                        <p className="text-xl font-bold text-white tracking-tight">{metric.value}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Thirds Bar */}
+                            <div className="p-5 rounded-3xl bg-[#1C1C1E] border border-white/5 flex flex-col gap-5">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-white/80 font-semibold text-sm">{t.thirds}</span>
+                                    <span className="text-white/40 text-[10px] font-semibold tracking-wider uppercase">{t.ideal}</span>
                                 </div>
-                            ))}
+                                <div className="flex flex-col gap-3.5">
+                                    {thirds.map((third, index) => (
+                                        <div key={third.label} className="flex items-center gap-3">
+                                            <span className="text-xs text-white/60 w-12 shrink-0 font-medium">{third.label}</span>
+                                            <div className="flex-1 h-2.5 rounded-full bg-black border border-white/10 overflow-hidden relative">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${third.value}%` }}
+                                                    transition={{ duration: 1, ease: 'easeOut' }}
+                                                    className="absolute top-0 left-0 h-full bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+                                                />
+                                            </div>
+                                            <span className="text-xs font-bold text-white/90 w-10 text-right tabular-nums">{third.value.toFixed(1)}%</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Strengths Grid */}
+                            <div className="flex flex-col gap-4">
+                                <h3 className="text-white text-base font-bold">{t.strengthsLabel}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {shapeCopy.strengths.map((str, i) => (
+                                        <div key={str} className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+                                            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white/50 text-[11px] font-bold shrink-0">
+                                                {i + 1}
+                                            </div>
+                                            <p className="text-[13px] text-white/80 font-medium leading-tight">{str}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="grid grid-cols-1 gap-6 border-t border-white/10 px-5 py-5 md:px-8 md:py-8 xl:grid-cols-[1.05fr_0.95fr]">
-                    <div className="space-y-6">
-                        <div className="rounded-[30px] border border-white/10 bg-[#f8f3eb] p-6 text-zinc-950 shadow-[0_24px_50px_rgba(0,0,0,0.18)]">
-                            <p className="text-[10px] uppercase tracking-[0.28em] text-zinc-400">{labels.confidenceRead}</p>
-                            <h3 className={`mt-4 text-2xl font-semibold text-zinc-950 ${isKo ? "font-korean" : "font-cinzel"}`}>{qualityHeadline}</h3>
-                            <p className={`mt-3 text-sm leading-relaxed text-zinc-600 ${isKo ? "font-korean break-keep" : ""}`}>{confidenceMeaning}</p>
+                    <hr className="border-white/5" />
 
-                            <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                                <div className="rounded-[24px] border border-black/6 bg-white p-5">
-                                    <p className="text-[10px] uppercase tracking-[0.22em] text-zinc-400">{labels.shapeRanking}</p>
-                                    <div className="mt-4 space-y-4">
-                                        {rankedShapes.map((entry) => (
-                                            <div key={entry.shape}>
-                                                <div className="mb-2 flex items-center justify-between gap-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <span
-                                                            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                                                            style={{ backgroundColor: entry.rank === 1 ? theme.accent : "#15110f" }}
-                                                        >
-                                                            {entry.rank}
-                                                        </span>
-                                                        <span className={`text-sm font-semibold text-zinc-900 ${isKo ? "font-korean" : ""}`}>
-                                                            {getFaceShapeCopy(entry.shape, lang).name}
-                                                        </span>
+                    {/* ── BOTTOM ROW: Style Prescriptions (3-Column Layout) ── */}
+                    <div className="p-6 md:p-8 lg:px-12 bg-[#0C0C0E] border-t border-white/5">
+                        <div className="flex flex-col gap-6">
+                            <h3 className="text-white text-xl font-bold">{t.prescriptions}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {[
+                                    { title: t.hair, txt: shapeCopy.hairstyle, icon: 0, color: "text-blue-400" },
+                                    { title: t.eye, txt: shapeCopy.eyewear, icon: 1, color: "text-indigo-400" },
+                                    { title: t.contour, txt: shapeCopy.contour, icon: 2, color: "text-purple-400" },
+                                ].map((sec) => {
+                                    const Icon = prescriptionIcons[sec.icon];
+                                    return (
+                                        <div key={sec.title} className="flex flex-col p-5 rounded-3xl bg-[#1C1C1E] border border-white/5 gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                                                    <Icon className={`w-4 h-4 ${sec.color}`} />
+                                                </div>
+                                                <h4 className="text-[15px] font-bold text-white/95">{sec.title}</h4>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                {sec.txt.map((item) => (
+                                                    <div key={item} className="flex items-start gap-2 text-[13px] text-white/70 font-medium leading-relaxed">
+                                                        <span className="text-white/30 text-[10px] mt-1">&bull;</span>
+                                                        <span>{item}</span>
                                                     </div>
-                                                    <span className="text-[11px] font-mono text-zinc-400">{entry.strength}</span>
-                                                </div>
-                                                <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
-                                                    <div
-                                                        className="h-full rounded-full"
-                                                        style={{ width: `${entry.strength}%`, backgroundColor: entry.rank === 1 ? theme.accent : "#1c1613" }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="rounded-[24px] border border-black/6 bg-white p-5">
-                                    <p className="text-[10px] uppercase tracking-[0.22em] text-zinc-400">{labels.whyThisResult}</p>
-                                    <div className="mt-4 space-y-3">
-                                        {interpretationReasons.map((text, index) => (
-                                            <div key={`${text}-${index}`} className="rounded-2xl bg-zinc-50 px-4 py-3">
-                                                <p className={`text-[13px] leading-relaxed text-zinc-600 ${isKo ? "font-korean break-keep" : ""}`}>{text}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="rounded-[30px] border border-white/10 bg-white/6 p-6 backdrop-blur-md">
-                            <p className="text-[10px] uppercase tracking-[0.28em] text-white/45">{labels.structureRead}</p>
-                            <div className="mt-5 grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-                                <div className="rounded-[24px] bg-black/18 p-4">
-                                    <div className="flex h-4 overflow-hidden rounded-full bg-white/10">
-                                        {verticalThirds.map((third, idx) => (
-                                            <div
-                                                key={third.label}
-                                                className="flex items-center justify-center text-[9px] font-semibold uppercase tracking-[0.15em] text-white"
-                                                style={{
-                                                    width: idx === 0
-                                                        ? `${result.metrics.upperThird}%`
-                                                        : idx === 1
-                                                          ? `${result.metrics.middleThird}%`
-                                                          : `${result.metrics.lowerThird}%`,
-                                                    backgroundColor: idx === 0 ? theme.accent : idx === 1 ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.12)",
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                    <div className="mt-4 grid grid-cols-3 gap-3">
-                                        {verticalThirds.map((third) => (
-                                            <div key={third.label} className="rounded-2xl border border-white/10 bg-white/6 px-3 py-4 text-center">
-                                                <p className="text-[10px] uppercase tracking-[0.18em] text-white/45">{third.label}</p>
-                                                <p className="mt-2 text-lg font-semibold text-white">{third.value}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-5">
-                                    {professionalMetrics.map((metric) => (
-                                        <div key={metric.label}>
-                                            <div className="mb-2 flex items-end justify-between">
-                                                <span className="text-[11px] uppercase tracking-[0.22em] text-white/45">{metric.label}</span>
-                                                <span className="text-sm font-mono font-semibold text-white">{metric.value}</span>
-                                            </div>
-                                            <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                                                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${metric.bar}%`, backgroundColor: theme.accent }} />
+                                                ))}
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="rounded-[30px] border border-white/10 bg-white/6 p-6 backdrop-blur-md">
-                            <p className="text-[10px] uppercase tracking-[0.28em] text-white/45">{labels.confidence}</p>
-                            <h3 className={`mt-4 text-2xl font-semibold text-white ${isKo ? "font-korean" : "font-cinzel"}`}>{labels.confidenceMeaningTitle}</h3>
-                            <p className={`mt-3 text-sm leading-relaxed text-white/65 ${isKo ? "font-korean break-keep" : ""}`}>{qualityHeadline}</p>
+                    {/* Ad Placeholder inside card */}
+                    <div className="w-full bg-white/5 py-4 border-t border-white/5 flex items-center justify-center">
+                        <p className="text-[11px] text-white/40 tracking-widest font-semibold uppercase">{t.adStatus}</p>
+                    </div>
 
-                            <div className="mt-6 space-y-5">
-                                {confidenceMetrics.map((metric) => (
-                                    <div key={metric.label}>
-                                        <div className="mb-2 flex items-end justify-between gap-4">
-                                            <span className="text-[11px] uppercase tracking-[0.22em] text-white/45">{metric.label}</span>
-                                            <span className="text-sm font-mono font-semibold text-white">{metric.value}</span>
-                                        </div>
-                                        <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${metric.bar}%`, backgroundColor: theme.accent }} />
-                                        </div>
-                                        <p className={`mt-2 text-[13px] leading-relaxed text-white/60 ${isKo ? "font-korean break-keep" : ""}`}>{metric.description}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                    {/* Premium Footer */}
+                    <div className="w-full bg-[#050505] py-5 px-8 md:px-12 flex items-center justify-between border-t border-white/5">
+                        <p className="text-white text-[10px] uppercase tracking-[0.2em] font-light">
+                            findcore.me
+                        </p>
+                        <a
+                            href="https://t.me/todayshelp"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-1.5 text-white hover:text-cyan-200 transition-colors duration-300"
+                        >
+                            <span className="font-serif text-[15px] italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
+                            <span className="font-serif italic text-[11px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
+                        </a>
+                    </div>
 
-                        {qualityInsights.length > 0 && (
-                            <div className="rounded-[30px] border border-white/10 bg-black/18 p-6">
-                                <p className="text-[10px] uppercase tracking-[0.28em] text-white/45">{labels.improve}</p>
-                                <div className="mt-5 space-y-3">
-                                    {qualityInsights.map((text, index) => (
-                                        <div key={`${text}-${index}`} className="rounded-2xl border border-white/8 bg-white/6 px-4 py-3">
-                                            <p className={`text-[13px] leading-relaxed text-white/68 ${isKo ? "font-korean break-keep" : ""}`}>{text}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                </div>
+
+                {/* ═══════════════ ACTION BUTTONS ═══════════════ */}
+                <div className="flex items-center justify-end gap-3 px-2">
+                    <Link
+                        href={`/?lang=${lang}`}
+                        className="flex items-center justify-center w-14 h-14 rounded-full bg-[#1C1C1E] hover:bg-[#2C2C2E] text-white/70 hover:text-white transition-colors border border-white/10 shadow-lg active:scale-95"
+                    >
+                        <Home className="w-5 h-5" />
+                    </Link>
+                    <Link
+                        href={`/face-shape?lang=${lang}`}
+                        className="flex items-center justify-center w-14 h-14 rounded-full bg-[#1C1C1E] hover:bg-[#2C2C2E] text-white/70 hover:text-white transition-colors border border-white/10 shadow-lg active:scale-95"
+                    >
+                        <RotateCcw className="w-5 h-5" />
+                    </Link>
+                    <button
+                        onClick={handleShare}
+                        className="flex items-center justify-center w-14 h-14 rounded-full bg-[#1C1C1E] hover:bg-[#2C2C2E] text-white/70 hover:text-white transition-colors border border-white/10 shadow-lg active:scale-95"
+                    >
+                        <Share2 className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={handleDownloadImage}
+                        disabled={downloading}
+                        className="flex items-center justify-center px-6 h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-[0_10px_30px_-10px_rgba(37,99,235,0.8)] active:scale-95 disabled:opacity-50"
+                    >
+                        {downloading ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        ) : (
+                            <Download className="w-5 h-5 mr-2" />
                         )}
-
-                        <div className="rounded-[30px] border border-white/10 bg-[#f8f3eb] p-6 text-zinc-950 shadow-[0_24px_50px_rgba(0,0,0,0.16)]">
-                            <p className="text-[10px] uppercase tracking-[0.28em] text-zinc-400">Analysis Summary</p>
-                            <p className={`mt-4 text-base leading-relaxed text-zinc-700 ${isKo ? "font-korean break-keep" : "font-serif"}`}>
-                                {shapeCopy.summary}
-                            </p>
-                            <div className="mt-5 space-y-3 border-t border-black/6 pt-5">
-                                {summaries.map((text, idx) => (
-                                    <div key={idx} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                                        <p className={`text-[13px] leading-relaxed text-zinc-600 ${isKo ? "font-korean break-keep" : ""}`}>{text}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                        <span className="text-[15px]">{t.save}</span>
+                    </button>
                 </div>
 
-                <div className="border-t border-white/10 px-5 py-5 md:px-8 md:py-8">
-                    <div className="mb-6 flex items-center gap-3">
-                        <div className="h-px flex-1 bg-white/10" />
-                        <span className="text-[10px] uppercase tracking-[0.34em] text-white/45">Style Directives</span>
-                        <div className="h-px flex-1 bg-white/10" />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                        {styleSections.map((section) => (
-                            <div
-                                key={section.title}
-                                className="rounded-[28px] border border-white/10 p-6 backdrop-blur-md"
-                                style={{ backgroundColor: section.tint }}
-                            >
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="text-[10px] uppercase tracking-[0.22em] text-white/40">{section.number}</p>
-                                        <h4 className={`mt-2 text-xl font-semibold text-white ${isKo ? "font-korean" : "font-cinzel tracking-wide"}`}>
-                                            {section.title}
-                                        </h4>
-                                    </div>
-                                    <div
-                                        className="h-12 w-12 rounded-2xl border border-white/10"
-                                        style={{ backgroundColor: theme.accent }}
-                                    />
-                                </div>
-
-                                <ul className="mt-5 space-y-3">
-                                    {section.items.map((item) => (
-                                        <li key={item} className="rounded-2xl bg-black/14 px-4 py-3 text-sm leading-relaxed text-white/78">
-                                            {item}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-5 py-5 text-sm text-white/52 md:px-8">
-                    <div className="flex flex-wrap items-center gap-4">
-                        <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] uppercase tracking-[0.2em]">
-                            MediaPipe Face Landmarker
-                        </span>
-                        <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] uppercase tracking-[0.2em]">
-                            {result.overlay.frameSource === "manual"
-                                ? (isKo ? "수동 프레임 보정" : "Manual Frame Corrected")
-                                : (isKo ? "자동 프레임" : "Auto Frame")}
-                        </span>
-                    </div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-white/35">findcore.me</p>
-                </div>
             </div>
         </div>
     );

@@ -70,6 +70,7 @@ export interface FaceShapePreviewGate {
 }
 
 export interface FaceShapePreviewResult {
+    analysisVersion: string;
     faceShape: FaceShapeId;
     secondaryShape: FaceShapeId;
     confidence: number;
@@ -78,6 +79,7 @@ export interface FaceShapePreviewResult {
 }
 
 export interface FaceShapeAnalysisResult {
+    analysisVersion: string;
     faceShape: FaceShapeId;
     secondaryShape: FaceShapeId;
     confidence: number;
@@ -204,8 +206,8 @@ const LEFT_FACE_SIDE_INDICES = [148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 
 const LANDMARKS = {
     top: 10,
     chin: 152,
-    browCenter: 168,
-    noseBase: 2,
+    browCenter: 168, // Glabella
+    noseBase: 1, // Subnasale (Base of nose)
     leftForehead: 103,
     rightForehead: 332,
     leftForeheadWide: 67,
@@ -232,6 +234,7 @@ const HAIR_THRESHOLD = 0.34;
 const EDGE_THRESHOLD = 16;
 const EDITOR_CURVE_SAMPLES = 10;
 const QUALITY_IMAGE_LONGEST_EDGE = 320;
+export const FACE_SHAPE_ANALYSIS_VERSION = "2026-03-10-oblong-tuning";
 
 const SHAPE_SCORE_MAX: Record<FaceShapeId, number> = {
     oval: 7,
@@ -1072,12 +1075,12 @@ function buildFaceGeometry(
     const contour = manualFrame
         ? manualFrame.contour.map((point) => clampPoint(point))
         : hairline.method === "fallback"
-          ? buildFallbackContour(landmarks, hairline)
-          : [
-              ...hairline.points,
-              ...RIGHT_FACE_SIDE_INDICES.map((index) => getPoint(landmarks, index)),
-              ...LEFT_FACE_SIDE_INDICES.map((index) => getPoint(landmarks, index)),
-          ];
+            ? buildFallbackContour(landmarks, hairline)
+            : [
+                ...hairline.points,
+                ...RIGHT_FACE_SIDE_INDICES.map((index) => getPoint(landmarks, index)),
+                ...LEFT_FACE_SIDE_INDICES.map((index) => getPoint(landmarks, index)),
+            ];
 
     const manualHairline = manualFrame ? buildManualHairlineFromHandles(manualFrame.handles) : null;
     const topContour = manualHairline?.points ?? hairline.points;
@@ -1134,9 +1137,24 @@ function buildMetrics(landmarks: NormalizedLandmark[], geometry: FaceGeometry): 
     const symmetry = clamp(Math.round(100 - cheekSymmetry * 180), 72, 99);
 
     const totalVertical = Math.max(geometry.bounds.bottom.y - geometry.bounds.top.y, 0.0001);
-    const upperThird = ((browCenter.y - geometry.bounds.top.y) / totalVertical) * 100;
-    const middleThird = ((noseBase.y - browCenter.y) / totalVertical) * 100;
-    const lowerThird = ((geometry.bounds.bottom.y - noseBase.y) / totalVertical) * 100;
+
+    // Mechanical 3D Mesh Percentages
+    const mechUpper = ((browCenter.y - geometry.bounds.top.y) / totalVertical) * 100;
+    const mechMiddle = ((noseBase.y - browCenter.y) / totalVertical) * 100;
+    const mechLower = ((geometry.bounds.bottom.y - noseBase.y) / totalVertical) * 100;
+
+    // Higher Precision 2D/3D Perception Tuning:
+    // We adjust for common camera distortion where the lens makes the central part of the face
+    // appear slightly compressed compared to the forehead/chin in 2D space.
+    let u = clamp(mechUpper * 0.96, 20, 48); // Visually, the forehead appears slightly more compact
+    let m = clamp(mechMiddle * 1.085, 20, 48); // Midface correction for 2D lens distortion
+    let l = clamp(mechLower * 0.99, 20, 48); // Slightly reduce lower face mesh length
+
+    // Normalize back to exactly 100%
+    const sumThirds = u + m + l;
+    u = (u / sumThirds) * 100;
+    m = (m / sumThirds) * 100;
+    l = (l / sumThirds) * 100;
 
     return {
         faceLengthToWidth: faceLength / Math.max(effectiveFaceWidth, 0.0001),
@@ -1145,9 +1163,9 @@ function buildMetrics(landmarks: NormalizedLandmark[], geometry: FaceGeometry): 
         chinToJaw: chinWidth / jawWidth,
         jawAngle: (leftJawAngle + rightJawAngle) / 2,
         symmetry,
-        upperThird: clamp(upperThird, 26, 44),
-        middleThird: clamp(middleThird, 26, 44),
-        lowerThird: clamp(lowerThird, 28, 46),
+        upperThird: u,
+        middleThird: m,
+        lowerThird: l,
     };
 }
 
@@ -1582,9 +1600,9 @@ function buildPreviewResultFromPreparedContext(
 ): FaceShapePreviewResult {
     const manualFrame = handles?.length
         ? {
-              handles: handles.map((point) => clampPoint(point)),
-              contour: buildFaceShapeEditorContour(handles.map((point) => clampPoint(point))),
-          }
+            handles: handles.map((point) => clampPoint(point)),
+            contour: buildFaceShapeEditorContour(handles.map((point) => clampPoint(point))),
+        }
         : undefined;
     const geometry = buildFaceGeometry(context.landmarks, context.hairline, manualFrame);
     const metrics = buildMetrics(context.landmarks, geometry);
@@ -1604,6 +1622,7 @@ function buildPreviewResultFromPreparedContext(
     );
 
     return {
+        analysisVersion: FACE_SHAPE_ANALYSIS_VERSION,
         faceShape: primary,
         secondaryShape: secondary,
         confidence,
@@ -1703,6 +1722,7 @@ export async function analyzeFaceShapeFromEditor(
     );
 
     return {
+        analysisVersion: FACE_SHAPE_ANALYSIS_VERSION,
         faceShape: primary,
         secondaryShape: secondary,
         confidence,
@@ -1740,6 +1760,7 @@ export async function analyzeFaceShapeAI(
     );
 
     return {
+        analysisVersion: FACE_SHAPE_ANALYSIS_VERSION,
         faceShape: primary,
         secondaryShape: secondary,
         confidence,

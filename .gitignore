@@ -30,6 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .tmp/
+4.jpg
+4.png
 
 # env files (can opt-in for committing if needed)
 .env*

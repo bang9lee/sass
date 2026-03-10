@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { AESTHETICS, AestheticId } from '@/lib/data';
 import { ResultCardClient } from '@/components/ResultCardClient';
 import { AuroraBackground } from '@/components/ui/aurora-background';
+import { LayoutShell } from '@/components/layout-shell';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -99,19 +100,21 @@ export default async function ResultPage({ params, searchParams }: Props) {
 
     return (
         <AuroraBackground>
-            <div className="flex flex-col min-h-screen w-full items-center justify-start p-4 md:p-8 overflow-y-auto">
-                <ResultCardClient
-                    resultId={aesthetic.id}
-                    title={content.title}
-                    archetype={content.archetype}
-                    description={content.description}
-                    image={aesthetic.image}
-                    keywords={content.keywords}
-                    colorPalette={aesthetic.colorPalette}
-                    isKo={isKo}
-                    lang={currentLang}
-                />
-            </div>
+            <LayoutShell lang={currentLang}>
+                <div className="flex flex-col min-h-screen w-full items-center justify-start p-4 md:p-8 overflow-y-auto">
+                    <ResultCardClient
+                        resultId={aesthetic.id}
+                        title={content.title}
+                        archetype={content.archetype}
+                        description={content.description}
+                        image={aesthetic.image}
+                        keywords={content.keywords}
+                        colorPalette={aesthetic.colorPalette}
+                        isKo={isKo}
+                        lang={currentLang}
+                    />
+                </div>
+            </LayoutShell>
         </AuroraBackground>
     );
 }

@@ -8,11 +8,9 @@ import Link from 'next/link';
 interface ColorResultCardClientProps {
     resultId: string;
     title: string;
-    subtitle: string;
     description: string;
     image: string;
     keywords: string[];
-    palette: string[];
     bestColors: string[];
     worstColors: string[];
     isKo: boolean;
@@ -22,11 +20,9 @@ interface ColorResultCardClientProps {
 export function ColorResultCardClient({
     resultId,
     title,
-    subtitle,
     description,
     image,
     keywords,
-    palette,
     bestColors,
     worstColors,
     isKo,
@@ -54,17 +50,7 @@ export function ColorResultCardClient({
             adStatus: '광고대기중',
             resultLabel: '퍼스널 컬러',
             best: '베스트 컬러',
-            worst: '워스트 컬러',
-            faceShapeLabel: 'AI 얼굴형 분석',
-            shapes: {
-                oval: { name: '계란형', tip: '모든 스타일이 잘 어울리는 완벽한 비율입니다.' },
-                round: { name: '둥근형', tip: '각진 프레임의 안경이나 정수리 볼륨을 살린 헤어가 추천됩니다.' },
-                square: { name: '각진형', tip: '부드러운 곡선 프레임이나 옆머리를 가린 스타일이 인상을 부드럽게 합니다.' },
-                heart: { name: '하트형', tip: '아래가 넓은 테의 안경이나 턱선까지 오는 헤어 스타일이 잘 어울립니다.' },
-                oblong: { name: '긴 얼굴형', tip: '가로폭이 넓은 안경이나 앞머리(뱅) 스타일로 시선을 분산해보세요.' },
-                diamond: { name: '다이아몬드형', tip: '타원형 안경이나 턱선 부분에 볼륨을 준 보브 스타일을 추천합니다.' },
-                pear: { name: '삼각형(배형)', tip: '윗부분이 강조된 안경이나 관자놀이 쪽 볼륨을 살린 헤어가 좋습니다.' }
-            }
+            worst: '워스트 컬러'
         },
         en: {
             shareTitle: `My Personal Color: ${title}`,
@@ -78,17 +64,7 @@ export function ColorResultCardClient({
             adStatus: 'Ad Pending',
             resultLabel: 'Personal Color',
             best: 'Best Colors',
-            worst: 'Colors to Avoid',
-            faceShapeLabel: 'AI Face Shape Analysis',
-            shapes: {
-                oval: { name: 'Oval', tip: 'A perfectly balanced shape that suits almost any style.' },
-                round: { name: 'Round', tip: 'Angular frames and volume on top are recommended.' },
-                square: { name: 'Square', tip: 'Curved frames and side-swept styles soften your features.' },
-                heart: { name: 'Heart', tip: 'Frames wider at the bottom and chin-length hair look great.' },
-                oblong: { name: 'Oblong', tip: 'Oversized frames and bangs help balance the length.' },
-                diamond: { name: 'Diamond', tip: 'Oval frames and bob styles with volume at the chin work best.' },
-                pear: { name: 'Pear', tip: 'Top-heavy frames and volume at the temples are ideal.' }
-            }
+            worst: 'Colors to Avoid'
         },
         zh: {
             shareTitle: `我的专属色彩: ${title}`,
@@ -102,31 +78,21 @@ export function ColorResultCardClient({
             adStatus: '广告待处理',
             resultLabel: 'Personal Color',
             best: '最佳颜色',
-            worst: '避雷颜色',
-            faceShapeLabel: 'AI 脸型分析',
-            shapes: {
-                oval: { name: '鹅蛋脸', tip: '完美的比例，适合几乎所有风格。' },
-                round: { name: '圆脸', tip: '建议选择棱角分明的镜框，并增加头顶发量。' },
-                square: { name: '方脸', tip: '圆润的镜框和偏分发型能柔化面部线条。' },
-                heart: { name: '心形脸', tip: '适合下半部较宽的镜框和齐腮短发。' },
-                oblong: { name: '长脸', tip: '大框眼镜和刘海造型有助于平衡长度。' },
-                diamond: { name: '菱形脸', tip: '椭圆镜框和下巴处蓬松的波波头最合适。' },
-                pear: { name: '梨形脸', tip: '建议选择上部加宽的镜框，并增加太阳穴处发量。' }
-            }
+            worst: '避雷颜色'
         },
         ja: {
             shareTitle: `私のパーソナルカラー: ${title}`,
-            shareText: '自分に似合う色が見つかりました！あなた도 診断してみて ✨',
-            copyLink: '링크를 복사해 주세요:',
-            failedSave: '이미지 저장에 실패했습니다.',
-            copied: '복사 완료!',
-            share: '공유하기',
-            save: '이미지 저장',
-            retest: '다시하기',
-            adStatus: '광고 대기 중',
+            shareText: '自分に似合う色が見つかりました！あなたも診断してみて ✨',
+            copyLink: '링크를コピー:',
+            failedSave: '画像の保存に失敗しました。',
+            copied: 'コピー完了!',
+            share: 'シェアする',
+            save: '画像を保存',
+            retest: 'もう一度診断する',
+            adStatus: '広告待機中',
             resultLabel: 'Personal Color',
-            best: '베스트 컬러',
-            worst: '워스트 컬러',
+            best: 'ベストカラー',
+            worst: 'NGカラー'
         }
     };
 
@@ -195,7 +161,7 @@ export function ColorResultCardClient({
         try {
             const mod = await import('html-to-image');
             const dataUrl = await mod.toPng(cardRef.current, {
-                backgroundColor: '#ffffff',
+                backgroundColor: '#000000',
                 pixelRatio: 2,
                 cacheBust: true,
             });
@@ -215,149 +181,157 @@ export function ColorResultCardClient({
         }
     };
 
-    const reportId = `FC-CLR-${resultId.toUpperCase()}-${Math.floor(Date.now() / 100000).toString().slice(-4)}`;
-    const timestamp = new Date().toLocaleString(lang === 'ko' ? 'ko-KR' : 'en-US', {
-        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-
     return (
-        <div className="w-full max-w-6xl mx-auto flex flex-col gap-8 pb-20">
+        <>
+            {/* Toast Notification */}
             {showToast && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-                    <div className="bg-black/80 backdrop-blur-xl px-6 py-4 rounded-2xl border border-white/20 shadow-2xl animate-in fade-in zoom-in duration-200">
+                    <div className="bg-black/80 backdrop-blur-xl px-6 py-4 rounded-2xl border border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-200">
                         <div className="flex items-center gap-3">
-                            <Check className="w-5 h-5 text-emerald-400" />
-                            <span className="text-white font-semibold text-sm">{t.copied}</span>
+                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                                <Check className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-white font-semibold text-sm">{t.copied}</span>
+                                <span className="text-white/50 text-xs">{t.shareText}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Dashboard Navigation / Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 px-2">
-                <div className="flex items-center gap-4">
-                    <Link href={`/color/test?lang=${lang}`} className="p-3 rounded-xl bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-all hover:shadow-md active:scale-95">
-                        <RotateCcw className="w-5 h-5" />
-                    </Link>
-                    <Link href={`/?lang=${lang}`} className="p-3 rounded-xl bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-all hover:shadow-md active:scale-95">
-                        <Home className="w-5 h-5" />
-                    </Link>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button onClick={handleShare} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-700 font-bold text-sm hover:shadow-md transition-all active:scale-95">
-                        <Share2 className="w-4 h-4" />
-                        <span>{t.share}</span>
-                    </button>
-                    <button onClick={handleDownloadImage} disabled={downloading} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-900 text-white font-bold text-sm hover:bg-zinc-800 transition-all shadow-lg active:scale-95 disabled:opacity-50">
-                        {downloading ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                            <Download className="w-4 h-4" />
-                        )}
-                        <span>{t.save}</span>
-                    </button>
-                </div>
-            </div>
+            {/* Share Modal */}
+            {showShareModal && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowShareModal(false)}>
+                    <div
+                        className="w-full max-w-md bg-[#1a1a1a] rounded-t-3xl p-6 pb-10 animate-in slide-in-from-bottom duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6" />
+                        <h3 className="text-white font-bold text-lg text-center mb-6">{t.share}</h3>
 
-            {/* Main Scientific Report Card */}
-            <div
-                ref={cardRef}
-                className="relative w-full bg-white border border-zinc-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2.5rem] overflow-hidden flex flex-col"
-            >
-                {/* Report Header (Branding & Metadata) */}
-                <div className="w-full px-8 py-6 border-b border-zinc-100 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex flex-col">
-                        <span className="text-zinc-400 text-[10px] font-bold tracking-[0.3em] uppercase mb-1">Analysis Report</span>
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-xl font-cinzel font-black tracking-widest text-zinc-900">FINDCORE</h2>
-                            <div className="h-4 w-px bg-zinc-200" />
-                            <span className="text-[11px] font-mono text-zinc-500 uppercase">{reportId}</span>
+                        <div className="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
+                            <p className="text-white/50 text-xs mb-1">URL</p>
+                            <p className="text-white text-sm truncate">{shareUrl}</p>
                         </div>
-                    </div>
-                    <div className="text-right">
-                        <span className="text-zinc-400 text-[9px] font-bold tracking-widest uppercase block mb-1">Generated On</span>
-                        <span className="text-xs font-medium text-zinc-600">{timestamp}</span>
+
+                        <button
+                            onClick={handleCopyLink}
+                            className="w-full py-4 rounded-2xl bg-linear-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-[0_0_30px_-5px_rgba(168,85,247,0.5)]"
+                        >
+                            <Link2 className="w-5 h-5" />
+                            <span>{lang === 'ko' ? '링크 복사하기' : lang === 'ja' ? '링크를 복사' : lang === 'zh' ? '复制链接' : 'Copy Link'}</span>
+                        </button>
+
+                        <button
+                            onClick={() => setShowShareModal(false)}
+                            className="w-full py-3 mt-3 text-white/50 text-sm font-medium"
+                        >
+                            {lang === 'ko' ? '닫기' : lang === 'ja' ? '閉じる' : lang === 'zh' ? '关闭' : 'Close'}
+                        </button>
                     </div>
                 </div>
+            )}
 
-                {/* Main Layout Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2">
-                    {/* Left Column: Subject Image & Keywords */}
-                    <div className="relative p-8 lg:p-12 lg:border-r border-zinc-100 flex flex-col gap-8">
-                        <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-2xl bg-zinc-100 ring-1 ring-zinc-100">
-                            <Image
-                                src={image}
-                                alt={title}
-                                fill
-                                priority
-                                unoptimized
-                                crossOrigin="anonymous"
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
+            <div className="w-full max-w-md mx-auto flex flex-col gap-4 pb-10">
+                {/* Main Result Card - Aesthetic Core Style */}
+                <div
+                    ref={cardRef}
+                    className={`relative w-full flex flex-col overflow-hidden bg-black text-white rounded-4xl`}
+                    style={{
+                        boxShadow: '0 0 50px -12px rgba(255,255,255,0.1)'
+                    }}
+                >
+                    {/* Main Image with Premium Overlay Text */}
+                    <div className="relative w-full aspect-4/3 shrink-0 overflow-hidden">
+                        <Image
+                            src={image}
+                            alt={title}
+                            fill
+                            priority
+                            unoptimized
+                            crossOrigin="anonymous"
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-transparent to-black/95 z-10" />
 
-                            <div className="absolute bottom-6 left-6 right-6 flex flex-wrap gap-1.5">
-                                {keywords.map((keyword) => (
-                                    <span key={keyword} className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-xs font-medium">
-                                        #{keyword}
+                        {/* Text Overlay */}
+                        <div className="absolute inset-0 px-6 pt-6 pb-8 flex flex-col justify-end z-20">
+                            {/* BOTTOM LEFT: Title, Keywords (Badge and top-right palette removed per user request) */}
+                            <div className="flex flex-col items-start gap-3">
+                                {/* Title */}
+                                <h1 className={`font-black leading-none tracking-tight font-cinzel z-0`}>
+                                    <span className="text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] whitespace-nowrap text-2xl sm:text-3xl md:text-4xl">
+                                        {title}
                                     </span>
-                                ))}
-                            </div>
-                        </div>
+                                </h1>
 
-                        <div className="space-y-4">
-                            <span className="px-3 py-1 bg-pink-50 text-pink-500 text-[10px] font-bold tracking-widest uppercase rounded-full inline-block">
-                                Determined Type
-                            </span>
-                            <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-black text-zinc-900 tracking-tighter ${isKo ? 'font-korean' : 'font-cinzel'}`}>
-                                {title}
-                            </h1>
-                            <p className="text-zinc-500 text-sm font-cinzel tracking-[0.2em] uppercase">
-                                Refined Personal Color Analysis
-                            </p>
+                                {/* Keywords */}
+                                <div className="flex flex-wrap gap-1.5 pt-1 keywords-container">
+                                    {keywords.map((k) => (
+                                        <span
+                                            key={k}
+                                            className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium border backdrop-blur-md ${isKo ? 'font-korean' : 'font-sans'} bg-zinc-900/60 border-white/20 text-white tracking-wide shadow-sm`}
+                                        >
+                                            #{k}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Right Column: Technical Stats & Analysis */}
-                    <div className="p-8 lg:p-12 flex flex-col gap-10">
-                        {/* Best Palette Grid */}
-                        <section className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-xs font-bold tracking-[0.2em] text-zinc-400 uppercase">{t.best}</h3>
-                                <span className="text-[10px] font-mono text-zinc-300">N=5 OPTIMIZED</span>
+                    {/* Content Section: Best/Worst & Description */}
+                    <div className="flex flex-col px-6 py-6 z-10 bg-black w-full text-left gap-10" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
+
+                        {/* Best Palette Section */}
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center gap-2 mb-1 section-header-wrapper">
+                                <div className="w-1 h-4 bg-linear-to-b from-pink-500 to-purple-500 rounded-full section-color-bar" />
+                                <h3 className="text-pink-300 font-bold text-sm tracking-wide uppercase">
+                                    {t.best}
+                                </h3>
                             </div>
-                            <div className="grid grid-cols-5 gap-3">
+                            <div className="grid grid-cols-5 gap-1.5 sm:gap-3">
                                 {bestColors.map((color, index) => (
-                                    <div key={index} className="space-y-2 group">
+                                    <div key={index} className="flex flex-col items-center gap-1 sm:gap-2">
                                         <div
-                                            className="w-full aspect-3/4 rounded-xl shadow-sm border border-zinc-100 ring-1 ring-zinc-50 transition-transform group-hover:scale-105"
+                                            className="w-full aspect-3/4 rounded-xl sm:rounded-2xl ring-1 ring-white/15"
                                             style={{ backgroundColor: color }}
                                         />
-                                        <div className="text-[9px] font-mono text-zinc-400 text-center uppercase tracking-tighter truncate">
-                                            {color}
-                                        </div>
+                                        <span className="text-[8px] sm:text-[10px] text-white font-mono uppercase font-bold drop-shadow-sm truncate w-full text-center">
+                                            {color.replace('#', '')}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
-                        </section>
+                        </div>
 
-                        {/* Avoid Colors */}
-                        <section className="space-y-4">
-                            <h3 className="text-xs font-bold tracking-[0.2em] text-zinc-400 uppercase">{t.worst}</h3>
-                            <div className="flex flex-wrap gap-2">
+                        {/* Worst Section */}
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center gap-2 mb-1 section-header-wrapper">
+                                <div className="w-1 h-4 bg-white/30 rounded-full section-color-bar" />
+                                <h3 className="text-white/70 font-bold text-sm tracking-wide uppercase">
+                                    {t.worst}
+                                </h3>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 sm:gap-3">
                                 {worstColors.map((color, index) => (
-                                    <div key={index} className="flex items-center gap-2 pl-2 pr-4 py-2 bg-zinc-50 rounded-full border border-zinc-100">
-                                        <div className="w-5 h-5 rounded-full border border-black/5 shadow-inner" style={{ backgroundColor: color }} />
-                                        <span className="text-[10px] font-mono text-zinc-500 uppercase">{color}</span>
+                                    <div key={index} className="flex items-center gap-2 sm:gap-3 rounded-2xl border border-white/10 bg-white/5 px-1.5 py-2 sm:px-3 sm:py-3 min-w-0 overflow-hidden">
+                                        <div
+                                            className="h-6 w-6 sm:h-8 sm:w-8 shrink-0 rounded-full ring-1 ring-white/10"
+                                            style={{ backgroundColor: color }}
+                                        />
+                                        <span className="text-[10px] sm:text-xs text-white font-mono uppercase font-bold truncate">
+                                            {color.replace('#', '')}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
-                        </section>
-
-                        <div className="h-px bg-zinc-100" />
+                        </div>
 
                         {/* Detailed Description */}
-                        <section className={`space-y-8 ${isKo ? 'font-korean' : 'font-serif'}`}>
+                        <div className={`flex flex-col gap-6 ${isKo ? 'font-korean' : 'font-serif'}`}>
                             {description.split('\n\n').map((block, index) => {
                                 const match = block.match(/^\[(.*?)\]/);
                                 const header = match ? match[1] : null;
@@ -365,12 +339,14 @@ export function ColorResultCardClient({
 
                                 if (header) {
                                     return (
-                                        <div key={index} className="space-y-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
-                                                <h4 className="text-sm font-bold text-zinc-900 tracking-tight">{header}</h4>
+                                        <div key={index} className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2 mb-1 section-header-wrapper">
+                                                <div className="w-1 h-4 bg-linear-to-b from-pink-500 to-purple-500 rounded-full section-color-bar" />
+                                                <h3 className="text-pink-300 font-bold text-sm tracking-wide uppercase">
+                                                    {header}
+                                                </h3>
                                             </div>
-                                            <p className="text-sm md:text-[15px] text-zinc-600 leading-relaxed text-justify">
+                                            <p className="text-sm md:text-[15px] text-white/95 leading-7 font-normal tracking-wide text-justify">
                                                 {content}
                                             </p>
                                         </div>
@@ -378,36 +354,72 @@ export function ColorResultCardClient({
                                 }
 
                                 return (
-                                    <p key={index} className="text-sm md:text-[15px] text-zinc-600 leading-relaxed text-justify">
+                                    <p key={index} className="text-sm md:text-[15px] text-white/95 leading-7 font-normal tracking-wide text-justify">
                                         {block}
                                     </p>
                                 );
                             })}
-                        </section>
+                        </div>
+                    </div>
+
+                    {/* Ad Placeholder */}
+                    <div className="w-full bg-[#1A1A1A] border-t border-white/5 py-3 px-6">
+                        <p className="text-xs text-center text-white/50 font-semibold">{t.adStatus}</p>
+                    </div>
+
+                    {/* Premium Footer */}
+                    <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
+                        <p className="footer-domain text-white text-[10px] uppercase tracking-[0.2em] font-light">
+                            findcore.me
+                        </p>
+                        <a
+                            href="https://t.me/todayshelp"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-1.5 text-white hover:text-cyan-200 transition-colors duration-300"
+                        >
+                            <span className="footer-telegram-label font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
+                            <span className="footer-telegram-id font-serif italic text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
+                        </a>
                     </div>
                 </div>
 
-                {/* Report Footer */}
-                <div className="w-full bg-zinc-50/50 border-t border-zinc-100 px-8 py-6 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-8">
-                        <div className="flex flex-col">
-                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">Engine</span>
-                            <span className="text-[10px] font-medium text-zinc-600">Mediapipe-v3.2</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">Accuracy</span>
-                            <span className="text-[10px] font-medium text-zinc-600">0.9998_CONF</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <span className="text-zinc-300 text-[10px] font-mono font-light tracking-widest">FINDCORE.ME</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Support</span>
-                            <span className="text-[10px] font-medium text-zinc-600">@todayshelp</span>
-                        </div>
-                    </div>
+                {/* Action Buttons (Icon Only - Strictly Matching Aesthetic Core) */}
+                <div className="grid grid-cols-2 gap-3 w-full">
+                    <button
+                        onClick={handleShare}
+                        className="flex items-center justify-center py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold transition-all backdrop-blur-md active:scale-95 border border-white/10"
+                    >
+                        <Share2 className="w-6 h-6" />
+                    </button>
+                    <button
+                        onClick={handleDownloadImage}
+                        disabled={downloading}
+                        className="flex items-center justify-center py-4 rounded-full bg-linear-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold transition-all shadow-[0_0_20px_-5px_rgba(236,72,153,0.5)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {downloading ? (
+                            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <Download className="w-6 h-6" />
+                        )}
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 w-full mt-2">
+                    <Link
+                        href={`/?lang=${lang}`}
+                        className="flex items-center justify-center w-full py-4 rounded-full bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5 active:scale-95"
+                    >
+                        <Home className="w-6 h-6" />
+                    </Link>
+                    <Link
+                        href={`/color/test?lang=${lang}`}
+                        className="flex items-center justify-center w-full py-4 rounded-full bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5 active:scale-95"
+                    >
+                        <RotateCcw className="w-6 h-6" />
+                    </Link>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

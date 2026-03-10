@@ -270,9 +270,16 @@ function ColorTestContent() {
         setShapeFramePreview(null);
         setIsShapeFramePreviewing(false);
         const img = new window.Image();
-        img.onload = () => { sourceImgRef.current = img; };
+        img.onload = () => {
+            sourceImgRef.current = img;
+            if (mode === 'shape') {
+                setCroppedSrc(url);
+                openShapeFrameAdjuster(img);
+            } else {
+                setStep('crop');
+            }
+        };
         img.src = url;
-        setStep('crop');
     };
 
     // =============================================

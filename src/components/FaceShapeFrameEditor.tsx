@@ -75,8 +75,8 @@ export function FaceShapeFrameEditor({
             analyze: isKo ? "이 프레임으로 분석" : "Analyze With This Frame",
             back: isKo ? "영역 다시 선택" : "Back To Crop",
             hint: isKo
-                ? "점 12개를 드래그해서 바깥 얼굴 프레임을 맞추세요. 수염과 헤어라인은 직접 넓혀도 됩니다."
-                : "Drag the 12 points to match the outer face frame. You can widen the beard and hairline manually.",
+                ? "12개의 기준점을 드래그하여 얼굴 윤곽을 잡아주세요. 이마(헤어라인)와 턱선이 프레임 안에 정확히 들어오도록 맞추면 분석 정확도가 높아집니다."
+                : "Drag the 12 points to define your facial contour. Align the frame with your hairline and jawline for the most accurate analysis.",
             loading: isKo ? "AI 초안 생성 중..." : "Building AI draft...",
             ready: isKo ? "현재 프레임이 실제 측정 기준으로 사용됩니다." : "This frame becomes the actual measurement basis.",
             previewing: isKo ? "품질 재계산 중..." : "Refreshing quality...",
@@ -162,7 +162,7 @@ export function FaceShapeFrameEditor({
 
                     <div
                         ref={stageRef}
-                        className="relative w-full overflow-hidden rounded-[2rem] border border-white/10 bg-zinc-950/80 shadow-2xl"
+                        className="relative w-full overflow-hidden rounded-4xl border border-white/10 bg-zinc-950/80 shadow-2xl"
                         style={{ aspectRatio }}
                         onPointerMove={(event) => {
                             if (activeHandle === null) return;
@@ -203,7 +203,7 @@ export function FaceShapeFrameEditor({
                     </div>
                 </div>
 
-                <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5 md:p-6 backdrop-blur-xl">
+                <div className="rounded-4xl border border-white/10 bg-white/5 p-5 md:p-6 backdrop-blur-xl">
                     <div className="space-y-4">
                         <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-sm leading-relaxed text-cyan-50">
                             <p className={isKo ? "font-korean break-keep" : ""}>{labels.hint}</p>
@@ -219,11 +219,10 @@ export function FaceShapeFrameEditor({
                             <div className="flex items-center justify-between gap-3">
                                 <span className={`text-[11px] font-bold tracking-[0.18em] uppercase text-white/60 ${isKo ? "font-korean" : ""}`}>{labels.liveQuality}</span>
                                 <span
-                                    className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${
-                                        preview?.gate.canAnalyze
-                                            ? "border border-emerald-300/20 bg-emerald-500/15 text-emerald-100"
-                                            : "border border-rose-300/20 bg-rose-500/15 text-rose-100"
-                                    }`}
+                                    className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${preview?.gate.canAnalyze
+                                        ? "border border-emerald-300/20 bg-emerald-500/15 text-emerald-100"
+                                        : "border border-rose-300/20 bg-rose-500/15 text-rose-100"
+                                        }`}
                                 >
                                     {preview?.gate.canAnalyze ? labels.readyToAnalyze : labels.blocked}
                                 </span>
@@ -254,9 +253,8 @@ export function FaceShapeFrameEditor({
                                             </div>
                                             <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                                                 <div
-                                                    className={`h-full transition-all duration-300 ${
-                                                        item.value >= 75 ? "bg-emerald-300" : item.value >= 60 ? "bg-amber-300" : "bg-rose-300"
-                                                    }`}
+                                                    className={`h-full transition-all duration-300 ${item.value >= 75 ? "bg-emerald-300" : item.value >= 60 ? "bg-amber-300" : "bg-rose-300"
+                                                        }`}
                                                     style={{ width: `${item.value}%` }}
                                                 />
                                             </div>
@@ -284,11 +282,10 @@ export function FaceShapeFrameEditor({
                             <button
                                 onClick={onReloadDraft}
                                 disabled={isLoading || isAnalyzing}
-                                className={`flex items-center justify-center gap-2 rounded-full px-5 py-4 font-bold transition-colors ${
-                                    isLoading || isAnalyzing
-                                        ? "cursor-not-allowed bg-white/5 text-white/30"
-                                        : "bg-white/10 text-white hover:bg-white/15"
-                                } ${isKo ? "font-korean" : ""}`}
+                                className={`flex items-center justify-center gap-2 rounded-full px-5 py-4 font-bold transition-colors ${isLoading || isAnalyzing
+                                    ? "cursor-not-allowed bg-white/5 text-white/30"
+                                    : "bg-white/10 text-white hover:bg-white/15"
+                                    } ${isKo ? "font-korean" : ""}`}
                             >
                                 <Wand2 className="h-4 w-4" />
                                 {labels.draft}
@@ -297,11 +294,10 @@ export function FaceShapeFrameEditor({
                             <button
                                 onClick={onRestoreDraft}
                                 disabled={isLoading || isAnalyzing}
-                                className={`flex items-center justify-center gap-2 rounded-full px-5 py-4 font-bold transition-colors ${
-                                    isLoading || isAnalyzing
-                                        ? "cursor-not-allowed bg-white/5 text-white/30"
-                                        : "bg-white/8 text-white/80 hover:bg-white/12 hover:text-white"
-                                } ${isKo ? "font-korean" : ""}`}
+                                className={`flex items-center justify-center gap-2 rounded-full px-5 py-4 font-bold transition-colors ${isLoading || isAnalyzing
+                                    ? "cursor-not-allowed bg-white/5 text-white/30"
+                                    : "bg-white/8 text-white/80 hover:bg-white/12 hover:text-white"
+                                    } ${isKo ? "font-korean" : ""}`}
                             >
                                 <RotateCcw className="h-4 w-4" />
                                 {labels.restore}
@@ -310,9 +306,8 @@ export function FaceShapeFrameEditor({
                             <button
                                 onClick={onAnalyze}
                                 disabled={analyzeDisabled}
-                                className={`flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 px-5 py-4 font-bold text-black transition-transform ${
-                                    analyzeDisabled ? "cursor-not-allowed opacity-50" : "hover:scale-[1.01] active:scale-[0.99]"
-                                } ${isKo ? "font-korean" : ""}`}
+                                className={`flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 px-5 py-4 font-bold text-black transition-transform ${analyzeDisabled ? "cursor-not-allowed opacity-50" : "hover:scale-[1.01] active:scale-[0.99]"
+                                    } ${isKo ? "font-korean" : ""}`}
                             >
                                 {isAnalyzing || isPreviewing ? <Sparkles className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                                 {labels.analyze}

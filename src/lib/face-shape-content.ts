@@ -14,8 +14,8 @@ type ShapeCopy = {
 const SHAPE_COPY: Record<SupportedLanguage, Record<FaceShapeId, ShapeCopy>> = {
     ko: {
         oval: {
-            name: "타원형",
-            summary: "이마, 광대, 턱 폭이 크게 치우치지 않고 길이 비율이 안정적인 얼굴형입니다.",
+            name: "계란형",
+            summary: "가장 이상적인 비율로, 이마와 턱의 밸런스가 좋고 부드러운 곡선 형태입니다.",
             strengths: ["헤어, 안경, 메이크업 방향 전환이 쉽습니다.", "선이 과하게 강하지 않아 다양한 무드를 소화합니다."],
             hairstyle: ["이마를 드러내는 센터 파트", "중단발 레이어드", "정수리 볼륨을 살린 롱 웨이브"],
             eyewear: ["보스턴", "슬림 스퀘어", "캣아이 포인트 프레임"],
@@ -23,7 +23,7 @@ const SHAPE_COPY: Record<SupportedLanguage, Record<FaceShapeId, ShapeCopy>> = {
         },
         round: {
             name: "둥근형",
-            summary: "가로 폭 대비 세로 길이가 짧고 턱선 각도가 부드러워 전체 인상이 유연합니다.",
+            summary: "가로와 세로 비율이 거의 비슷하며, 턱선이 둥글고 볼살이 있어 귀여운 인상을 줍니다.",
             strengths: ["친근하고 동안 이미지가 강합니다.", "부드러운 곡선 스타일과 궁합이 좋습니다."],
             hairstyle: ["정수리 볼륨을 높인 레이어드 컷", "턱 아래로 떨어지는 세로 웨이브", "사이드 파트 롱 헤어"],
             eyewear: ["직선감 있는 스퀘어", "엣지 있는 웰링턴", "위쪽 라인이 살아있는 캣아이"],
@@ -31,7 +31,7 @@ const SHAPE_COPY: Record<SupportedLanguage, Record<FaceShapeId, ShapeCopy>> = {
         },
         square: {
             name: "각진형",
-            summary: "이마와 턱 폭이 비슷하고 하악각 존재감이 비교적 뚜렷한 구조입니다.",
+            summary: "이마, 광대, 하관의 너비가 비슷하며, 턱선이 뚜렷하게 각져 있는 형태입니다.",
             strengths: ["골격이 또렷해 카메라에서 존재감이 강합니다.", "미니멀하고 구조적인 스타일이 잘 받습니다."],
             hairstyle: ["턱선을 스치듯 감싸는 웨이브", "옆머리 볼륨이 있는 미디엄 컷", "루즈한 컬의 롱 레이어드"],
             eyewear: ["라운드", "오벌 메탈", "곡선이 있는 하프림"],
@@ -39,23 +39,23 @@ const SHAPE_COPY: Record<SupportedLanguage, Record<FaceShapeId, ShapeCopy>> = {
         },
         heart: {
             name: "하트형",
-            summary: "상부 폭이 넓고 턱끝으로 갈수록 빠르게 좁아지는 실루엣입니다.",
+            summary: "이마와 광대가 넓고, 턱 끝으로 갈수록 좁고 뾰족해지는 역삼각형 형태입니다.",
             strengths: ["눈과 상안부가 돋보여 인상이 선명합니다.", "포인트 액세서리와 앞머리 변화가 잘 먹힙니다."],
             hairstyle: ["턱선 근처 볼륨이 있는 보브", "시스루뱅 + 미디엄 웨이브", "하단부가 풍성한 레이어드"],
             eyewear: ["하단 무게감 있는 프레임", "림리스", "가로 폭이 넓은 라운드 스퀘어"],
             contour: ["관자놀이와 턱선 사이 밸런스를 맞추는 쉐이딩", "턱끝 하이라이트를 너무 좁게 넣지 않기", "블러셔는 볼 중앙보다 바깥쪽"],
         },
         oblong: {
-            name: "긴형",
-            summary: "세로 길이가 길고 상중하 비율 중 하부 혹은 전체 수직 흐름이 길게 읽히는 타입입니다.",
-            strengths: ["세련되고 성숙한 분위기를 만들기 쉽습니다.", "에디토리얼한 실루엣을 잘 소화합니다."],
+            name: "긴 얼굴형",
+            summary: "가로 너비보다 세로 길이가 눈에 띄게 길고, 전체적으로 폭이 좁은 형태입니다.",
+            strengths: ["세방드고 성숙한 분위기를 만들기 쉽습니다.", "에디토리얼한 실루엣을 잘 소화합니다."],
             hairstyle: ["앞머리로 세로 길이를 분절", "옆볼륨이 있는 레이어드", "턱선 옆으로 퍼지는 미디엄 컬"],
             eyewear: ["세로 깊이가 있는 오버사이즈", "굵은 브로우라인", "가로폭 넓은 프레임"],
             contour: ["헤어라인과 턱끝 쉐이딩으로 길이 분절", "광대 하이라이트를 수평으로 확장", "블러셔는 코 옆에서 가로로 연결"],
         },
         diamond: {
-            name: "다이아형",
-            summary: "광대가 가장 넓고 이마와 턱이 상대적으로 좁아 중심부가 강조됩니다.",
+            name: "다이아몬드형",
+            summary: "이마와 턱이 좁고, 가운데 광대뼈 부위가 가장 넓게 발달한 마름모 형태입니다.",
             strengths: ["입체감이 강해서 사진에서 선이 살아납니다.", "고급스럽고 유니크한 무드가 강합니다."],
             hairstyle: ["광대를 덮는 사이드 뱅", "턱선 쪽 볼륨이 있는 컷", "센터 파트보다 살짝 치우친 파트"],
             eyewear: ["타원형", "상단이 강조된 하프림", "부드러운 브로우라인"],
@@ -142,41 +142,41 @@ export function getMetricSummary(result: FaceShapeAnalysisResult, lang: string) 
     const lengthSummary =
         metrics.faceLengthToWidth > 1.5
             ? isKo
-                ? "세로 길이가 분명하게 길게 읽힙니다."
+                ? "얼굴 길이가 긴 편으로 보입니다."
                 : "Your vertical length reads distinctly longer."
             : metrics.faceLengthToWidth < 1.22
-              ? isKo
-                  ? "가로 폭 대비 길이감이 짧아 보입니다."
-                  : "Your face reads relatively short against its width."
-              : isKo
-                ? "길이와 폭 밸런스가 비교적 안정적입니다."
-                : "Length and width read comparatively balanced.";
+                ? isKo
+                    ? "얼굴 길이가 짧고 폭이 넓게 보입니다."
+                    : "Your face reads relatively short against its width."
+                : isKo
+                    ? "얼굴 길이와 폭이 비교적 균형 있게 보입니다."
+                    : "Length and width read comparatively balanced.";
 
     const widthSummary =
         metrics.foreheadToJaw > 1.1
             ? isKo
-                ? "이마 쪽 폭이 하관보다 우세합니다."
+                ? "이마 쪽이 턱보다 조금 더 넓게 보입니다."
                 : "Upper-face width is stronger than the jaw."
             : metrics.foreheadToJaw < 0.95
-              ? isKo
-                  ? "하관 폭이 상대적으로 더 강합니다."
-                  : "Lower-face width is comparatively stronger."
-              : isKo
-                ? "이마와 턱 폭이 크게 다르지 않습니다."
-                : "Forehead and jaw widths stay fairly close.";
+                ? isKo
+                    ? "턱 쪽이 이마보다 더 넓게 보입니다."
+                    : "Lower-face width is comparatively stronger."
+                : isKo
+                    ? "이마와 턱 폭 차이가 크지 않습니다."
+                    : "Forehead and jaw widths stay fairly close.";
 
     const jawSummary =
         metrics.jawAngle < 118
             ? isKo
-                ? "턱선 각도가 비교적 또렷합니다."
+                ? "턱선이 비교적 각져 보입니다."
                 : "Your jaw angle reads more defined."
             : metrics.jawAngle > 132
-              ? isKo
-                  ? "턱선은 부드럽고 둥글게 읽힙니다."
-                  : "Your jawline reads softer and rounder."
-              : isKo
-                ? "턱선은 중간 정도의 선명도를 가집니다."
-                : "Your jawline sits in a moderate definition range.";
+                ? isKo
+                    ? "턱선이 부드럽고 둥글게 보입니다."
+                    : "Your jawline reads softer and rounder."
+                : isKo
+                    ? "턱선은 각짐과 부드러움이 중간 정도입니다."
+                    : "Your jawline sits in a moderate definition range.";
 
     return [lengthSummary, widthSummary, jawSummary];
 }
