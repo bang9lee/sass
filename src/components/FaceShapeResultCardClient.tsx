@@ -395,7 +395,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
                         </div>
                         <button
                             onClick={handleCopyLink}
-                            className="w-full py-4 rounded-2xl bg-blue-500 text-white font-semibold text-input flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-blue-600"
+                            className="w-full py-4 rounded-2xl bg-blue-500 text-white font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-blue-600"
                         >
                             <Link2 className="w-5 h-5" />
                             <span className="text-[15px]">{lang === 'ko' ? '링크 복사' : lang === 'ja' ? 'リンクをコピー' : lang === 'zh' ? '复制链接' : 'Copy Link'}</span>
