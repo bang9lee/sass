@@ -69,13 +69,40 @@ export interface FaceShapePreviewGate {
     reasons: FaceShapeQualityFlag[];
 }
 
+export interface FaceShapeOverlay {
+    contour: FacePoint[];
+    faceHeight: [FacePoint, FacePoint];
+    foreheadWidth: [FacePoint, FacePoint];
+    cheekboneWidth: [FacePoint, FacePoint];
+    jawWidth: [FacePoint, FacePoint];
+    chinWidth: [FacePoint, FacePoint];
+    browLine: FacePoint;
+    noseBase: FacePoint;
+    centerLine?: [FacePoint, FacePoint];
+    upperThirdGuide?: [FacePoint, FacePoint] | null;
+    middleThirdGuide?: [FacePoint, FacePoint] | null;
+    leftEyebrow?: FacePoint[];
+    rightEyebrow?: FacePoint[];
+    leftEye?: FacePoint[];
+    rightEye?: FacePoint[];
+    noseBridge?: FacePoint[];
+    noseBaseGuide?: FacePoint[];
+    mouthOuter?: FacePoint[];
+    hairlineContour?: FacePoint[];
+    hairlineReliability?: number;
+    hairlineMethod?: string;
+    frameSource?: "auto" | "manual";
+}
+
 export interface FaceShapePreviewResult {
     analysisVersion: string;
     faceShape: FaceShapeId;
     secondaryShape: FaceShapeId;
     confidence: number;
+    metrics: FaceShapeMetrics;
     quality: FaceShapeQuality;
     gate: FaceShapePreviewGate;
+    overlay: FaceShapeOverlay;
 }
 
 export interface FaceShapeAnalysisResult {
@@ -89,30 +116,7 @@ export interface FaceShapeAnalysisResult {
     quality: FaceShapeQuality;
     scores: Record<FaceShapeId, number>;
     imageDataUrl: string;
-    overlay: {
-        contour: FacePoint[];
-        faceHeight: [FacePoint, FacePoint];
-        foreheadWidth: [FacePoint, FacePoint];
-        cheekboneWidth: [FacePoint, FacePoint];
-        jawWidth: [FacePoint, FacePoint];
-        chinWidth: [FacePoint, FacePoint];
-        browLine: FacePoint;
-        noseBase: FacePoint;
-        centerLine?: [FacePoint, FacePoint];
-        upperThirdGuide?: [FacePoint, FacePoint] | null;
-        middleThirdGuide?: [FacePoint, FacePoint] | null;
-        leftEyebrow?: FacePoint[];
-        rightEyebrow?: FacePoint[];
-        leftEye?: FacePoint[];
-        rightEye?: FacePoint[];
-        noseBridge?: FacePoint[];
-        noseBaseGuide?: FacePoint[];
-        mouthOuter?: FacePoint[];
-        hairlineContour?: FacePoint[];
-        hairlineReliability?: number;
-        hairlineMethod?: string;
-        frameSource?: "auto" | "manual";
-    };
+    overlay: FaceShapeOverlay;
 }
 
 type NormalizedLandmark = {
@@ -163,6 +167,10 @@ type FaceGeometry = {
     cheekGuide: [FacePoint, FacePoint];
     jawGuide: [FacePoint, FacePoint];
     chinGuide: [FacePoint, FacePoint];
+    thirds: {
+        eyebrow: FacePoint;
+        philtrumBase: FacePoint;
+    };
     hairline: HairlineRefinement;
     frameSource: "auto" | "manual";
     editorHandles?: FacePoint[];
@@ -228,13 +236,13 @@ const NOSE_BRIDGE_INDICES = [168, 6, 197, 195, 5, 4];
 const NOSE_BASE_INDICES = [129, 98, 97, 2, 326, 327, 358];
 const OUTER_LIP_INDICES = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
 
-const DEFAULT_HAIRLINE_SHIFT = 0.11;
+const DEFAULT_HAIRLINE_SHIFT = 0.075;
 const HAIR_SCAN_SAMPLES = 19;
 const HAIR_THRESHOLD = 0.34;
 const EDGE_THRESHOLD = 16;
 const EDITOR_CURVE_SAMPLES = 10;
 const QUALITY_IMAGE_LONGEST_EDGE = 320;
-export const FACE_SHAPE_ANALYSIS_VERSION = "2026-03-10-oblong-tuning";
+export const FACE_SHAPE_ANALYSIS_VERSION = "2026-03-11-subnasale-fix";
 
 const SHAPE_SCORE_MAX: Record<FaceShapeId, number> = {
     oval: 7,
@@ -291,8 +299,46 @@ function getCenter(points: FacePoint[]) {
     };
 }
 
+function getEyebrowAnchor(landmarks: NormalizedLandmark[]): FacePoint {
+    const left = getCenter(getPoints(landmarks, LEFT_EYEBROW_INDICES));
+    const right = getCenter(getPoints(landmarks, RIGHT_EYEBROW_INDICES));
+    return {
+        x: average([left.x, right.x]),
+        y: average([left.y, right.y]),
+    };
+}
+
+function getPhiltrumBase(landmarks: NormalizedLandmark[]): FacePoint {
+    // Use the true subnasale point directly under the nose,
+    // not the upper-lip landmark.
+    return getPoint(landmarks, LANDMARKS.noseBase);
+}
+
 function distance(a: FacePoint, b: FacePoint) {
     return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function normalizeVector(vector: FacePoint) {
+    const length = Math.hypot(vector.x, vector.y) || 1;
+    return { x: vector.x / length, y: vector.y / length };
+}
+
+function dot(a: FacePoint, b: FacePoint) {
+    return a.x * b.x + a.y * b.y;
+}
+
+function cross(a: FacePoint, b: FacePoint) {
+    return a.x * b.y - a.y * b.x;
+}
+
+function projectPointOntoAxis(point: FacePoint, start: FacePoint, end: FacePoint) {
+    const axis = normalizeVector({ x: end.x - start.x, y: end.y - start.y });
+    const axisLength = distance(start, end);
+    const scalar = clamp(dot({ x: point.x - start.x, y: point.y - start.y }, axis), 0, axisLength);
+    return {
+        x: start.x + axis.x * scalar,
+        y: start.y + axis.y * scalar,
+    };
 }
 
 function angle(a: FacePoint, b: FacePoint, c: FacePoint) {
@@ -442,24 +488,25 @@ function buildFaceShapeEditorHandles(geometry: FaceGeometry) {
     const width = extents.maxX - extents.minX;
     const height = geometry.bounds.bottom.y - geometry.bounds.top.y;
 
+    // The editor draft should hug the visible contour, not a padded safety margin.
     return [
-        { x: topLeft.x - width * 0.03, y: topLeft.y - height * 0.025 },
-        { x: topUpperLeft.x - width * 0.02, y: topUpperLeft.y - height * 0.05 },
-        { x: topCenter.x, y: topCenter.y - height * 0.07 },
-        { x: topUpperRight.x + width * 0.02, y: topUpperRight.y - height * 0.05 },
-        { x: topRight.x + width * 0.03, y: topRight.y - height * 0.025 },
+        { x: topLeft.x - width * 0.008, y: topLeft.y - height * 0.006 },
+        { x: topUpperLeft.x - width * 0.004, y: topUpperLeft.y - height * 0.014 },
+        { x: topCenter.x, y: topCenter.y - height * 0.016 },
+        { x: topUpperRight.x + width * 0.004, y: topUpperRight.y - height * 0.014 },
+        { x: topRight.x + width * 0.008, y: topRight.y - height * 0.006 },
         {
-            x: (templeGuide?.[1].x ?? geometry.cheekGuide[1].x) + width * 0.035,
-            y: templeGuide?.[1].y ?? cheekY - height * 0.08,
+            x: (templeGuide?.[1].x ?? geometry.cheekGuide[1].x) + width * 0.01,
+            y: templeGuide?.[1].y ?? cheekY - height * 0.03,
         },
-        { x: geometry.cheekGuide[1].x + width * 0.03, y: geometry.cheekGuide[1].y },
-        { x: geometry.jawGuide[1].x + width * 0.025, y: geometry.jawGuide[1].y + height * 0.02 },
-        { x: geometry.bounds.bottom.x, y: geometry.bounds.bottom.y + height * 0.045 },
-        { x: geometry.jawGuide[0].x - width * 0.025, y: geometry.jawGuide[0].y + height * 0.02 },
-        { x: geometry.cheekGuide[0].x - width * 0.03, y: geometry.cheekGuide[0].y },
+        { x: geometry.cheekGuide[1].x + width * 0.008, y: geometry.cheekGuide[1].y },
+        { x: geometry.jawGuide[1].x + width * 0.008, y: geometry.jawGuide[1].y + height * 0.008 },
+        { x: geometry.bounds.bottom.x, y: geometry.bounds.bottom.y + height * 0.012 },
+        { x: geometry.jawGuide[0].x - width * 0.008, y: geometry.jawGuide[0].y + height * 0.008 },
+        { x: geometry.cheekGuide[0].x - width * 0.008, y: geometry.cheekGuide[0].y },
         {
-            x: (templeGuide?.[0].x ?? geometry.cheekGuide[0].x) - width * 0.035,
-            y: templeGuide?.[0].y ?? cheekY - height * 0.08,
+            x: (templeGuide?.[0].x ?? geometry.cheekGuide[0].x) - width * 0.01,
+            y: templeGuide?.[0].y ?? cheekY - height * 0.03,
         },
     ].map((point) => clampPoint(point));
 }
@@ -1036,6 +1083,43 @@ function getHorizontalGuide(contour: FacePoint[], y: number): [FacePoint, FacePo
     return [{ x: intersections[0], y }, { x: intersections[intersections.length - 1], y }];
 }
 
+function getPerpendicularGuide(contour: FacePoint[], axisStart: FacePoint, axisEnd: FacePoint, anchor: FacePoint) {
+    const axis = normalizeVector({ x: axisEnd.x - axisStart.x, y: axisEnd.y - axisStart.y });
+    const guideDirection = { x: -axis.y, y: axis.x };
+    const intersections: Array<{ point: FacePoint; scalar: number }> = [];
+
+    for (let index = 0; index < contour.length; index += 1) {
+        const segmentStart = contour[index];
+        const segmentEnd = contour[(index + 1) % contour.length];
+        const segmentDirection = {
+            x: segmentEnd.x - segmentStart.x,
+            y: segmentEnd.y - segmentStart.y,
+        };
+        const denominator = cross(guideDirection, segmentDirection);
+        if (Math.abs(denominator) < 1e-6) continue;
+
+        const relative = {
+            x: segmentStart.x - anchor.x,
+            y: segmentStart.y - anchor.y,
+        };
+        const guideScalar = cross(relative, segmentDirection) / denominator;
+        const segmentScalar = cross(relative, guideDirection) / denominator;
+        if (segmentScalar < -1e-6 || segmentScalar > 1 + 1e-6) continue;
+
+        intersections.push({
+            point: {
+                x: anchor.x + guideDirection.x * guideScalar,
+                y: anchor.y + guideDirection.y * guideScalar,
+            },
+            scalar: guideScalar,
+        });
+    }
+
+    if (intersections.length < 2) return null;
+    intersections.sort((left, right) => left.scalar - right.scalar);
+    return [intersections[0].point, intersections[intersections.length - 1].point] as [FacePoint, FacePoint];
+}
+
 function getGuideAtY(contour: FacePoint[], y: number, fallback: [FacePoint, FacePoint]) {
     return getHorizontalGuide(contour, y) ?? fallback;
 }
@@ -1062,7 +1146,8 @@ function buildFaceGeometry(
     manualFrame?: ManualFrameOverride
 ): FaceGeometry {
     const chin = getPoint(landmarks, LANDMARKS.chin);
-    const browCenter = getPoint(landmarks, LANDMARKS.browCenter);
+    const eyebrowAnchor = getEyebrowAnchor(landmarks);
+    const philtrumBase = getPhiltrumBase(landmarks);
     const leftForehead = getPoint(landmarks, LANDMARKS.leftForehead);
     const rightForehead = getPoint(landmarks, LANDMARKS.rightForehead);
     const leftCheek = getPoint(landmarks, LANDMARKS.leftCheek);
@@ -1086,10 +1171,12 @@ function buildFaceGeometry(
     const topContour = manualHairline?.points ?? hairline.points;
     const boundsTop = manualHairline?.top ?? hairline.top;
     const boundsBottom = manualFrame?.handles[8] ?? chin;
+    const eyebrowAnchorOnAxis = projectPointOntoAxis(eyebrowAnchor, boundsTop, boundsBottom);
+    const philtrumBaseOnAxis = projectPointOntoAxis(philtrumBase, boundsTop, boundsBottom);
     const foreheadMeasureY = clamp(
-        boundsTop.y + (browCenter.y - boundsTop.y) * 0.55,
+        boundsTop.y + (eyebrowAnchorOnAxis.y - boundsTop.y) * 0.5,
         boundsTop.y + 0.01,
-        browCenter.y - 0.01
+        eyebrowAnchorOnAxis.y - 0.012
     );
     const cheekGuide = getGuideAtY(contour, average([leftCheek.y, rightCheek.y]), [leftCheek, rightCheek]);
     const jawGuide = getGuideAtY(contour, average([leftJaw.y, rightJaw.y]), [leftJaw, rightJaw]);
@@ -1110,6 +1197,10 @@ function buildFaceGeometry(
         cheekGuide,
         jawGuide,
         chinGuide,
+        thirds: {
+            eyebrow: eyebrowAnchorOnAxis,
+            philtrumBase: philtrumBaseOnAxis,
+        },
         hairline: manualHairline ?? hairline,
         frameSource: manualFrame ? "manual" : "auto",
         editorHandles: manualFrame?.handles,
@@ -1117,7 +1208,6 @@ function buildFaceGeometry(
 }
 
 function buildMetrics(landmarks: NormalizedLandmark[], geometry: FaceGeometry): FaceShapeMetrics {
-    const browCenter = getPoint(landmarks, LANDMARKS.browCenter);
     const noseBase = getPoint(landmarks, LANDMARKS.noseBase);
 
     const faceLength = distance(geometry.bounds.top, geometry.bounds.bottom);
@@ -1136,19 +1226,17 @@ function buildMetrics(landmarks: NormalizedLandmark[], geometry: FaceGeometry): 
     );
     const symmetry = clamp(Math.round(100 - cheekSymmetry * 180), 72, 99);
 
-    const totalVertical = Math.max(geometry.bounds.bottom.y - geometry.bounds.top.y, 0.0001);
+    const totalVertical = Math.max(distance(geometry.bounds.top, geometry.bounds.bottom), 0.0001);
 
-    // Mechanical 3D Mesh Percentages
-    const mechUpper = ((browCenter.y - geometry.bounds.top.y) / totalVertical) * 100;
-    const mechMiddle = ((noseBase.y - browCenter.y) / totalVertical) * 100;
-    const mechLower = ((geometry.bounds.bottom.y - noseBase.y) / totalVertical) * 100;
+    // Facial thirds should follow visible anatomical landmarks:
+    // hairline -> eyebrow line -> philtrum base -> chin.
+    let u = (distance(geometry.bounds.top, geometry.thirds.eyebrow) / totalVertical) * 100;
+    let m = (distance(geometry.thirds.eyebrow, geometry.thirds.philtrumBase) / totalVertical) * 100;
+    let l = (distance(geometry.thirds.philtrumBase, geometry.bounds.bottom) / totalVertical) * 100;
 
-    // Higher Precision 2D/3D Perception Tuning:
-    // We adjust for common camera distortion where the lens makes the central part of the face
-    // appear slightly compressed compared to the forehead/chin in 2D space.
-    let u = clamp(mechUpper * 0.96, 20, 48); // Visually, the forehead appears slightly more compact
-    let m = clamp(mechMiddle * 1.085, 20, 48); // Midface correction for 2D lens distortion
-    let l = clamp(mechLower * 0.99, 20, 48); // Slightly reduce lower face mesh length
+    u = clamp(u, 18, 52);
+    m = clamp(m, 18, 52);
+    l = clamp(l, 18, 52);
 
     // Normalize back to exactly 100%
     const sumThirds = u + m + l;
@@ -1222,9 +1310,19 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
     return scores;
 }
 
-function buildOverlay(landmarks: NormalizedLandmark[], geometry: FaceGeometry) {
+function buildOverlay(
+    landmarks: NormalizedLandmark[],
+    geometry: FaceGeometry,
+    detectedHairline?: HairlineRefinement
+) {
     const noseBase = getPoint(landmarks, LANDMARKS.noseBase);
-    const browCenter = getPoint(landmarks, LANDMARKS.browCenter);
+    const upperThirdGuide =
+        getPerpendicularGuide(geometry.contour, geometry.bounds.top, geometry.bounds.bottom, geometry.thirds.eyebrow) ??
+        getGuideAtY(geometry.contour, geometry.thirds.eyebrow.y, geometry.foreheadGuide);
+    const middleThirdGuide =
+        getPerpendicularGuide(geometry.contour, geometry.bounds.top, geometry.bounds.bottom, geometry.thirds.philtrumBase) ??
+        getGuideAtY(geometry.contour, geometry.thirds.philtrumBase.y, geometry.cheekGuide);
+    const referenceHairline = detectedHairline ?? geometry.hairline;
 
     return {
         contour: geometry.contour,
@@ -1233,11 +1331,11 @@ function buildOverlay(landmarks: NormalizedLandmark[], geometry: FaceGeometry) {
         cheekboneWidth: geometry.cheekGuide,
         jawWidth: geometry.jawGuide,
         chinWidth: geometry.chinGuide,
-        browLine: browCenter,
+        browLine: geometry.thirds.eyebrow,
         noseBase,
         centerLine: [geometry.bounds.top, geometry.bounds.bottom] as [FacePoint, FacePoint],
-        upperThirdGuide: getHorizontalGuide(geometry.contour, browCenter.y),
-        middleThirdGuide: getHorizontalGuide(geometry.contour, noseBase.y),
+        upperThirdGuide,
+        middleThirdGuide,
         leftEyebrow: getPoints(landmarks, LEFT_EYEBROW_INDICES),
         rightEyebrow: getPoints(landmarks, RIGHT_EYEBROW_INDICES),
         leftEye: getPoints(landmarks, LEFT_EYE_INDICES),
@@ -1245,9 +1343,9 @@ function buildOverlay(landmarks: NormalizedLandmark[], geometry: FaceGeometry) {
         noseBridge: getPoints(landmarks, NOSE_BRIDGE_INDICES),
         noseBaseGuide: getPoints(landmarks, NOSE_BASE_INDICES),
         mouthOuter: getPoints(landmarks, OUTER_LIP_INDICES),
-        hairlineContour: geometry.topContour,
-        hairlineReliability: geometry.hairline.reliability,
-        hairlineMethod: geometry.hairline.method,
+        hairlineContour: referenceHairline.points,
+        hairlineReliability: referenceHairline.reliability,
+        hairlineMethod: referenceHairline.method,
         frameSource: geometry.frameSource,
     };
 }
@@ -1405,7 +1503,7 @@ function estimateImageQualityFromSample(
 }
 
 function scoreFramePadding(value: number, target: number, tolerance: number) {
-    if (value < -0.006) return 0;
+    if (value < -0.004) return 0;
     return closeness(value, target, tolerance);
 }
 
@@ -1437,11 +1535,11 @@ function estimateFrameQuality(landmarks: NormalizedLandmark[], geometry: FaceGeo
     const chinPad = (geometry.bounds.bottom.y - chin.y) / rawFaceHeight;
 
     const alignment = average([
-        ...foreheadPads.map((value) => scoreFramePadding(value, 0.03, 0.09)),
-        ...cheekPads.map((value) => scoreFramePadding(value, 0.02, 0.08)),
-        ...jawPads.map((value) => scoreFramePadding(value, 0.025, 0.09)),
-        scoreFramePadding(topPad, 0.09, 0.15),
-        scoreFramePadding(chinPad, 0.045, 0.1),
+        ...foreheadPads.map((value) => scoreFramePadding(value, 0.006, 0.04)),
+        ...cheekPads.map((value) => scoreFramePadding(value, 0.004, 0.035)),
+        ...jawPads.map((value) => scoreFramePadding(value, 0.006, 0.04)),
+        scoreFramePadding(topPad, 0.016, 0.05),
+        scoreFramePadding(chinPad, 0.012, 0.045),
     ]);
 
     const centerX = average([geometry.bounds.top.x, geometry.bounds.bottom.x]);
@@ -1461,7 +1559,7 @@ function estimateFrameQuality(landmarks: NormalizedLandmark[], geometry: FaceGeo
         1 - normalizedScore(standardDeviation(segmentLengths) / Math.max(average(segmentLengths), 0.0001), 0.25, 0.85);
     const hairline =
         geometry.frameSource === "manual"
-            ? Math.round(clamp((scoreFramePadding(topPad, 0.09, 0.15) * 0.65 + symmetry * 0.35) * 100, 0, 100))
+            ? Math.round(clamp((scoreFramePadding(topPad, 0.016, 0.05) * 0.65 + symmetry * 0.35) * 100, 0, 100))
             : Math.round(clamp(geometry.hairline.reliability ?? 52, 0, 100));
 
     return {
@@ -1626,8 +1724,10 @@ function buildPreviewResultFromPreparedContext(
         faceShape: primary,
         secondaryShape: secondary,
         confidence,
+        metrics,
         quality,
         gate: buildPreviewGate(quality),
+        overlay: buildOverlay(context.landmarks, geometry, context.hairline),
     };
 }
 
@@ -1732,7 +1832,7 @@ export async function analyzeFaceShapeFromEditor(
         quality,
         scores,
         imageDataUrl: imageDataUrl ?? (await imageElementToDataUrl(imageElement)),
-        overlay: buildOverlay(context.landmarks, geometry),
+        overlay: buildOverlay(context.landmarks, geometry, context.hairline),
     };
 }
 
@@ -1770,6 +1870,6 @@ export async function analyzeFaceShapeAI(
         quality,
         scores,
         imageDataUrl: imageDataUrl ?? (await imageElementToDataUrl(imageElement)),
-        overlay: buildOverlay(context.landmarks, geometry),
+        overlay: buildOverlay(context.landmarks, geometry, context.hairline),
     };
 }

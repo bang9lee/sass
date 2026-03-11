@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -13,37 +13,13 @@ import {
     Scissors,
     Glasses,
     Sparkles,
-    ChevronRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { getFaceShapeCopy } from "@/lib/face-shape-content";
 import type {
     FacePoint,
     FaceShapeAnalysisResult,
-    FaceShapeQuality,
-    FaceShapeQualityFlag,
 } from "@/lib/face-shape-analysis-official";
-
-function clamp(value: number, min: number, max: number) {
-    return Math.min(max, Math.max(min, value));
-}
-
-function deriveLegacyQuality(result: FaceShapeAnalysisResult): FaceShapeQuality {
-    const confidence = result.confidence ?? 76;
-    const symmetry = result.metrics?.symmetry ?? 88;
-    const hairline = typeof result.overlay?.hairlineReliability === "number" ? result.overlay.hairlineReliability : 64;
-    const classification = clamp(Math.round(confidence + 6), 58, 99);
-    const image = clamp(Math.round(confidence * 0.9), 52, 92);
-    const frame = clamp(Math.round(hairline * 0.72 + symmetry * 0.18), 48, 95);
-    const measurement = clamp(Math.round(frame * 0.58 + image * 0.42), 50, 96);
-    const margin = clamp(Math.round(confidence + 12), 55, 99);
-    const pose = clamp(Math.round(symmetry * 0.96), 60, 99);
-    const sharpness = clamp(image - 8, 45, 90);
-    const lighting = clamp(image + 4, 50, 95);
-    const coverage = clamp(image - 6, 48, 90);
-    const flags: FaceShapeQualityFlag[] = [];
-    return { classification, measurement, image, frame, margin, pose, sharpness, lighting, coverage, flags };
-}
 
 function toPercent(point: FacePoint) {
     return { x: point.x * 100, y: point.y * 100 };
@@ -93,8 +69,6 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
     const [showShareModal, setShowShareModal] = useState(false);
     const [downloading, setDownloading] = useState(false);
     const [imageAspectRatio, setImageAspectRatio] = useState(3 / 4); // Default portrait
-    const contourGradientId = useId().replace(/:/g, "");
-
     // Measure natural image aspect ratio to prevent SVG distortion
     useEffect(() => {
         const img = new window.Image();
@@ -107,9 +81,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
     }, [result.imageDataUrl]);
 
     const shapeCopy = getFaceShapeCopy(result.faceShape, lang);
-    const quality = result.quality ?? deriveLegacyQuality(result);
     const overlayContour = linePath(result.overlay.contour, true);
-    const hairlineReliability = typeof result.overlay.hairlineReliability === "number" ? result.overlay.hairlineReliability : 64;
     const hairlinePath = linePath(result.overlay.hairlineContour ?? []);
     const facialFeaturePaths = [
         { key: "leftEyebrow", path: linePath(result.overlay.leftEyebrow ?? []) },
@@ -121,14 +93,14 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
         { key: "mouthOuter", path: linePath(result.overlay.mouthOuter ?? [], true) },
     ].filter((item) => item.path);
     const overlayGuides = [
-        { key: "faceHeight", path: pairPath(result.overlay.faceHeight), stroke: "rgba(255,255,255,0.5)", width: 0.35, dash: "1.8 1.3" },
-        { key: "centerLine", path: pairPath(result.overlay.centerLine), stroke: "rgba(255,255,255,0.25)", width: 0.25, dash: "1.1 1.1" },
-        { key: "foreheadWidth", path: pairPath(result.overlay.foreheadWidth), stroke: "rgba(255,255,255,0.55)", width: 0.32 },
-        { key: "cheekboneWidth", path: pairPath(result.overlay.cheekboneWidth), stroke: "rgba(255,255,255,0.55)", width: 0.32 },
-        { key: "jawWidth", path: pairPath(result.overlay.jawWidth), stroke: "rgba(255,255,255,0.55)", width: 0.32 },
-        { key: "chinWidth", path: pairPath(result.overlay.chinWidth), stroke: "rgba(255,255,255,0.45)", width: 0.3 },
-        { key: "upperThirdGuide", path: pairPath(result.overlay.upperThirdGuide), stroke: "rgba(255,255,255,0.3)", width: 0.24, dash: "1.1 1.2" },
-        { key: "middleThirdGuide", path: pairPath(result.overlay.middleThirdGuide), stroke: "rgba(255,255,255,0.3)", width: 0.24, dash: "1.1 1.2" },
+        { key: "faceHeight", path: pairPath(result.overlay.faceHeight), stroke: "rgba(255,255,255,0.52)", width: 0.34, dash: "1.6 1.2" },
+        { key: "centerLine", path: pairPath(result.overlay.centerLine), stroke: "rgba(255,255,255,0.34)", width: 0.24, dash: "1.2 1.1" },
+        { key: "foreheadWidth", path: pairPath(result.overlay.foreheadWidth), stroke: "rgba(255,255,255,0.42)", width: 0.24 },
+        { key: "cheekboneWidth", path: pairPath(result.overlay.cheekboneWidth), stroke: "rgba(255,255,255,0.42)", width: 0.24 },
+        { key: "jawWidth", path: pairPath(result.overlay.jawWidth), stroke: "rgba(255,255,255,0.42)", width: 0.24 },
+        { key: "chinWidth", path: pairPath(result.overlay.chinWidth), stroke: "rgba(255,255,255,0.34)", width: 0.22 },
+        { key: "upperThirdGuide", path: pairPath(result.overlay.upperThirdGuide), stroke: "rgba(255,255,255,0.88)", width: 0.26, dash: "1.1 0.8" },
+        { key: "middleThirdGuide", path: pairPath(result.overlay.middleThirdGuide), stroke: "rgba(255,255,255,0.88)", width: 0.26, dash: "1.1 0.8" },
     ].filter((guide) => guide.path);
 
     const locale = lang === "ko" ? "ko-KR" : lang === "ja" ? "ja-JP" : lang === "zh" ? "zh-CN" : "en-US";
@@ -173,6 +145,12 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
             adStatus: "광고대기중",
             copyLink: "링크를 복사하세요:",
             failedSave: "이미지 저장에 실패했습니다.",
+            browDivider: "눈썹선",
+            philtrumDivider: "코밑선",
+            legendContour: "빨간선: 실제 분석 윤곽",
+            legendHairline: "점선: 헤어라인 기준",
+            legendThirds: "분할선: 눈썹선, 코밑선",
+            legendCenter: "세로선: 얼굴 중심 축",
         },
         en: {
             shareTitle: `My Face Shape: ${shapeCopy.name} ✨`,
@@ -206,6 +184,12 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
             adStatus: "Ad Pending",
             copyLink: "Copy this link:",
             failedSave: "Failed to save image.",
+            browDivider: "Brow Line",
+            philtrumDivider: "Philtrum Base",
+            legendContour: "Red: analysis contour",
+            legendHairline: "Dashed: hairline",
+            legendThirds: "Dividers: brow and philtrum",
+            legendCenter: "Vertical: face axis",
         },
         zh: {
             shareTitle: `我的脸型: ${shapeCopy.name} ✨`,
@@ -239,6 +223,12 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
             adStatus: "广告待处理",
             copyLink: "复制链接:",
             failedSave: "图片保存失败。",
+            browDivider: "眉线",
+            philtrumDivider: "人中下缘线",
+            legendContour: "红线: 分析轮廓",
+            legendHairline: "虚线: 发际线",
+            legendThirds: "分割线: 眉线与人中下缘",
+            legendCenter: "竖线: 面部中轴",
         },
         ja: {
             shareTitle: `私の顔型: ${shapeCopy.name} ✨`,
@@ -272,22 +262,25 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
             adStatus: "広告待機中",
             copyLink: "リンクをコピー:",
             failedSave: "画像の保存に失敗しました。",
+            browDivider: "眉ライン",
+            philtrumDivider: "人中下ライン",
+            legendContour: "赤線: 分析輪郭",
+            legendHairline: "破線: ヘアライン",
+            legendThirds: "分割線: 眉と人中下",
+            legendCenter: "縦線: 顔の中心軸",
         }
     };
 
     const t = uiText[lang as keyof typeof uiText] || uiText.en;
+    const guideLabels = [
+        { key: "upperThird", point: result.overlay.upperThirdGuide?.[1] ?? null, label: t.browDivider },
+        { key: "middleThird", point: result.overlay.middleThirdGuide?.[1] ?? null, label: t.philtrumDivider },
+    ].filter((item) => item.point);
 
     const heroMetrics = [
         { label: t.ratio, value: `1 : ${result.metrics.faceLengthToWidth.toFixed(2)}` },
         { label: t.widthRatio, value: `${result.metrics.foreheadToJaw.toFixed(2)} : 1` },
         { label: t.jawAngle, value: `${result.metrics.jawAngle.toFixed(1)}°` },
-    ];
-
-    const qualityMetrics = [
-        { label: t.probLabel, value: `${quality.frame.toFixed(1)}%` },
-        { label: t.confidenceLevel, value: `${result.confidence.toFixed(1)}%` },
-        { label: t.symmetryLabel, value: `${result.metrics.symmetry.toFixed(1)}%` },
-        { label: t.hairlineLabel, value: `${hairlineReliability.toFixed(1)}%` },
     ];
 
     const thirds = [
@@ -443,23 +436,39 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
 
                                 {/* Perfect 1:1 mapped SVG overlay */}
                                 <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-                                    <defs>
-                                        <linearGradient id={contourGradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8" />
-                                            <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.4" />
-                                        </linearGradient>
-                                    </defs>
                                     {overlayContour && (
-                                        <path d={overlayContour} fill="rgba(59,130,246,0.05)" stroke={`url(#${contourGradientId})`} strokeWidth="0.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                                        <path d={overlayContour} fill="rgba(255,107,107,0.06)" stroke="#ff6b6b" strokeWidth="0.56" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
                                     )}
                                     {hairlinePath && (
-                                        <path d={hairlinePath} fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" strokeDasharray="2 2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                                        <path d={hairlinePath} fill="none" stroke="rgba(255,255,255,0.52)" strokeWidth="0.42" strokeDasharray="1.6 1.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
                                     )}
                                     {overlayGuides.map((guide) => (
                                         <path key={guide.key} d={guide.path} fill="none" stroke={guide.stroke} strokeWidth={guide.width} strokeDasharray={guide.dash} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
                                     ))}
                                     {facialFeaturePaths.map((feature) => (
                                         <path key={feature.key} d={feature.path} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                                    ))}
+                                    {guideLabels.map(({ key, point, label }) => (
+                                        <g key={key}>
+                                            <rect
+                                                x={(point!.x * 100) - 10}
+                                                y={(point!.y * 100) - 3.4}
+                                                width="9"
+                                                height="3"
+                                                rx="1.5"
+                                                fill="rgba(0,0,0,0.58)"
+                                            />
+                                            <text
+                                                x={(point!.x * 100) - 5.5}
+                                                y={(point!.y * 100) - 1.55}
+                                                textAnchor="middle"
+                                                fontSize="1.15"
+                                                fill="rgba(255,255,255,0.94)"
+                                                fontWeight="700"
+                                            >
+                                                {label}
+                                            </text>
+                                        </g>
                                     ))}
                                 </svg>
 
@@ -484,6 +493,19 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
                                         {shapeCopy.name}
                                     </h1>
                                 </div>
+                            </div>
+
+                            <div className="mt-3 grid w-full grid-cols-2 gap-2">
+                                {[
+                                    t.legendContour,
+                                    t.legendHairline,
+                                    t.legendThirds,
+                                    t.legendCenter,
+                                ].map((item) => (
+                                    <div key={item} className="rounded-2xl border border-white/8 bg-white/[0.04] px-3 py-2 text-[11px] text-white/68">
+                                        {item}
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
@@ -515,7 +537,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: FaceShapeResul
                                     <span className="text-white/40 text-[10px] font-semibold tracking-wider uppercase">{t.ideal}</span>
                                 </div>
                                 <div className="flex flex-col gap-3.5">
-                                    {thirds.map((third, index) => (
+                                    {thirds.map((third) => (
                                         <div key={third.label} className="flex items-center gap-3">
                                             <span className="text-xs text-white/60 w-12 shrink-0 font-medium">{third.label}</span>
                                             <div className="flex-1 h-2.5 rounded-full bg-black border border-white/10 overflow-hidden relative">

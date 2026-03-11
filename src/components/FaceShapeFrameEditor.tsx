@@ -24,7 +24,6 @@ interface FaceShapeFrameEditorProps {
     onRestoreDraft: () => void;
     onReloadDraft: () => void;
     onAnalyze: () => void;
-    onBack: () => void;
 }
 
 function toPath(points: FacePoint[], close = false) {
@@ -35,12 +34,29 @@ function toPath(points: FacePoint[], close = false) {
         .concat(close ? " Z" : "");
 }
 
+function pairPath(points?: [FacePoint, FacePoint] | null) {
+    if (!points) return "";
+    return `M ${points[0].x * 100} ${points[0].y * 100} L ${points[1].x * 100} ${points[1].y * 100}`;
+}
+
 function averageX(points: FacePoint[]) {
     return points.reduce((sum, point) => sum + point.x, 0) / Math.max(points.length, 1);
 }
 
 function clamp(value: number, min: number, max: number) {
     return Math.min(max, Math.max(min, value));
+}
+
+function formatDelta(value: number) {
+    const delta = value - 33.3;
+    const prefix = delta > 0 ? "+" : "";
+    return `${prefix}${delta.toFixed(1)}%`;
+}
+
+function getMeterTone(value: number) {
+    if (value >= 80) return "from-emerald-300 to-cyan-300";
+    if (value >= 65) return "from-amber-300 to-yellow-200";
+    return "from-rose-300 to-orange-300";
 }
 
 export function FaceShapeFrameEditor({
@@ -58,7 +74,6 @@ export function FaceShapeFrameEditor({
     onRestoreDraft,
     onReloadDraft,
     onAnalyze,
-    onBack,
 }: FaceShapeFrameEditorProps) {
     const stageRef = useRef<HTMLDivElement>(null);
     const [activeHandle, setActiveHandle] = useState<number | null>(null);
@@ -66,48 +81,111 @@ export function FaceShapeFrameEditor({
 
     const labels = useMemo(
         () => ({
-            title: isKo ? "측정 프레임 보정" : "Adjust Measurement Frame",
+            title: isKo ? "측정 프레임 보정" : "Measurement Frame Calibration",
             subtitle: isKo
-                ? "AI 초안을 시작점으로 두고, 이마 위쪽, 옆 프레임, 턱 아래를 직접 맞춰 주세요."
-                : "Use the AI draft as a starting point, then place the top hairline, side frame, and chin yourself.",
+                ? "빨간선은 실제 분석 프레임입니다. 헤어라인 시작점, 얼굴 옆선, 턱끝 아래를 직접 맞춰 주세요."
+                : "The red contour becomes the real analysis frame. Place it on the hairline start, side contour, and chin base.",
+            loading: isKo ? "AI 초안 생성 중..." : "Building AI draft...",
+            ready: isKo ? "현재 빨간선이 실제 분석 기준입니다." : "The red contour is now the live analysis frame.",
+            previewing: isKo ? "실측값 재계산 중..." : "Refreshing measurements...",
             draft: isKo ? "AI 초안 다시 잡기" : "Reload AI Draft",
             restore: isKo ? "초안으로 되돌리기" : "Restore Draft",
             analyze: isKo ? "이 프레임으로 분석" : "Analyze With This Frame",
-            back: isKo ? "영역 다시 선택" : "Back To Crop",
-            hint: isKo
-                ? "12개의 기준점을 드래그하여 얼굴 윤곽을 잡아주세요. 이마(헤어라인)와 턱선이 프레임 안에 정확히 들어오도록 맞추면 분석 정확도가 높아집니다."
-                : "Drag the 12 points to define your facial contour. Align the frame with your hairline and jawline for the most accurate analysis.",
-            loading: isKo ? "AI 초안 생성 중..." : "Building AI draft...",
-            ready: isKo ? "현재 프레임이 실제 측정 기준으로 사용됩니다." : "This frame becomes the actual measurement basis.",
-            previewing: isKo ? "품질 재계산 중..." : "Refreshing quality...",
-            liveQuality: isKo ? "실시간 품질 게이트" : "Live Quality Gate",
-            readyToAnalyze: isKo ? "분석 가능" : "Ready To Analyze",
-            blocked: isKo ? "분석 차단" : "Blocked",
-            provisional: isKo ? "예상 얼굴형" : "Provisional Shape",
-            confidence: isKo ? "예상 신뢰도" : "Expected Confidence",
-            imageQuality: isKo ? "이미지 품질" : "Image Quality",
-            frameQuality: isKo ? "프레임 품질" : "Frame Quality",
-            classification: isKo ? "형태 판별" : "Shape Read",
-            guide: isKo ? "차단 상태가 풀릴 때까지 분석 버튼이 잠깁니다." : "The analyze button stays locked until blocking issues are cleared.",
+            statusReady: isKo ? "분석 가능" : "Ready",
+            statusBlocked: isKo ? "보정 필요" : "Needs Refinement",
+            stageHint: isKo
+                ? "점선은 MediaPipe 헤어라인 기준이고, 흰 분할선은 헤어라인-눈썹-코밑-턱끝 3분할 기준입니다."
+                : "The dashed line is the MediaPipe hairline reference. The white dividers split hairline, brow, nose base, and chin.",
+            legendContour: isKo ? "빨간선: 실제 분석 윤곽" : "Red: live analysis contour",
+            legendHairline: isKo ? "점선: MediaPipe 헤어라인" : "Dashed: MediaPipe hairline",
+            legendThirds: isKo ? "흰선: 3분할 기준선" : "White: thirds guides",
+            legendCenter: isKo ? "세로선: 얼굴 중심 축" : "Vertical: face axis",
+            detectionTitle: isKo ? "측정 기준" : "Measurement Basis",
+            detectionHairline: isKo ? "헤어라인 방식" : "Hairline Method",
+            detectionReliability: isKo ? "감지 신뢰도" : "Reliability",
+            detectionFrame: isKo ? "현재 분석 기준" : "Active Frame",
+            frameAuto: isKo ? "AI 초안" : "AI Draft",
+            frameManual: isKo ? "수동 보정" : "Manual Frame",
+            methodSegmenter: isKo ? "세그먼트" : "Segmentation",
+            methodHybrid: isKo ? "세그먼트+에지" : "Segment+Edge",
+            methodFallback: isKo ? "랜드마크 추정" : "Landmark Fallback",
+            methodManual: isKo ? "수동 프레임" : "Manual Frame",
+            thirdsTitle: isKo ? "안면 3분할 실측" : "Measured Facial Thirds",
+            thirdsTarget: isKo ? "이상 비율 1:1:1" : "Ideal 1:1:1",
+            thirdsUpper: isKo ? "헤어라인-눈썹" : "Hairline-Brow",
+            thirdsMiddle: isKo ? "눈썹-코밑" : "Brow-Nose Base",
+            thirdsLower: isKo ? "코밑-턱끝" : "Nose Base-Chin",
+            deltaLabel: isKo ? "이상 비율 대비" : "Vs ideal",
+            qualityTitle: isKo ? "정렬 품질" : "Alignment Quality",
+            actionTitle: isKo ? "지금 조정할 것" : "Adjust Now",
+            guide: isKo ? "차단 상태가 풀릴 때까지 분석 버튼이 잠깁니다." : "The analyze button remains locked until the blocking issues are cleared.",
+            insightEmpty: isKo ? "프레임과 사진 상태가 안정적입니다." : "The frame and image read look stable.",
+            imageQuality: isKo ? "사진 경계" : "Image Edge Read",
+            hairlineQuality: isKo ? "헤어라인 판독" : "Hairline Read",
+            frameQuality: isKo ? "프레임 밀착" : "Frame Fit",
+            noticeTitle: isKo ? "주의" : "Notice",
+            browDivider: isKo ? "눈썹선" : "Brow Line",
+            philtrumDivider: isKo ? "코밑선" : "Nose Base",
         }),
         [isKo]
     );
 
     const qualityFlagCopy: Record<FaceShapeQualityFlag, string> = {
-        ambiguous_shape: isKo ? "1순위와 2순위 얼굴형 점수 차가 아직 작습니다." : "The top two shape candidates are still too close.",
-        low_pose: isKo ? "정면 각도와 좌우 수평을 더 맞춰 주세요." : "Make the photo more level and front-facing.",
-        low_sharpness: isKo ? "사진이 흐려서 경계 판독이 약합니다." : "The photo is too soft for clean edge reading.",
-        low_lighting: isKo ? "조명이 고르지 않아 경계 인식이 약합니다." : "Uneven lighting weakens the boundary reading.",
-        low_coverage: isKo ? "얼굴이 화면을 조금 더 크게 차지해야 합니다." : "The face should occupy more of the frame.",
-        low_frame_alignment: isKo ? "이마, 옆선, 턱 아래 프레임을 더 맞춰 주세요." : "Refine the forehead, side frame, and chin frame.",
-        low_hairline: isKo ? "헤어라인 경계가 아직 불안정합니다." : "The hairline boundary is still unstable.",
+        ambiguous_shape: isKo ? "얼굴형 판독이 아직 흔들립니다. 프레임을 얼굴 바깥선에 더 밀착해 주세요." : "Shape reading is still unstable. Tighten the frame to the visible contour.",
+        low_pose: isKo ? "정면 기준이 흐트러져 있습니다. 고개와 눈높이를 정면으로 맞춰 주세요." : "The face is off-axis. Level the head and eyes.",
+        low_sharpness: isKo ? "사진 경계가 흐립니다. 더 선명한 사진이 필요합니다." : "Edges are too soft. A sharper photo is needed.",
+        low_lighting: isKo ? "조명이 고르지 않아 헤어라인과 옆선 판독이 약합니다." : "Uneven light weakens hairline and side contour detection.",
+        low_coverage: isKo ? "얼굴이 화면을 더 크게 차지해야 합니다." : "The face should occupy more of the frame.",
+        low_frame_alignment: isKo ? "빨간선을 실제 얼굴 바깥선에 더 바짝 붙여 주세요." : "Move the red contour closer to the real outer boundary.",
+        low_hairline: isKo ? "헤어라인 감지가 약합니다. 이마가 더 잘 보이도록 맞춰 주세요." : "Hairline detection is weak. Expose the forehead more clearly.",
     };
 
     const liveInsights = (preview?.gate.reasons.length ? preview.gate.reasons : preview?.quality.flags ?? [])
         .slice(0, 4)
         .map((flag) => qualityFlagCopy[flag]);
 
+    const hairlinePath = preview?.overlay.hairlineContour?.length ? toPath(preview.overlay.hairlineContour) : "";
+    const centerLinePath = pairPath(preview?.overlay.centerLine);
+    const upperThirdPath = pairPath(preview?.overlay.upperThirdGuide);
+    const middleThirdPath = pairPath(preview?.overlay.middleThirdGuide);
+    const guideMarkers = [
+        {
+            key: "upper",
+            point: preview?.overlay.upperThirdGuide?.[1] ?? null,
+            label: labels.browDivider,
+        },
+        {
+            key: "middle",
+            point: preview?.overlay.middleThirdGuide?.[1] ?? null,
+            label: labels.philtrumDivider,
+        },
+    ].filter((item) => item.point);
+
+    const hairlineMethodLabel =
+        preview?.overlay.hairlineMethod === "segmenter"
+            ? labels.methodSegmenter
+            : preview?.overlay.hairlineMethod === "hybrid"
+                ? labels.methodHybrid
+                : preview?.overlay.hairlineMethod === "fallback"
+                    ? labels.methodFallback
+                    : labels.methodManual;
+    const frameBasisLabel = preview?.overlay.frameSource === "manual" ? labels.frameManual : labels.frameAuto;
     const analyzeDisabled = isLoading || isAnalyzing || (preview ? !preview.gate.canAnalyze : isPreviewing);
+    const statusLabel = preview?.gate.canAnalyze ? labels.statusReady : labels.statusBlocked;
+    const thirdRows = preview
+        ? [
+            { label: labels.thirdsUpper, value: preview.metrics.upperThird },
+            { label: labels.thirdsMiddle, value: preview.metrics.middleThird },
+            { label: labels.thirdsLower, value: preview.metrics.lowerThird },
+        ]
+        : [];
+    const qualityRows = preview
+        ? [
+            { label: labels.imageQuality, value: preview.quality.image },
+            { label: labels.hairlineQuality, value: preview.overlay.hairlineReliability ?? 0 },
+            { label: labels.frameQuality, value: preview.quality.frame },
+        ]
+        : [];
 
     const updateHandle = (index: number, clientX: number, clientY: number) => {
         if (!stageRef.current) return;
@@ -142,177 +220,282 @@ export function FaceShapeFrameEditor({
     };
 
     return (
-        <div className="flex-1 w-full bg-black flex flex-col items-center px-4 py-6 md:px-6 md:py-8 relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-[-15%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-cyan-900/20 blur-[120px]" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-blue-900/15 blur-[140px]" />
+        <div className="relative flex w-full flex-1 flex-col items-center overflow-hidden bg-[#02050a] px-4 py-6 md:px-6 md:py-8">
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.16),transparent_28%)]" />
+                <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.16) 1px, transparent 1px)", backgroundSize: "44px 44px" }} />
             </div>
 
-            <div className="relative z-10 w-full max-w-6xl flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-start">
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-3">
-                        <div>
-                            <h2 className={`text-2xl md:text-3xl font-bold text-white ${isKo ? "font-korean" : "font-cinzel"}`}>{labels.title}</h2>
-                            <p className={`mt-2 text-sm md:text-base text-white/60 leading-relaxed ${isKo ? "font-korean break-keep" : ""}`}>{labels.subtitle}</p>
-                        </div>
-                        <button onClick={onBack} className="shrink-0 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-colors">
-                            {labels.back}
-                        </button>
-                    </div>
+            <div className={`relative z-10 w-full max-w-7xl ${isKo ? "font-korean" : ""}`}>
+                <div className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,24,0.96),rgba(5,8,14,0.94))] p-4 shadow-[0_30px_120px_rgba(0,0,0,0.45)] md:p-6">
+                    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
+                        <section className="rounded-[30px] border border-white/8 bg-white/[0.03] p-4 md:p-5">
+                            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                                <div>
+                                    <h2 className={`text-2xl font-bold tracking-tight text-white md:text-3xl ${isKo ? "" : "font-cinzel"}`}>{labels.title}</h2>
+                                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/62 md:text-[15px]">{labels.subtitle}</p>
+                                </div>
 
-                    <div
-                        ref={stageRef}
-                        className="relative w-full overflow-hidden rounded-4xl border border-white/10 bg-zinc-950/80 shadow-2xl"
-                        style={{ aspectRatio }}
-                        onPointerMove={(event) => {
-                            if (activeHandle === null) return;
-                            updateHandle(activeHandle, event.clientX, event.clientY);
-                        }}
-                        onPointerUp={() => setActiveHandle(null)}
-                        onPointerLeave={() => setActiveHandle(null)}
-                    >
-                        <Image src={imageSrc} alt={labels.title} fill unoptimized className="object-cover" />
-                        <div className="absolute inset-0 bg-linear-to-t from-black/45 via-transparent to-transparent" />
-                        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-                            <path d={path} fill="rgba(255,255,255,0.06)" stroke="#ff5f5f" strokeWidth="0.55" strokeLinecap="round" strokeLinejoin="round" />
-                            {handles.map((handle, index) => (
-                                <g key={`${handle.x}-${handle.y}-${index}`}>
-                                    <circle cx={handle.x * 100} cy={handle.y * 100} r="1.7" fill="rgba(0,0,0,0.45)" />
-                                    <circle
-                                        cx={handle.x * 100}
-                                        cy={handle.y * 100}
-                                        r={activeHandle === index ? "1.5" : "1.2"}
-                                        fill="#fff"
-                                        stroke="#ff5f5f"
-                                        strokeWidth="0.45"
-                                        className="cursor-pointer"
-                                        onPointerDown={(event) => {
-                                            event.preventDefault();
-                                            stageRef.current?.setPointerCapture(event.pointerId);
-                                            setActiveHandle(index);
-                                            updateHandle(index, event.clientX, event.clientY);
-                                        }}
-                                    />
-                                </g>
-                            ))}
-                        </svg>
-
-                        <div className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
-                            {isLoading ? labels.loading : isPreviewing ? labels.previewing : labels.ready}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rounded-4xl border border-white/10 bg-white/5 p-5 md:p-6 backdrop-blur-xl">
-                    <div className="space-y-4">
-                        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-sm leading-relaxed text-cyan-50">
-                            <p className={isKo ? "font-korean break-keep" : ""}>{labels.hint}</p>
-                        </div>
-
-                        {notice && (
-                            <div className="rounded-2xl border border-amber-300/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-50">
-                                <p className={isKo ? "font-korean break-keep" : ""}>{notice}</p>
-                            </div>
-                        )}
-
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4 text-white">
-                            <div className="flex items-center justify-between gap-3">
-                                <span className={`text-[11px] font-bold tracking-[0.18em] uppercase text-white/60 ${isKo ? "font-korean" : ""}`}>{labels.liveQuality}</span>
-                                <span
-                                    className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${preview?.gate.canAnalyze
-                                        ? "border border-emerald-300/20 bg-emerald-500/15 text-emerald-100"
-                                        : "border border-rose-300/20 bg-rose-500/15 text-rose-100"
-                                        }`}
-                                >
-                                    {preview?.gate.canAnalyze ? labels.readyToAnalyze : labels.blocked}
-                                </span>
+                                <div className="rounded-[18px] border border-white/8 bg-black/[0.24] px-4 py-3 text-left md:min-w-[180px] md:text-right">
+                                    <p className="text-[11px] font-medium text-white/42">{isKo ? "현재 상태" : "Current Status"}</p>
+                                    <p className={`mt-1 text-sm font-semibold ${preview?.gate.canAnalyze ? "text-emerald-100" : "text-amber-100"}`}>{statusLabel}</p>
+                                </div>
                             </div>
 
-                            {preview && (
-                                <div className="mt-4 space-y-4">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                                            <span className="block text-[10px] uppercase tracking-[0.16em] text-white/45">{labels.provisional}</span>
-                                            <span className={`mt-2 block text-lg font-bold ${isKo ? "font-korean" : ""}`}>{preview.faceShape.toUpperCase()}</span>
-                                        </div>
-                                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                                            <span className="block text-[10px] uppercase tracking-[0.16em] text-white/45">{labels.confidence}</span>
-                                            <span className="mt-2 block text-lg font-bold">{preview.confidence}%</span>
-                                        </div>
-                                    </div>
+                            <div
+                                ref={stageRef}
+                                className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black/70 shadow-[0_20px_70px_rgba(0,0,0,0.4)]"
+                                style={{ aspectRatio }}
+                                onPointerMove={(event) => {
+                                    if (activeHandle === null) return;
+                                    updateHandle(activeHandle, event.clientX, event.clientY);
+                                }}
+                                onPointerUp={() => setActiveHandle(null)}
+                                onPointerLeave={() => setActiveHandle(null)}
+                            >
+                                <Image src={imageSrc} alt={labels.title} fill unoptimized className="object-cover" />
+                                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.06),rgba(0,0,0,0.44))]" />
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,transparent_48%,rgba(0,0,0,0.18)_100%)]" />
 
-                                    {[
-                                        { label: labels.imageQuality, value: preview.quality.image },
-                                        { label: labels.frameQuality, value: preview.quality.frame },
-                                        { label: labels.classification, value: preview.quality.classification },
-                                    ].map((item) => (
-                                        <div key={item.label}>
-                                            <div className="mb-2 flex items-end justify-between">
-                                                <span className="text-[11px] uppercase tracking-[0.16em] text-white/55">{item.label}</span>
-                                                <span className="text-xs font-mono text-white">{item.value}%</span>
-                                            </div>
-                                            <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                                                <div
-                                                    className={`h-full transition-all duration-300 ${item.value >= 75 ? "bg-emerald-300" : item.value >= 60 ? "bg-amber-300" : "bg-rose-300"
-                                                        }`}
-                                                    style={{ width: `${item.value}%` }}
-                                                />
-                                            </div>
-                                        </div>
+                                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+                                    {centerLinePath && <path d={centerLinePath} fill="none" stroke="rgba(255,255,255,0.34)" strokeWidth="0.22" strokeDasharray="1.6 1.2" />}
+                                    {upperThirdPath && <path d={upperThirdPath} fill="none" stroke="rgba(255,255,255,0.84)" strokeWidth="0.28" strokeDasharray="1.15 0.95" />}
+                                    {middleThirdPath && <path d={middleThirdPath} fill="none" stroke="rgba(255,255,255,0.84)" strokeWidth="0.28" strokeDasharray="1.15 0.95" />}
+                                    {hairlinePath && <path d={hairlinePath} fill="none" stroke="rgba(255,255,255,0.68)" strokeWidth="0.28" strokeDasharray="1.8 1.3" strokeLinecap="round" strokeLinejoin="round" />}
+                                    <path d={path} fill="rgba(255,107,107,0.05)" stroke="#ff6b6b" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" />
+
+                                    {handles.map((handle, index) => (
+                                        <g key={`${handle.x}-${handle.y}-${index}`}>
+                                            <circle cx={handle.x * 100} cy={handle.y * 100} r="1.72" fill="rgba(0,0,0,0.46)" />
+                                            <circle
+                                                cx={handle.x * 100}
+                                                cy={handle.y * 100}
+                                                r={activeHandle === index ? "1.55" : "1.22"}
+                                                fill="#ffffff"
+                                                stroke="#ff6464"
+                                                strokeWidth="0.46"
+                                                className="cursor-pointer"
+                                                onPointerDown={(event) => {
+                                                    event.preventDefault();
+                                                    stageRef.current?.setPointerCapture(event.pointerId);
+                                                    setActiveHandle(index);
+                                                    updateHandle(index, event.clientX, event.clientY);
+                                                }}
+                                            />
+                                        </g>
                                     ))}
 
-                                    {liveInsights.length > 0 && (
-                                        <div className="space-y-2 border-t border-white/10 pt-4">
-                                            {!preview.gate.canAnalyze && (
-                                                <p className={`text-xs leading-relaxed text-rose-100/85 ${isKo ? "font-korean break-keep" : ""}`}>{labels.guide}</p>
-                                            )}
-                                            {liveInsights.map((text, index) => (
-                                                <div key={`${text}-${index}`} className="flex items-start gap-3">
-                                                    <div className="mt-2 h-1 w-1 shrink-0 rounded-full bg-white/55" />
-                                                    <p className={`text-xs leading-relaxed text-white/72 ${isKo ? "font-korean break-keep" : ""}`}>{text}</p>
+                                    {guideMarkers.map(({ key, point, label }) => (
+                                        <g key={key}>
+                                            <rect
+                                                x={(point!.x * 100) - 8.4}
+                                                y={(point!.y * 100) - 3.35}
+                                                width="7.2"
+                                                height="2.9"
+                                                rx="1.45"
+                                                fill="rgba(6,10,18,0.78)"
+                                            />
+                                            <text
+                                                x={(point!.x * 100) - 4.8}
+                                                y={(point!.y * 100) - 1.48}
+                                                textAnchor="middle"
+                                                fontSize="1.08"
+                                                fill="rgba(255,255,255,0.96)"
+                                                fontWeight="700"
+                                            >
+                                                {label}
+                                            </text>
+                                        </g>
+                                    ))}
+                                </svg>
+
+                                <div className="absolute left-4 top-4">
+                                    <div className="rounded-full border border-white/10 bg-black/[0.46] px-3 py-1 text-[10px] font-medium text-white/72">
+                                        {isLoading ? labels.loading : isPreviewing ? labels.previewing : labels.ready}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 rounded-[22px] border border-white/8 bg-black/[0.22] p-4">
+                                <p className="text-sm leading-relaxed text-white/76">{labels.stageHint}</p>
+                                <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                                    {[
+                                        { swatch: "bg-[#ff6b6b]", text: labels.legendContour },
+                                        { swatch: "bg-white/80", text: labels.legendHairline },
+                                        { swatch: "bg-white", text: labels.legendThirds },
+                                        { swatch: "bg-white/40", text: labels.legendCenter },
+                                    ].map((item) => (
+                                        <div key={item.text} className="flex items-center gap-2 rounded-[16px] border border-white/8 bg-white/[0.03] px-3 py-2 text-[12px] text-white/72">
+                                            <span className={`h-2 w-2 shrink-0 rounded-full ${item.swatch}`} />
+                                            <span>{item.text}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+
+                        <aside className="flex h-full flex-col gap-4 rounded-[30px] border border-white/8 bg-[linear-gradient(180deg,rgba(7,12,20,0.96),rgba(4,8,14,0.98))] p-4 md:p-5">
+                            {preview && (
+                                <>
+                                    <section className="rounded-[24px] border border-white/8 bg-black/[0.22] p-4">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p className="text-[12px] font-semibold text-white/48">{labels.detectionTitle}</p>
+                                                <p className="mt-2 text-sm leading-relaxed text-white/74">
+                                                    {isKo
+                                                        ? "점선은 MediaPipe 기준선이고, 빨간선은 실제 분석에 쓰이는 프레임입니다. 여기서는 얼굴형 예측보다 측정 정확도를 먼저 맞춥니다."
+                                                        : "The dashed line is the MediaPipe reference, while the red contour is the live analysis frame."}
+                                                </p>
+                                            </div>
+                                            <div className={`rounded-full border px-3 py-1 text-[10px] font-medium ${
+                                                preview.gate.canAnalyze
+                                                    ? "border-emerald-300/20 bg-emerald-500/10 text-emerald-100"
+                                                    : "border-amber-300/20 bg-amber-500/10 text-amber-100"
+                                            }`}>
+                                                {statusLabel}
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 grid grid-cols-3 gap-3">
+                                            <div className="rounded-[18px] border border-white/8 bg-black/[0.24] p-3">
+                                                <span className="block text-[11px] text-white/42">{labels.detectionHairline}</span>
+                                                <span className="mt-2 block text-sm font-semibold text-white">{hairlineMethodLabel}</span>
+                                            </div>
+                                            <div className="rounded-[18px] border border-white/8 bg-black/[0.24] p-3">
+                                                <span className="block text-[11px] text-white/42">{labels.detectionReliability}</span>
+                                                <span className="mt-2 block text-lg font-bold text-white">{preview.overlay.hairlineReliability ?? 0}%</span>
+                                            </div>
+                                            <div className="rounded-[18px] border border-white/8 bg-black/[0.24] p-3">
+                                                <span className="block text-[11px] text-white/42">{labels.detectionFrame}</span>
+                                                <span className="mt-2 block text-sm font-semibold text-white">{frameBasisLabel}</span>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    <section className="rounded-[24px] border border-white/8 bg-black/[0.22] p-4">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="text-[12px] font-semibold text-white/48">{labels.thirdsTitle}</p>
+                                                <p className="mt-1 text-[11px] text-white/32">{labels.thirdsTarget}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 space-y-4">
+                                            {thirdRows.map((item) => (
+                                                <div key={item.label}>
+                                                    <div className="mb-2 flex items-end justify-between gap-3">
+                                                        <div>
+                                                            <span className={`block text-sm text-white ${isKo ? "font-korean break-keep" : ""}`}>{item.label}</span>
+                                                            <span className="text-[11px] text-white/42">{labels.deltaLabel} {formatDelta(item.value)}</span>
+                                                        </div>
+                                                        <span className="text-sm font-mono text-white">{item.value.toFixed(1)}%</span>
+                                                    </div>
+                                                    <div className="relative h-2.5 overflow-hidden rounded-full bg-white/8">
+                                                        <div className="absolute inset-y-0 left-[33.3%] w-px bg-white/28" />
+                                                        <div
+                                                            className={`h-full rounded-full bg-linear-to-r ${getMeterTone(item.value)}`}
+                                                            style={{ width: `${item.value}%` }}
+                                                        />
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
-                                </div>
+                                    </section>
+
+                                    <section className="rounded-[24px] border border-white/8 bg-black/[0.22] p-4">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <p className="text-[12px] font-semibold text-white/48">{labels.qualityTitle}</p>
+                                            <span className="text-[11px] text-white/38">{isKo ? "실측 기반" : "Measured"}</span>
+                                        </div>
+
+                                        <div className="mt-4 space-y-3">
+                                            {qualityRows.map((item) => (
+                                                <div key={item.label}>
+                                                    <div className="mb-1.5 flex items-end justify-between gap-3">
+                                                        <span className="text-xs text-white/66">{item.label}</span>
+                                                        <span className="text-xs font-mono text-white">{item.value}%</span>
+                                                    </div>
+                                                    <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                                                        <div
+                                                            className={`h-full rounded-full bg-linear-to-r ${getMeterTone(item.value)}`}
+                                                            style={{ width: `${item.value}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+
+                                    <section className="rounded-[24px] border border-white/8 bg-black/[0.22] p-4">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <p className="text-[12px] font-semibold text-white/48">{labels.actionTitle}</p>
+                                            <span className="text-[11px] text-white/38">{liveInsights.length || 1} {isKo ? "개 항목" : "items"}</span>
+                                        </div>
+
+                                        {!preview.gate.canAnalyze && (
+                                            <p className="mt-3 text-xs leading-relaxed text-rose-100/82">{labels.guide}</p>
+                                        )}
+
+                                        <div className="mt-4 space-y-2.5">
+                                            {(liveInsights.length ? liveInsights : [labels.insightEmpty]).map((text, index) => (
+                                                <div key={`${text}-${index}`} className="flex items-start gap-3 rounded-[16px] border border-white/6 bg-white/[0.02] px-3 py-3">
+                                                    <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${liveInsights.length ? "bg-cyan-300" : "bg-emerald-300"}`} />
+                                                    <p className="text-xs leading-relaxed text-white/76">{text}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                </>
                             )}
-                        </div>
 
-                        <div className="grid gap-3">
-                            <button
-                                onClick={onReloadDraft}
-                                disabled={isLoading || isAnalyzing}
-                                className={`flex items-center justify-center gap-2 rounded-full px-5 py-4 font-bold transition-colors ${isLoading || isAnalyzing
-                                    ? "cursor-not-allowed bg-white/5 text-white/30"
-                                    : "bg-white/10 text-white hover:bg-white/15"
-                                    } ${isKo ? "font-korean" : ""}`}
-                            >
-                                <Wand2 className="h-4 w-4" />
-                                {labels.draft}
-                            </button>
+                            {notice && (
+                                <section className="rounded-[22px] border border-amber-300/20 bg-amber-500/10 p-4">
+                                    <p className={`text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100/70 ${isKo ? "font-korean" : ""}`}>{labels.noticeTitle}</p>
+                                    <p className={`mt-2 text-sm leading-relaxed text-amber-50 ${isKo ? "font-korean break-keep" : ""}`}>{notice}</p>
+                                </section>
+                            )}
 
-                            <button
-                                onClick={onRestoreDraft}
-                                disabled={isLoading || isAnalyzing}
-                                className={`flex items-center justify-center gap-2 rounded-full px-5 py-4 font-bold transition-colors ${isLoading || isAnalyzing
-                                    ? "cursor-not-allowed bg-white/5 text-white/30"
-                                    : "bg-white/8 text-white/80 hover:bg-white/12 hover:text-white"
-                                    } ${isKo ? "font-korean" : ""}`}
-                            >
-                                <RotateCcw className="h-4 w-4" />
-                                {labels.restore}
-                            </button>
+                            <div className="mt-auto grid gap-3">
+                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                                    <button
+                                        onClick={onReloadDraft}
+                                        disabled={isLoading || isAnalyzing}
+                                        className={`flex items-center justify-center gap-2 rounded-full border px-5 py-4 text-sm font-semibold transition-colors ${
+                                            isLoading || isAnalyzing
+                                                ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/28"
+                                                : "border-white/10 bg-white/[0.07] text-white hover:bg-white/12"
+                                        } ${isKo ? "font-korean" : ""}`}
+                                    >
+                                        <Wand2 className="h-4 w-4" />
+                                        {labels.draft}
+                                    </button>
 
-                            <button
-                                onClick={onAnalyze}
-                                disabled={analyzeDisabled}
-                                className={`flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-blue-500 px-5 py-4 font-bold text-black transition-transform ${analyzeDisabled ? "cursor-not-allowed opacity-50" : "hover:scale-[1.01] active:scale-[0.99]"
+                                    <button
+                                        onClick={onRestoreDraft}
+                                        disabled={isLoading || isAnalyzing}
+                                        className={`flex items-center justify-center gap-2 rounded-full border px-5 py-4 text-sm font-semibold transition-colors ${
+                                            isLoading || isAnalyzing
+                                                ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/28"
+                                                : "border-white/10 bg-white/[0.03] text-white/84 hover:bg-white/10 hover:text-white"
+                                        } ${isKo ? "font-korean" : ""}`}
+                                    >
+                                        <RotateCcw className="h-4 w-4" />
+                                        {labels.restore}
+                                    </button>
+                                </div>
+
+                                <button
+                                    onClick={onAnalyze}
+                                    disabled={analyzeDisabled}
+                                    className={`flex items-center justify-center gap-2 rounded-full bg-[linear-gradient(90deg,#55e6ff,#2d7ff9)] px-5 py-4 text-sm font-bold text-[#031018] transition-transform ${
+                                        analyzeDisabled ? "cursor-not-allowed opacity-50" : "hover:scale-[1.01] active:scale-[0.99]"
                                     } ${isKo ? "font-korean" : ""}`}
-                            >
-                                {isAnalyzing || isPreviewing ? <Sparkles className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                                {labels.analyze}
-                            </button>
-                        </div>
+                                >
+                                    {isAnalyzing || isPreviewing ? <Sparkles className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                    {labels.analyze}
+                                </button>
+                            </div>
+                        </aside>
                     </div>
                 </div>
             </div>

@@ -882,7 +882,6 @@ function ColorTestContent() {
                     onAnalyze={() => {
                         void handleAnalyzeAdjustedFrame();
                     }}
-                    onBack={() => setStep('crop')}
                 />
             );
         }
