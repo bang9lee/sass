@@ -135,6 +135,46 @@ export function getFaceShapeCopy(shape: FaceShapeId, lang: string) {
     return SHAPE_COPY[safeLang][shape];
 }
 
+export function buildExecutiveSummary(result: FaceShapeAnalysisResult, lang: string) {
+    const safeLang: SupportedLanguage = lang === "ko" ? "ko" : "en";
+    const shapeCopy = getFaceShapeCopy(result.faceShape, safeLang);
+    const metrics = result.metrics;
+
+    const lengthLead =
+        metrics.faceLengthToWidth >= 1.42
+            ? safeLang === "ko"
+                ? "가로보다 세로가 확실히 길게 읽히고"
+                : "The vertical read is clearly longer than the width"
+            : metrics.faceLengthToWidth >= 1.28
+                ? safeLang === "ko"
+                    ? "가로보다 세로가 조금 더 길게 읽히고"
+                    : "The vertical read is slightly longer than the width"
+                : metrics.faceLengthToWidth <= 1.16
+                    ? safeLang === "ko"
+                        ? "세로 길이보다 가로 폭이 더 도드라지고"
+                        : "The width reads slightly stronger than the vertical length"
+                    : safeLang === "ko"
+                        ? "세로 길이와 가로 폭의 균형이 비교적 안정적이고"
+                        : "Length and width stay comparatively balanced";
+
+    const widthLead =
+        metrics.foreheadToJaw >= 1.08
+            ? safeLang === "ko"
+                ? "상부 폭이 하부보다 조금 더 넓은 편입니다."
+                : "The upper face reads a little wider than the lower face."
+            : metrics.foreheadToJaw <= 0.95
+                ? safeLang === "ko"
+                    ? "하부 폭이 상부보다 더 강하게 읽힙니다."
+                    : "The lower face reads a bit stronger than the upper face."
+                : safeLang === "ko"
+                    ? "상하 폭의 균형은 비교적 안정적입니다."
+                    : "Upper and lower widths stay comparatively stable.";
+
+    return safeLang === "ko"
+        ? `${lengthLead}, ${widthLead} ${shapeCopy.summary}`
+        : `${lengthLead}, ${widthLead} ${shapeCopy.summary}`;
+}
+
 export function getMetricSummary(result: FaceShapeAnalysisResult, lang: string) {
     const isKo = lang === "ko";
     const metrics = result.metrics;

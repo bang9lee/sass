@@ -151,6 +151,7 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --radius: 0.5rem;
   --card: #171717;
   --card-foreground: #ededed;
   --popover: #171717;
@@ -195,6 +196,7 @@
 .dark {
   --background: #1a1a1a;
   --foreground: #fafafa;
+  --radius: 0.5rem;
   --card: #262626;
   --card-foreground: #fafafa;
   --popover: #262626;

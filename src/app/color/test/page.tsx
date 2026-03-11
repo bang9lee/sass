@@ -72,8 +72,9 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         select_btn: "결과 보기",
         analyzing: "정밀 분석 중...",
         shapeTitle: "AI 얼굴형 분석",
-        shapeSubtitle: "셀카를 업로드하여 당신의 얼굴형과\n가장 잘 어울리는 스타일을 찾아보세요.",
+        shapeSubtitle: "셀카를 업로드하고 안면 기준선을 직접 보정한 뒤\n더 정확한 얼굴형 리포트를 확인해 보세요.",
         shapeUploadHint: "정면 사진 권장 - 이마와 헤어라인, 턱선이 모두 보여야 정확도가 올라갑니다.",
+        shapeFlowHint: "업로드 후 AI 초안을 기준으로 헤어라인, 옆선, 턱끝 프레임을 직접 미세 조정합니다.",
         shapeCropHint: "앞머리와 이마가 보이게 맞춘 뒤 얼굴 윤곽을 따라 그려주세요.",
         shapeFrameFallback: "AI 초안을 못 잡아도 괜찮습니다. 바깥 프레임을 직접 맞춘 뒤 그대로 분석할 수 있습니다.",
         shapeGateBlocked: "사진 또는 프레임 품질이 아직 부족합니다. 아래 품질 항목을 기준으로 프레임을 더 맞추거나 사진을 다시 선택해 주세요.",
@@ -92,8 +93,9 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         select_btn: "View Result",
         analyzing: "Analyzing...",
         shapeTitle: "AI Face Shape Analysis",
-        shapeSubtitle: "Upload a selfie to discover your face shape\nand the perfect styles for you.",
+        shapeSubtitle: "Upload a selfie, refine the facial guide frame yourself,\nand then generate a more accurate face-shape report.",
         shapeUploadHint: "Use a near-frontal photo with the forehead, hairline, and jawline fully visible for better accuracy.",
+        shapeFlowHint: "After upload, you can fine-tune the hairline, side contour, and chin frame before the final report.",
         shapeCropHint: "Frame the forehead and hairline clearly, then trace around the face outline.",
         shapeFrameFallback: "If the AI draft misses, you can still place the outer frame yourself and analyze from that frame.",
         shapeGateBlocked: "The photo or frame quality is still too weak. Refine the frame using the quality panel below, or choose a better photo.",
@@ -112,8 +114,9 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         select_btn: "查看结果",
         analyzing: "深度分析中...",
         shapeTitle: "AI 脸型分析",
-        shapeSubtitle: "上传自拍，发现您的脸型\n以及最适合您的风格。",
+        shapeSubtitle: "上传自拍后先手动微调面部基准线，\n再生成更准确的脸型报告。",
         shapeUploadHint: "建议上传接近正面的照片，并清楚露出额头、发际线和下颌线。",
+        shapeFlowHint: "上传后可先微调发际线、侧脸轮廓与下巴基准，再进入最终结果。",
         shapeCropHint: "先确保额头和发际线清晰可见，再沿着脸部轮廓描绘。",
         shapeFrameFallback: "即使 AI 草稿失败，您也可以手动调整外轮廓后继续分析。",
         shapeGateBlocked: "当前照片或外框质量仍然不足。请参考下方质量面板继续调整，或重新选择照片。",
@@ -132,8 +135,9 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         select_btn: "結果を見る",
         analyzing: "AI分析中...",
         shapeTitle: "AI 顔型分析",
-        shapeSubtitle: "セルフィーをアップロードして、あなたの顔型と\n最高のスタイルを見つけましょう。",
+        shapeSubtitle: "セルフィーをアップロードし、顔の基準フレームを微調整してから\nより正確な顔型レポートを確認しましょう。",
         shapeUploadHint: "正面に近く、額と生え際、あごのラインが見える写真の方が精度が上がります。",
+        shapeFlowHint: "アップロード後に生え際、輪郭、あご先のフレームを細かく調整してから解析します。",
         shapeCropHint: "前髪や額が見えるように合わせてから、顔の輪郭をなぞってください。",
         shapeFrameFallback: "AI 下書きに失敗しても、外側フレームを手動で合わせてそのまま分析できます。",
         shapeGateBlocked: "写真またはフレーム品質がまだ不足しています。下の品質パネルを見ながら調整するか、写真を変えてください。",
@@ -274,7 +278,7 @@ function ColorTestContent() {
             sourceImgRef.current = img;
             if (mode === 'shape') {
                 setCroppedSrc(url);
-                openShapeFrameAdjuster(img);
+                void openShapeFrameAdjuster(img);
             } else {
                 setStep('crop');
             }
@@ -469,7 +473,7 @@ function ColorTestContent() {
             const croppedImage = new window.Image();
             croppedImage.onload = () => {
                 sourceImgRef.current = croppedImage;
-                openShapeFrameAdjuster(croppedImage);
+                void openShapeFrameAdjuster(croppedImage);
             };
             croppedImage.src = croppedDataUrl;
         } else {
@@ -589,7 +593,7 @@ function ColorTestContent() {
         setCroppedSrc(imageSrc);
         if (mode === 'shape') {
             if (sourceImgRef.current) {
-                openShapeFrameAdjuster(sourceImgRef.current);
+                void openShapeFrameAdjuster(sourceImgRef.current);
             }
         } else {
             setStep('compare');
@@ -729,9 +733,14 @@ function ColorTestContent() {
                                 <span className={`text-white/80 font-bold text-lg group-hover:text-white transition-colors block ${isKorean ? 'font-korean' : ''}`}>{t.upload}</span>
                                 <p className="text-zinc-500 text-xs tracking-wider uppercase font-medium mt-1">{t.uploadHint}</p>
                                 {isShape && (
-                                    <p className={`max-w-[18rem] text-xs leading-relaxed mt-2 text-cyan-200/80 ${isKorean ? 'font-korean break-keep' : ''}`}>
-                                        {t.shapeUploadHint}
-                                    </p>
+                                    <>
+                                        <p className={`max-w-[18rem] text-xs leading-relaxed mt-2 text-cyan-200/80 ${isKorean ? 'font-korean break-keep' : ''}`}>
+                                            {t.shapeUploadHint}
+                                        </p>
+                                        <p className={`max-w-[18rem] text-xs leading-relaxed text-white/55 ${isKorean ? 'font-korean break-keep' : ''}`}>
+                                            {t.shapeFlowHint}
+                                        </p>
+                                    </>
                                 )}
                             </div>
                         </button>
@@ -879,6 +888,7 @@ function ColorTestContent() {
                             void openShapeFrameAdjuster(sourceImgRef.current);
                         }
                     }}
+                    onReset={handleReset}
                     onAnalyze={() => {
                         void handleAnalyzeAdjustedFrame();
                     }}

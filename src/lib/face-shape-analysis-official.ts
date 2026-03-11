@@ -71,6 +71,7 @@ export interface FaceShapePreviewGate {
 
 export interface FaceShapeOverlay {
     contour: FacePoint[];
+    meshPoints?: FacePoint[];
     faceHeight: [FacePoint, FacePoint];
     foreheadWidth: [FacePoint, FacePoint];
     cheekboneWidth: [FacePoint, FacePoint];
@@ -161,6 +162,7 @@ type ManualFrameOverride = {
 
 type FaceGeometry = {
     bounds: FaceVerticalBounds;
+    frameBounds: FaceVerticalBounds;
     contour: FacePoint[];
     topContour: FacePoint[];
     foreheadGuide: [FacePoint, FacePoint];
@@ -234,6 +236,7 @@ const LEFT_EYE_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 15
 const RIGHT_EYE_INDICES = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
 const NOSE_BRIDGE_INDICES = [168, 6, 197, 195, 5, 4];
 const NOSE_BASE_INDICES = [129, 98, 97, 2, 326, 327, 358];
+const NOSE_BASE_ANCHOR_INDICES = [2, 94, 97, 327];
 const OUTER_LIP_INDICES = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
 
 const DEFAULT_HAIRLINE_SHIFT = 0.075;
@@ -242,7 +245,7 @@ const HAIR_THRESHOLD = 0.34;
 const EDGE_THRESHOLD = 16;
 const EDITOR_CURVE_SAMPLES = 10;
 const QUALITY_IMAGE_LONGEST_EDGE = 320;
-export const FACE_SHAPE_ANALYSIS_VERSION = "2026-03-11-subnasale-fix";
+export const FACE_SHAPE_ANALYSIS_VERSION = "2026-03-12-mediapipe-report-v5";
 
 const SHAPE_SCORE_MAX: Record<FaceShapeId, number> = {
     oval: 7,
@@ -277,6 +280,17 @@ function average(values: number[]) {
     return values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
 }
 
+function percentile(values: number[], ratio: number) {
+    if (!values.length) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const index = clamp((sorted.length - 1) * ratio, 0, sorted.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    if (lower === upper) return sorted[lower];
+    const mix = index - lower;
+    return sorted[lower] + (sorted[upper] - sorted[lower]) * mix;
+}
+
 function standardDeviation(values: number[]) {
     if (!values.length) return 0;
     const mean = average(values);
@@ -300,8 +314,14 @@ function getCenter(points: FacePoint[]) {
 }
 
 function getEyebrowAnchor(landmarks: NormalizedLandmark[]): FacePoint {
-    const left = getCenter(getPoints(landmarks, LEFT_EYEBROW_INDICES));
-    const right = getCenter(getPoints(landmarks, RIGHT_EYEBROW_INDICES));
+    const leftLower = getPoints(landmarks, LEFT_EYEBROW_INDICES)
+        .sort((a, b) => b.y - a.y)
+        .slice(0, 3);
+    const rightLower = getPoints(landmarks, RIGHT_EYEBROW_INDICES)
+        .sort((a, b) => b.y - a.y)
+        .slice(0, 3);
+    const left = getCenter(leftLower);
+    const right = getCenter(rightLower);
     return {
         x: average([left.x, right.x]),
         y: average([left.y, right.y]),
@@ -309,9 +329,9 @@ function getEyebrowAnchor(landmarks: NormalizedLandmark[]): FacePoint {
 }
 
 function getPhiltrumBase(landmarks: NormalizedLandmark[]): FacePoint {
-    // Use the true subnasale point directly under the nose,
-    // not the upper-lip landmark.
-    return getPoint(landmarks, LANDMARKS.noseBase);
+    // Approximate subnasale using the lower central nose-base cluster
+    // instead of a single landmark that tends to sit too high.
+    return getCenter(getPoints(landmarks, NOSE_BASE_ANCHOR_INDICES));
 }
 
 function distance(a: FacePoint, b: FacePoint) {
@@ -447,6 +467,16 @@ function buildOpenCurveFromPoints(points: FacePoint[], samplesPerSegment = EDITO
 
 export function buildFaceShapeEditorContour(handles: FacePoint[], samplesPerSegment = EDITOR_CURVE_SAMPLES) {
     if (handles.length < 3) return handles.map((point) => clampPoint(point));
+    if (handles.length >= 12) {
+        const topArc = buildOpenCurveFromPoints(handles.slice(0, 5), samplesPerSegment);
+        const rightArc = buildOpenCurveFromPoints(handles.slice(4, 9), samplesPerSegment);
+        const leftArc = buildOpenCurveFromPoints([handles[8], ...handles.slice(9), handles[0]], samplesPerSegment);
+        return [
+            ...topArc,
+            ...rightArc.slice(1),
+            ...leftArc.slice(1, -1),
+        ].map((point) => clampPoint(point));
+    }
 
     const contour: FacePoint[] = [];
     for (let index = 0; index < handles.length; index += 1) {
@@ -475,18 +505,26 @@ function buildManualHairlineFromHandles(handles: FacePoint[]): HairlineRefinemen
 
 function buildFaceShapeEditorHandles(geometry: FaceGeometry) {
     const topLeft = getPointAtProgress(geometry.topContour, 0);
-    const topUpperLeft = getPointAtProgress(geometry.topContour, 0.25);
-    const topCenter = geometry.bounds.top;
-    const topUpperRight = getPointAtProgress(geometry.topContour, 0.75);
+    const rawTopUpperLeft = getPointAtProgress(geometry.topContour, 0.25);
+    const topCenter = geometry.frameBounds.top;
+    const rawTopUpperRight = getPointAtProgress(geometry.topContour, 0.75);
     const topRight = getPointAtProgress(geometry.topContour, 1);
+    const topUpperLeft = {
+        x: rawTopUpperLeft.x,
+        y: Math.max(rawTopUpperLeft.y, average([topLeft.y, topCenter.y])),
+    };
+    const topUpperRight = {
+        x: rawTopUpperRight.x,
+        y: Math.max(rawTopUpperRight.y, average([topRight.y, topCenter.y])),
+    };
     const cheekY = average([geometry.cheekGuide[0].y, geometry.cheekGuide[1].y]);
     const templeGuide = getHorizontalGuide(
         geometry.contour,
-        clamp(average([topUpperRight.y, cheekY]), geometry.bounds.top.y + 0.02, cheekY - 0.01)
+        clamp(average([topUpperRight.y, cheekY]), geometry.frameBounds.top.y + 0.02, cheekY - 0.01)
     );
     const extents = getContourExtents(geometry.contour);
     const width = extents.maxX - extents.minX;
-    const height = geometry.bounds.bottom.y - geometry.bounds.top.y;
+    const height = geometry.frameBounds.bottom.y - geometry.frameBounds.top.y;
 
     // The editor draft should hug the visible contour, not a padded safety margin.
     return [
@@ -501,7 +539,7 @@ function buildFaceShapeEditorHandles(geometry: FaceGeometry) {
         },
         { x: geometry.cheekGuide[1].x + width * 0.008, y: geometry.cheekGuide[1].y },
         { x: geometry.jawGuide[1].x + width * 0.008, y: geometry.jawGuide[1].y + height * 0.008 },
-        { x: geometry.bounds.bottom.x, y: geometry.bounds.bottom.y + height * 0.012 },
+        { x: geometry.frameBounds.bottom.x, y: geometry.frameBounds.bottom.y + height * 0.012 },
         { x: geometry.jawGuide[0].x - width * 0.008, y: geometry.jawGuide[0].y + height * 0.008 },
         { x: geometry.cheekGuide[0].x - width * 0.008, y: geometry.cheekGuide[0].y },
         {
@@ -941,7 +979,7 @@ function smoothHairlinePoints(points: FacePoint[]) {
 async function resolveHairline(imageElement: HTMLImageElement, landmarks: NormalizedLandmark[]): Promise<HairlineRefinement> {
     const meshTop = getPoint(landmarks, LANDMARKS.top);
     const chin = getPoint(landmarks, LANDMARKS.chin);
-    const browCenter = getPoint(landmarks, LANDMARKS.browCenter);
+    const eyebrowLower = getEyebrowAnchor(landmarks);
     const faceHeight = distance(meshTop, chin);
 
     const xMin = clamp(Math.min(
@@ -955,9 +993,9 @@ async function resolveHairline(imageElement: HTMLImageElement, landmarks: Normal
 
     const searchTop = clamp(meshTop.y - faceHeight * 0.24, 0, meshTop.y);
     const foreheadStart = clamp(
-        Math.min(browCenter.y - faceHeight * 0.08, meshTop.y + faceHeight * 0.05),
+        Math.min(eyebrowLower.y - faceHeight * 0.1, meshTop.y + faceHeight * 0.05),
         searchTop + 0.02,
-        browCenter.y - 0.01
+        eyebrowLower.y - 0.012
     );
 
     const hairMask = await getHairMask(imageElement);
@@ -1044,9 +1082,14 @@ async function resolveHairline(imageElement: HTMLImageElement, landmarks: Normal
     const smoothed = smoothHairlinePoints(interpolated);
     const centerIndex = Math.floor(smoothed.length / 2);
     const centralBand = smoothed.slice(Math.max(0, centerIndex - 1), Math.min(smoothed.length, centerIndex + 2));
+    const loweredHairlineY = percentile(smoothed.map((point) => point.y), 0.75);
     const top = {
         x: average(centralBand.map((point) => point.x)),
-        y: average(centralBand.map((point) => point.y)),
+        y: clamp(
+            loweredHairlineY,
+            average(centralBand.map((point) => point.y)),
+            percentile(smoothed.map((point) => point.y), 0.92)
+        ),
     };
 
     const segmenterHits = hits.filter((hit) => hit.source === "segmenter").length;
@@ -1170,9 +1213,15 @@ function buildFaceGeometry(
     const manualHairline = manualFrame ? buildManualHairlineFromHandles(manualFrame.handles) : null;
     const topContour = manualHairline?.points ?? hairline.points;
     const boundsTop = manualHairline?.top ?? hairline.top;
-    const boundsBottom = manualFrame?.handles[8] ?? chin;
-    const eyebrowAnchorOnAxis = projectPointOntoAxis(eyebrowAnchor, boundsTop, boundsBottom);
-    const philtrumBaseOnAxis = projectPointOntoAxis(philtrumBase, boundsTop, boundsBottom);
+    const frameBottom = manualFrame?.handles[8] ?? chin;
+    const measurementBottom = manualFrame
+        ? {
+            x: chin.x,
+            y: clamp(frameBottom.y, chin.y - 0.008, chin.y + 0.012),
+        }
+        : chin;
+    const eyebrowAnchorOnAxis = projectPointOntoAxis(eyebrowAnchor, boundsTop, measurementBottom);
+    const philtrumBaseOnAxis = projectPointOntoAxis(philtrumBase, boundsTop, measurementBottom);
     const foreheadMeasureY = clamp(
         boundsTop.y + (eyebrowAnchorOnAxis.y - boundsTop.y) * 0.5,
         boundsTop.y + 0.01,
@@ -1182,14 +1231,18 @@ function buildFaceGeometry(
     const jawGuide = getGuideAtY(contour, average([leftJaw.y, rightJaw.y]), [leftJaw, rightJaw]);
     const chinGuide = getGuideAtY(
         contour,
-        clamp(average([leftChin.y, rightChin.y]), boundsTop.y + 0.02, boundsBottom.y - 0.01),
+        clamp(average([leftChin.y, rightChin.y]), boundsTop.y + 0.02, measurementBottom.y - 0.01),
         [leftChin, rightChin]
     );
 
     return {
         bounds: {
             top: boundsTop,
-            bottom: boundsBottom,
+            bottom: measurementBottom,
+        },
+        frameBounds: {
+            top: boundsTop,
+            bottom: frameBottom,
         },
         contour,
         topContour,
@@ -1208,7 +1261,7 @@ function buildFaceGeometry(
 }
 
 function buildMetrics(landmarks: NormalizedLandmark[], geometry: FaceGeometry): FaceShapeMetrics {
-    const noseBase = getPoint(landmarks, LANDMARKS.noseBase);
+    const noseBase = getPhiltrumBase(landmarks);
 
     const faceLength = distance(geometry.bounds.top, geometry.bounds.bottom);
     const cheekboneWidth = distance(geometry.cheekGuide[0], geometry.cheekGuide[1]);
@@ -1228,8 +1281,8 @@ function buildMetrics(landmarks: NormalizedLandmark[], geometry: FaceGeometry): 
 
     const totalVertical = Math.max(distance(geometry.bounds.top, geometry.bounds.bottom), 0.0001);
 
-    // Facial thirds should follow visible anatomical landmarks:
-    // hairline -> eyebrow line -> philtrum base -> chin.
+    // Facial thirds should follow visible landmarks on the image:
+    // lowered visible hairline -> eyebrow lower line -> subnasale -> chin.
     let u = (distance(geometry.bounds.top, geometry.thirds.eyebrow) / totalVertical) * 100;
     let m = (distance(geometry.thirds.eyebrow, geometry.thirds.philtrumBase) / totalVertical) * 100;
     let l = (distance(geometry.thirds.philtrumBase, geometry.bounds.bottom) / totalVertical) * 100;
@@ -1277,12 +1330,17 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
         );
     const chinFullness = closeness(chinJaw, 0.88, 0.14);
     const chinNarrowness = normalizedScore(0.85 - chinJaw, 0, 0.16);
+    const middleDominance = normalizedScore(
+        metrics.middleThird - average([metrics.upperThird, metrics.lowerThird]),
+        1.5,
+        7.5
+    );
     const upperDominance = normalizedScore(metrics.upperThird - metrics.middleThird, 2, 10);
     const lowerDominance = normalizedScore(metrics.lowerThird - metrics.middleThird, 1, 8);
+    const dominantVerticalStretch = Math.max(middleDominance, upperDominance, lowerDominance);
     const longFaceSignal = average([
         normalizedScore(length, 1.24, 1.46),
-        upperDominance,
-        lowerDominance,
+        dominantVerticalStretch,
         chinNarrowness,
     ]);
 
@@ -1301,7 +1359,12 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
     scores.oval += balancedThirds * 0.35 + longFaceSignal * 0.45;
     scores.oblong += normalizedScore(length, 1.24, 1.42) * 2.4 + longFaceSignal * 1.65;
 
-    if (length >= 1.26 && upperDominance >= 0.75 && chinNarrowness >= 0.45) {
+    if (length >= 1.22 && middleDominance >= 0.62) {
+        scores.oblong += 1.35;
+        scores.oval = Math.max(0, scores.oval - 0.4);
+    }
+
+    if (length >= 1.26 && dominantVerticalStretch >= 0.75 && chinNarrowness >= 0.45) {
         scores.oblong += 2.4;
         scores.oval = Math.max(0, scores.oval - 0.45);
         scores.round = Math.max(0, scores.round - 0.9);
@@ -1315,7 +1378,7 @@ function buildOverlay(
     geometry: FaceGeometry,
     detectedHairline?: HairlineRefinement
 ) {
-    const noseBase = getPoint(landmarks, LANDMARKS.noseBase);
+    const noseBase = getPhiltrumBase(landmarks);
     const upperThirdGuide =
         getPerpendicularGuide(geometry.contour, geometry.bounds.top, geometry.bounds.bottom, geometry.thirds.eyebrow) ??
         getGuideAtY(geometry.contour, geometry.thirds.eyebrow.y, geometry.foreheadGuide);
@@ -1326,6 +1389,7 @@ function buildOverlay(
 
     return {
         contour: geometry.contour,
+        meshPoints: landmarks.map((point) => ({ x: point.x, y: point.y })),
         faceHeight: [geometry.bounds.top, geometry.bounds.bottom] as [FacePoint, FacePoint],
         foreheadWidth: geometry.foreheadGuide,
         cheekboneWidth: geometry.cheekGuide,
@@ -1434,7 +1498,7 @@ function estimateCoverageQuality(geometry: FaceGeometry) {
 function estimatePoseQuality(landmarks: NormalizedLandmark[], geometry: FaceGeometry) {
     const leftEye = getCenter(getPoints(landmarks, LEFT_EYE_INDICES));
     const rightEye = getCenter(getPoints(landmarks, RIGHT_EYE_INDICES));
-    const noseBase = getPoint(landmarks, LANDMARKS.noseBase);
+    const noseBase = getPhiltrumBase(landmarks);
     const cheekWidth = Math.max(distance(geometry.cheekGuide[0], geometry.cheekGuide[1]), 0.0001);
 
     const rollDegrees = lineAngleDegrees(leftEye, rightEye);
@@ -1531,8 +1595,8 @@ function estimateFrameQuality(landmarks: NormalizedLandmark[], geometry: FaceGeo
         (leftJaw.x - geometry.jawGuide[0].x) / rawFaceWidth,
         (geometry.jawGuide[1].x - rightJaw.x) / rawFaceWidth,
     ];
-    const topPad = (meshTop.y - geometry.bounds.top.y) / rawFaceHeight;
-    const chinPad = (geometry.bounds.bottom.y - chin.y) / rawFaceHeight;
+    const topPad = (meshTop.y - geometry.frameBounds.top.y) / rawFaceHeight;
+    const chinPad = (geometry.frameBounds.bottom.y - chin.y) / rawFaceHeight;
 
     const alignment = average([
         ...foreheadPads.map((value) => scoreFramePadding(value, 0.006, 0.04)),
@@ -1542,7 +1606,7 @@ function estimateFrameQuality(landmarks: NormalizedLandmark[], geometry: FaceGeo
         scoreFramePadding(chinPad, 0.012, 0.045),
     ]);
 
-    const centerX = average([geometry.bounds.top.x, geometry.bounds.bottom.x]);
+    const centerX = average([geometry.frameBounds.top.x, geometry.frameBounds.bottom.x]);
     const guides = [geometry.foreheadGuide, geometry.cheekGuide, geometry.jawGuide, geometry.chinGuide];
     const symmetry = average(
         guides.map(([left, right]) => {

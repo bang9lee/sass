@@ -23,6 +23,7 @@ interface FaceShapeFrameEditorProps {
     onChangeHandles: (handles: FacePoint[]) => void;
     onRestoreDraft: () => void;
     onReloadDraft: () => void;
+    onReset: () => void;
     onAnalyze: () => void;
 }
 
@@ -41,6 +42,24 @@ function pairPath(points?: [FacePoint, FacePoint] | null) {
 
 function averageX(points: FacePoint[]) {
     return points.reduce((sum, point) => sum + point.x, 0) / Math.max(points.length, 1);
+}
+
+function getBounds(points?: FacePoint[] | null) {
+    if (!points?.length) return null;
+    return points.reduce(
+        (bounds, point) => ({
+            minX: Math.min(bounds.minX, point.x),
+            maxX: Math.max(bounds.maxX, point.x),
+            minY: Math.min(bounds.minY, point.y),
+            maxY: Math.max(bounds.maxY, point.y),
+        }),
+        {
+            minX: points[0].x,
+            maxX: points[0].x,
+            minY: points[0].y,
+            maxY: points[0].y,
+        }
+    );
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -73,6 +92,7 @@ export function FaceShapeFrameEditor({
     onChangeHandles,
     onRestoreDraft,
     onReloadDraft,
+    onReset,
     onAnalyze,
 }: FaceShapeFrameEditorProps) {
     const stageRef = useRef<HTMLDivElement>(null);
@@ -83,8 +103,8 @@ export function FaceShapeFrameEditor({
         () => ({
             title: isKo ? "측정 프레임 보정" : "Measurement Frame Calibration",
             subtitle: isKo
-                ? "빨간선은 실제 분석 프레임입니다. 헤어라인 시작점, 얼굴 옆선, 턱끝 아래를 직접 맞춰 주세요."
-                : "The red contour becomes the real analysis frame. Place it on the hairline start, side contour, and chin base.",
+                ? "헤어라인, 얼굴 옆선, 턱끝만 실제 경계에 맞춰 주세요."
+                : "Match the hairline, side contour, and chin tip to the real boundary.",
             loading: isKo ? "AI 초안 생성 중..." : "Building AI draft...",
             ready: isKo ? "현재 빨간선이 실제 분석 기준입니다." : "The red contour is now the live analysis frame.",
             previewing: isKo ? "실측값 재계산 중..." : "Refreshing measurements...",
@@ -93,14 +113,12 @@ export function FaceShapeFrameEditor({
             analyze: isKo ? "이 프레임으로 분석" : "Analyze With This Frame",
             statusReady: isKo ? "분석 가능" : "Ready",
             statusBlocked: isKo ? "보정 필요" : "Needs Refinement",
-            stageHint: isKo
-                ? "점선은 MediaPipe 헤어라인 기준이고, 흰 분할선은 헤어라인-눈썹-코밑-턱끝 3분할 기준입니다."
-                : "The dashed line is the MediaPipe hairline reference. The white dividers split hairline, brow, nose base, and chin.",
-            legendContour: isKo ? "빨간선: 실제 분석 윤곽" : "Red: live analysis contour",
-            legendHairline: isKo ? "점선: MediaPipe 헤어라인" : "Dashed: MediaPipe hairline",
-            legendThirds: isKo ? "흰선: 3분할 기준선" : "White: thirds guides",
-            legendCenter: isKo ? "세로선: 얼굴 중심 축" : "Vertical: face axis",
-            detectionTitle: isKo ? "측정 기준" : "Measurement Basis",
+            legendContour: isKo ? "윤곽" : "Contour",
+            legendHairline: isKo ? "헤어라인" : "Hairline",
+            legendThirds: isKo ? "3등분" : "Thirds",
+            legendFifths: isKo ? "5등분" : "Fifths",
+            legendCenter: isKo ? "중심축" : "Axis",
+            detectionTitle: isKo ? "분석 기준" : "Analysis Basis",
             detectionHairline: isKo ? "헤어라인 방식" : "Hairline Method",
             detectionReliability: isKo ? "감지 신뢰도" : "Reliability",
             detectionFrame: isKo ? "현재 분석 기준" : "Active Frame",
@@ -112,8 +130,8 @@ export function FaceShapeFrameEditor({
             methodManual: isKo ? "수동 프레임" : "Manual Frame",
             thirdsTitle: isKo ? "안면 3분할 실측" : "Measured Facial Thirds",
             thirdsTarget: isKo ? "이상 비율 1:1:1" : "Ideal 1:1:1",
-            thirdsUpper: isKo ? "헤어라인-눈썹" : "Hairline-Brow",
-            thirdsMiddle: isKo ? "눈썹-코밑" : "Brow-Nose Base",
+            thirdsUpper: isKo ? "헤어라인-눈썹 하연선" : "Hairline-Brow Lower",
+            thirdsMiddle: isKo ? "눈썹 하연선-코밑" : "Brow Lower-Nose Base",
             thirdsLower: isKo ? "코밑-턱끝" : "Nose Base-Chin",
             deltaLabel: isKo ? "이상 비율 대비" : "Vs ideal",
             qualityTitle: isKo ? "정렬 품질" : "Alignment Quality",
@@ -124,20 +142,21 @@ export function FaceShapeFrameEditor({
             hairlineQuality: isKo ? "헤어라인 판독" : "Hairline Read",
             frameQuality: isKo ? "프레임 밀착" : "Frame Fit",
             noticeTitle: isKo ? "주의" : "Notice",
-            browDivider: isKo ? "눈썹선" : "Brow Line",
+            changePhoto: isKo ? "다른 사진 선택" : "Choose Another Photo",
+            browDivider: isKo ? "눈썹 하연선" : "Brow Lower Line",
             philtrumDivider: isKo ? "코밑선" : "Nose Base",
         }),
         [isKo]
     );
 
     const qualityFlagCopy: Record<FaceShapeQualityFlag, string> = {
-        ambiguous_shape: isKo ? "얼굴형 판독이 아직 흔들립니다. 프레임을 얼굴 바깥선에 더 밀착해 주세요." : "Shape reading is still unstable. Tighten the frame to the visible contour.",
-        low_pose: isKo ? "정면 기준이 흐트러져 있습니다. 고개와 눈높이를 정면으로 맞춰 주세요." : "The face is off-axis. Level the head and eyes.",
-        low_sharpness: isKo ? "사진 경계가 흐립니다. 더 선명한 사진이 필요합니다." : "Edges are too soft. A sharper photo is needed.",
-        low_lighting: isKo ? "조명이 고르지 않아 헤어라인과 옆선 판독이 약합니다." : "Uneven light weakens hairline and side contour detection.",
-        low_coverage: isKo ? "얼굴이 화면을 더 크게 차지해야 합니다." : "The face should occupy more of the frame.",
-        low_frame_alignment: isKo ? "빨간선을 실제 얼굴 바깥선에 더 바짝 붙여 주세요." : "Move the red contour closer to the real outer boundary.",
-        low_hairline: isKo ? "헤어라인 감지가 약합니다. 이마가 더 잘 보이도록 맞춰 주세요." : "Hairline detection is weak. Expose the forehead more clearly.",
+        ambiguous_shape: isKo ? "윤곽 프레임을 실제 외곽에 더 붙여 주세요." : "Tighten the contour to the real boundary.",
+        low_pose: isKo ? "정면 각도와 눈높이를 다시 맞춰 주세요." : "Level the face and eyes again.",
+        low_sharpness: isKo ? "더 선명한 사진이 필요합니다." : "A sharper photo is needed.",
+        low_lighting: isKo ? "이마와 턱선 조명을 더 균일하게 해주세요." : "Even out the lighting on the forehead and jaw.",
+        low_coverage: isKo ? "얼굴이 화면을 더 크게 차지해야 합니다." : "The face should fill more of the frame.",
+        low_frame_alignment: isKo ? "빨간선을 실제 얼굴 외곽에 더 붙여 주세요." : "Move the red contour closer to the face edge.",
+        low_hairline: isKo ? "이마가 더 보이도록 맞춰 주세요." : "Expose the forehead more clearly.",
     };
 
     const liveInsights = (preview?.gate.reasons.length ? preview.gate.reasons : preview?.quality.flags ?? [])
@@ -148,15 +167,22 @@ export function FaceShapeFrameEditor({
     const centerLinePath = pairPath(preview?.overlay.centerLine);
     const upperThirdPath = pairPath(preview?.overlay.upperThirdGuide);
     const middleThirdPath = pairPath(preview?.overlay.middleThirdGuide);
+    const leftEyeBounds = getBounds(preview?.overlay.leftEye);
+    const rightEyeBounds = getBounds(preview?.overlay.rightEye);
+    const fifthGuideXs =
+        leftEyeBounds && rightEyeBounds
+            ? [leftEyeBounds.minX, leftEyeBounds.maxX, rightEyeBounds.minX, rightEyeBounds.maxX]
+            : [];
+    const fifthGuideRange = preview?.overlay.faceHeight ?? null;
     const guideMarkers = [
         {
             key: "upper",
-            point: preview?.overlay.upperThirdGuide?.[1] ?? null,
+            point: preview?.overlay.upperThirdGuide?.[0] ?? null,
             label: labels.browDivider,
         },
         {
             key: "middle",
-            point: preview?.overlay.middleThirdGuide?.[1] ?? null,
+            point: preview?.overlay.middleThirdGuide?.[0] ?? null,
             label: labels.philtrumDivider,
         },
     ].filter((item) => item.point);
@@ -229,14 +255,14 @@ export function FaceShapeFrameEditor({
             <div className={`relative z-10 w-full max-w-7xl ${isKo ? "font-korean" : ""}`}>
                 <div className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,24,0.96),rgba(5,8,14,0.94))] p-4 shadow-[0_30px_120px_rgba(0,0,0,0.45)] md:p-6">
                     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
-                        <section className="rounded-[30px] border border-white/8 bg-white/[0.03] p-4 md:p-5">
+                        <section className="rounded-[30px] border border-white/8 bg-white/3 p-4 md:p-5">
                             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                                 <div>
                                     <h2 className={`text-2xl font-bold tracking-tight text-white md:text-3xl ${isKo ? "" : "font-cinzel"}`}>{labels.title}</h2>
                                     <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/62 md:text-[15px]">{labels.subtitle}</p>
                                 </div>
 
-                                <div className="rounded-[18px] border border-white/8 bg-black/[0.24] px-4 py-3 text-left md:min-w-[180px] md:text-right">
+                                <div className="rounded-[18px] border border-white/8 bg-black/24 px-4 py-3 text-left md:min-w-[180px] md:text-right">
                                     <p className="text-[11px] font-medium text-white/42">{isKo ? "현재 상태" : "Current Status"}</p>
                                     <p className={`mt-1 text-sm font-semibold ${preview?.gate.canAnalyze ? "text-emerald-100" : "text-amber-100"}`}>{statusLabel}</p>
                                 </div>
@@ -261,6 +287,16 @@ export function FaceShapeFrameEditor({
                                     {centerLinePath && <path d={centerLinePath} fill="none" stroke="rgba(255,255,255,0.34)" strokeWidth="0.22" strokeDasharray="1.6 1.2" />}
                                     {upperThirdPath && <path d={upperThirdPath} fill="none" stroke="rgba(255,255,255,0.84)" strokeWidth="0.28" strokeDasharray="1.15 0.95" />}
                                     {middleThirdPath && <path d={middleThirdPath} fill="none" stroke="rgba(255,255,255,0.84)" strokeWidth="0.28" strokeDasharray="1.15 0.95" />}
+                                    {fifthGuideRange && fifthGuideXs.map((x, index) => (
+                                        <path
+                                            key={`fifth-${index}`}
+                                            d={`M ${x * 100} ${fifthGuideRange[0].y * 100} L ${x * 100} ${fifthGuideRange[1].y * 100}`}
+                                            fill="none"
+                                            stroke="rgba(138,191,244,0.42)"
+                                            strokeWidth="0.18"
+                                            strokeDasharray="0.95 0.85"
+                                        />
+                                    ))}
                                     {hairlinePath && <path d={hairlinePath} fill="none" stroke="rgba(255,255,255,0.68)" strokeWidth="0.28" strokeDasharray="1.8 1.3" strokeLinecap="round" strokeLinejoin="round" />}
                                     <path d={path} fill="rgba(255,107,107,0.05)" stroke="#ff6b6b" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" />
 
@@ -285,47 +321,43 @@ export function FaceShapeFrameEditor({
                                         </g>
                                     ))}
 
-                                    {guideMarkers.map(({ key, point, label }) => (
-                                        <g key={key}>
-                                            <rect
-                                                x={(point!.x * 100) - 8.4}
-                                                y={(point!.y * 100) - 3.35}
-                                                width="7.2"
-                                                height="2.9"
-                                                rx="1.45"
-                                                fill="rgba(6,10,18,0.78)"
-                                            />
-                                            <text
-                                                x={(point!.x * 100) - 4.8}
-                                                y={(point!.y * 100) - 1.48}
-                                                textAnchor="middle"
-                                                fontSize="1.08"
-                                                fill="rgba(255,255,255,0.96)"
-                                                fontWeight="700"
-                                            >
-                                                {label}
-                                            </text>
-                                        </g>
-                                    ))}
                                 </svg>
 
                                 <div className="absolute left-4 top-4">
-                                    <div className="rounded-full border border-white/10 bg-black/[0.46] px-3 py-1 text-[10px] font-medium text-white/72">
+                                    <div className="rounded-full border border-white/10 bg-black/46 px-3 py-1 text-[10px] font-medium text-white/72">
                                         {isLoading ? labels.loading : isPreviewing ? labels.previewing : labels.ready}
                                     </div>
                                 </div>
+
+                                <div className="pointer-events-none absolute inset-0">
+                                    {guideMarkers.map(({ key, point, label }) => (
+                                        <div
+                                            key={key}
+                                            className="absolute"
+                                            style={{
+                                                top: `${point!.y * 100}%`,
+                                                left: `${Math.max((point!.x * 100) - 8, 3)}%`,
+                                                transform: "translate(-100%, -50%)",
+                                            }}
+                                        >
+                                            <div className="rounded-md border border-white/12 bg-black/82 px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_18px_rgba(0,0,0,0.28)]">
+                                                {label}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
-                            <div className="mt-4 rounded-[22px] border border-white/8 bg-black/[0.22] p-4">
-                                <p className="text-sm leading-relaxed text-white/76">{labels.stageHint}</p>
-                                <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                            <div className="mt-4 rounded-[22px] border border-white/8 bg-black/22 p-4">
+                                <div className="flex flex-wrap gap-2">
                                     {[
                                         { swatch: "bg-[#ff6b6b]", text: labels.legendContour },
                                         { swatch: "bg-white/80", text: labels.legendHairline },
                                         { swatch: "bg-white", text: labels.legendThirds },
+                                        { swatch: "bg-sky-200/80", text: labels.legendFifths },
                                         { swatch: "bg-white/40", text: labels.legendCenter },
                                     ].map((item) => (
-                                        <div key={item.text} className="flex items-center gap-2 rounded-[16px] border border-white/8 bg-white/[0.03] px-3 py-2 text-[12px] text-white/72">
+                                        <div key={item.text} className="flex items-center gap-2 rounded-full border border-white/8 bg-white/3 px-3 py-2 text-[12px] leading-none text-white/78">
                                             <span className={`h-2 w-2 shrink-0 rounded-full ${item.swatch}`} />
                                             <span>{item.text}</span>
                                         </div>
@@ -337,16 +369,9 @@ export function FaceShapeFrameEditor({
                         <aside className="flex h-full flex-col gap-4 rounded-[30px] border border-white/8 bg-[linear-gradient(180deg,rgba(7,12,20,0.96),rgba(4,8,14,0.98))] p-4 md:p-5">
                             {preview && (
                                 <>
-                                    <section className="rounded-[24px] border border-white/8 bg-black/[0.22] p-4">
+                                    <section className="rounded-[24px] border border-white/8 bg-black/22 p-4">
                                         <div className="flex items-start justify-between gap-3">
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-white/48">{labels.detectionTitle}</p>
-                                                <p className="mt-2 text-sm leading-relaxed text-white/74">
-                                                    {isKo
-                                                        ? "점선은 MediaPipe 기준선이고, 빨간선은 실제 분석에 쓰이는 프레임입니다. 여기서는 얼굴형 예측보다 측정 정확도를 먼저 맞춥니다."
-                                                        : "The dashed line is the MediaPipe reference, while the red contour is the live analysis frame."}
-                                                </p>
-                                            </div>
+                                            <p className="text-[12px] font-semibold text-white/48">{labels.detectionTitle}</p>
                                             <div className={`rounded-full border px-3 py-1 text-[10px] font-medium ${
                                                 preview.gate.canAnalyze
                                                     ? "border-emerald-300/20 bg-emerald-500/10 text-emerald-100"
@@ -356,23 +381,23 @@ export function FaceShapeFrameEditor({
                                             </div>
                                         </div>
 
-                                        <div className="mt-4 grid grid-cols-3 gap-3">
-                                            <div className="rounded-[18px] border border-white/8 bg-black/[0.24] p-3">
+                                        <div className="mt-3 grid grid-cols-3 gap-3">
+                                            <div className="rounded-[18px] border border-white/8 bg-black/24 p-3">
                                                 <span className="block text-[11px] text-white/42">{labels.detectionHairline}</span>
                                                 <span className="mt-2 block text-sm font-semibold text-white">{hairlineMethodLabel}</span>
                                             </div>
-                                            <div className="rounded-[18px] border border-white/8 bg-black/[0.24] p-3">
+                                            <div className="rounded-[18px] border border-white/8 bg-black/24 p-3">
                                                 <span className="block text-[11px] text-white/42">{labels.detectionReliability}</span>
                                                 <span className="mt-2 block text-lg font-bold text-white">{preview.overlay.hairlineReliability ?? 0}%</span>
                                             </div>
-                                            <div className="rounded-[18px] border border-white/8 bg-black/[0.24] p-3">
+                                            <div className="rounded-[18px] border border-white/8 bg-black/24 p-3">
                                                 <span className="block text-[11px] text-white/42">{labels.detectionFrame}</span>
                                                 <span className="mt-2 block text-sm font-semibold text-white">{frameBasisLabel}</span>
                                             </div>
                                         </div>
                                     </section>
 
-                                    <section className="rounded-[24px] border border-white/8 bg-black/[0.22] p-4">
+                                    <section className="rounded-[24px] border border-white/8 bg-black/22 p-4">
                                         <div className="flex items-center justify-between gap-3">
                                             <div>
                                                 <p className="text-[12px] font-semibold text-white/48">{labels.thirdsTitle}</p>
@@ -402,7 +427,7 @@ export function FaceShapeFrameEditor({
                                         </div>
                                     </section>
 
-                                    <section className="rounded-[24px] border border-white/8 bg-black/[0.22] p-4">
+                                    <section className="rounded-[24px] border border-white/8 bg-black/22 p-4">
                                         <div className="flex items-center justify-between gap-3">
                                             <p className="text-[12px] font-semibold text-white/48">{labels.qualityTitle}</p>
                                             <span className="text-[11px] text-white/38">{isKo ? "실측 기반" : "Measured"}</span>
@@ -426,19 +451,19 @@ export function FaceShapeFrameEditor({
                                         </div>
                                     </section>
 
-                                    <section className="rounded-[24px] border border-white/8 bg-black/[0.22] p-4">
+                                    <section className="rounded-[24px] border border-white/8 bg-black/22 p-4">
                                         <div className="flex items-center justify-between gap-3">
                                             <p className="text-[12px] font-semibold text-white/48">{labels.actionTitle}</p>
                                             <span className="text-[11px] text-white/38">{liveInsights.length || 1} {isKo ? "개 항목" : "items"}</span>
                                         </div>
 
                                         {!preview.gate.canAnalyze && (
-                                            <p className="mt-3 text-xs leading-relaxed text-rose-100/82">{labels.guide}</p>
+                                            <p className="mt-3 text-[11px] leading-relaxed text-rose-100/82">{labels.guide}</p>
                                         )}
 
                                         <div className="mt-4 space-y-2.5">
                                             {(liveInsights.length ? liveInsights : [labels.insightEmpty]).map((text, index) => (
-                                                <div key={`${text}-${index}`} className="flex items-start gap-3 rounded-[16px] border border-white/6 bg-white/[0.02] px-3 py-3">
+                                                <div key={`${text}-${index}`} className="flex items-start gap-3 rounded-[16px] border border-white/6 bg-white/2 px-3 py-3">
                                                     <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${liveInsights.length ? "bg-cyan-300" : "bg-emerald-300"}`} />
                                                     <p className="text-xs leading-relaxed text-white/76">{text}</p>
                                                 </div>
@@ -462,7 +487,7 @@ export function FaceShapeFrameEditor({
                                         disabled={isLoading || isAnalyzing}
                                         className={`flex items-center justify-center gap-2 rounded-full border px-5 py-4 text-sm font-semibold transition-colors ${
                                             isLoading || isAnalyzing
-                                                ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/28"
+                                                ? "cursor-not-allowed border-white/10 bg-white/4 text-white/28"
                                                 : "border-white/10 bg-white/[0.07] text-white hover:bg-white/12"
                                         } ${isKo ? "font-korean" : ""}`}
                                     >
@@ -475,14 +500,27 @@ export function FaceShapeFrameEditor({
                                         disabled={isLoading || isAnalyzing}
                                         className={`flex items-center justify-center gap-2 rounded-full border px-5 py-4 text-sm font-semibold transition-colors ${
                                             isLoading || isAnalyzing
-                                                ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/28"
-                                                : "border-white/10 bg-white/[0.03] text-white/84 hover:bg-white/10 hover:text-white"
+                                                ? "cursor-not-allowed border-white/10 bg-white/4 text-white/28"
+                                                : "border-white/10 bg-white/3 text-white/84 hover:bg-white/10 hover:text-white"
                                         } ${isKo ? "font-korean" : ""}`}
                                     >
                                         <RotateCcw className="h-4 w-4" />
                                         {labels.restore}
                                     </button>
                                 </div>
+
+                                <button
+                                    onClick={onReset}
+                                    disabled={isLoading || isAnalyzing || isPreviewing}
+                                    className={`flex items-center justify-center gap-2 rounded-full border px-5 py-4 text-sm font-semibold transition-colors ${
+                                        isLoading || isAnalyzing || isPreviewing
+                                            ? "cursor-not-allowed border-white/10 bg-white/4 text-white/28"
+                                            : "border-white/10 bg-white/3 text-white/72 hover:bg-white/10 hover:text-white"
+                                    } ${isKo ? "font-korean" : ""}`}
+                                >
+                                    <RotateCcw className="h-4 w-4" />
+                                    {labels.changePhoto}
+                                </button>
 
                                 <button
                                     onClick={onAnalyze}
