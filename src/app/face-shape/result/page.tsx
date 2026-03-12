@@ -31,6 +31,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     return {
         title: content.title,
         description: content.description,
+        robots: {
+            index: false,
+            follow: false,
+            googleBot: {
+                index: false,
+                follow: false,
+            },
+        },
     };
 }
 

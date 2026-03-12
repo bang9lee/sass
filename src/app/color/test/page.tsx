@@ -2,10 +2,9 @@
 
 import { useState, useRef, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { RotateCcw, Upload, Move, PenTool, ZoomIn, ZoomOut, Undo2, Check, Menu, X } from 'lucide-react';
-import Link from 'next/link';
-import { LanguageSelector } from "@/components/language-selector";
+import { RotateCcw, Upload, Move, PenTool, ZoomIn, ZoomOut, Undo2, Check } from 'lucide-react';
 import { Footer } from "@/components/footer";
+import { SiteHeader } from "@/components/site-header";
 import { SeasonId, SubSeasonId, analyzePersonalColor } from "@/lib/color-data";
 import { analyzePersonalColorAI, preloadModel, getFaceContour } from "@/lib/face-color-analysis";
 import {
@@ -22,7 +21,7 @@ import {
     preloadFaceShapeModel,
     type FaceStyleTarget,
 } from "@/lib/face-shape-analysis-official";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { FaceShapeFrameEditor } from "@/components/FaceShapeFrameEditor";
 
 // =============================================
@@ -213,14 +212,6 @@ function ColorTestContent() {
     const isEnglish = lang === 'en';
     const t = UI_TEXT[lang];
 
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const MENU_LABELS: Record<Lang, { aesthetic: string; color: string; faceShape: string }> = {
-        ko: { aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI얼굴형분석" },
-        en: { aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis" },
-        zh: { aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析" },
-        ja: { aesthetic: "感性テスト", color: "パーソナルカラー", faceShape: "AI 顔型分析" },
-    };
-    const menu = MENU_LABELS[lang];
     const pageTitle =
         mode === 'shape'
             ? {
@@ -1004,6 +995,7 @@ function ColorTestContent() {
                         <div className="relative w-64 h-64 sm:w-80 sm:h-80 mb-16">
                             <div className="relative w-full h-full rounded-full overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(34,211,238,0.1)] bg-zinc-900/40 backdrop-blur-sm">
                                 <div className="absolute inset-0 grayscale opacity-40 mix-blend-luminosity">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                         src={croppedSrc || imageSrc || ''}
                                         alt="Scanning"
@@ -1156,6 +1148,7 @@ function ColorTestContent() {
                 {/* Face image */}
                 <div className="flex-1 flex items-center justify-center relative z-10 px-4">
                     <motion.div layout className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[440px] lg:h-[440px]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={croppedSrc || imageSrc || ''} alt="Face" className="w-full h-full object-contain drop-shadow-2xl" />
                     </motion.div>
                 </div>
@@ -1280,66 +1273,7 @@ function ColorTestContent() {
 
     return (
         <div className="min-h-dvh flex flex-col relative w-full overflow-x-hidden">
-            {/* Header */}
-            <header className="sticky top-0 z-50 flex items-center justify-between sm:grid sm:grid-cols-3 px-4 py-3 sm:px-6 sm:py-4 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl shrink-0">
-                <div className="flex items-center shrink-0 justify-start">
-                    <Link href={`/?lang=${lang}`} className="text-white font-cinzel font-bold text-base sm:text-lg tracking-widest hover:text-white/80 transition-colors">
-                        FINDCORE
-                    </Link>
-                </div>
-                <div className="hidden sm:flex items-center justify-center">
-                    <nav className="flex items-center gap-8">
-                        <Link href={`/?lang=${lang}`} className="text-[13px] font-medium text-white/60 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap">{menu.aesthetic}</Link>
-                        <Link href={`/color?lang=${lang}`} className="text-[13px] font-medium text-pink-300 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap">{menu.color}</Link>
-                        <Link href={`/face-shape?lang=${lang}`} className="text-[13px] font-medium text-cyan-300 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap">{menu.faceShape}</Link>
-                    </nav>
-                </div>
-                <div className="flex items-center gap-3 sm:gap-0 justify-end">
-                    <LanguageSelector currentLang={lang} onSelect={(l) => router.push(`${window.location.pathname}?lang=${l}&mode=${mode}`)} />
-                    <button className="sm:hidden p-2 text-white/80 hover:text-white ml-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                        {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                    </button>
-                </div>
-            </header>
-
-            {/* Mobile Full-Screen Menu Overlay */}
-            <AnimatePresence>
-                {isMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="fixed inset-0 z-60 bg-black/95 backdrop-blur-2xl sm:hidden flex flex-col"
-                    >
-                        <div className="flex justify-end px-4 py-3">
-                            <button onClick={() => setIsMenuOpen(false)} className="p-2 text-white/80 hover:text-white">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-                        <div className="flex-1 flex flex-col items-center justify-center gap-8">
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                                <Link href={`/?lang=${lang}`} onClick={() => setIsMenuOpen(false)} className="text-xl font-medium text-white/90 hover:text-white transition-colors tracking-widest uppercase">
-                                    {menu.aesthetic}
-                                </Link>
-                            </motion.div>
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                                <Link href={`/color?lang=${lang}`} onClick={() => setIsMenuOpen(false)} className="text-xl font-medium text-pink-300 hover:text-pink-200 transition-colors tracking-widest uppercase">
-                                    {menu.color}
-                                </Link>
-                            </motion.div>
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                                <Link href={`/face-shape?lang=${lang}`} onClick={() => setIsMenuOpen(false)} className="text-xl font-medium text-cyan-300 hover:text-cyan-200 transition-colors tracking-widest uppercase">
-                                    {menu.faceShape}
-                                </Link>
-                            </motion.div>
-                        </div>
-                        <div className="pb-10 text-center">
-                            <p className="text-white/20 text-xs tracking-[0.3em] uppercase font-cinzel">FINDCORE</p>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <SiteHeader lang={lang} position="sticky" surfaceClassName="bg-black/50 backdrop-blur-xl" />
 
             {/* Main Content */}
             {renderStep()}

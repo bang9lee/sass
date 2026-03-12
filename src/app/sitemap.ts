@@ -28,6 +28,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { path: "/guides/face-shape-photo", priority: 0.7, changeFrequency: "monthly" as const },
         { path: "/guides/personal-color-photo", priority: 0.7, changeFrequency: "monthly" as const },
         { path: "/guides/result-reading", priority: 0.7, changeFrequency: "monthly" as const },
+        { path: "/guides/methodology", priority: 0.7, changeFrequency: "monthly" as const },
+        { path: "/guides/faq", priority: 0.7, changeFrequency: "monthly" as const },
         { path: "/privacy", priority: 0.5, changeFrequency: "monthly" as const },
         { path: "/terms", priority: 0.5, changeFrequency: "monthly" as const },
     ].forEach((route) => {

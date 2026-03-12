@@ -23,6 +23,8 @@ import {
     getFaceStyleTargetCopy,
     toFaceStyleTarget,
 } from "@/lib/face-shape-style-content";
+import { ReportSignatureStrip } from "@/components/report-signature-strip";
+import type { SupportedLang } from "@/lib/site-content";
 import type {
     FacePoint,
     FaceShapeAnalysisResult,
@@ -57,7 +59,6 @@ function buildFifthGuideXs(guide?: [FacePoint, FacePoint] | null) {
     if (width <= 0.02) return [];
     return [1, 2, 3, 4].map((step) => left.x + (width * step) / 5);
 }
-type SupportedLang = "ko" | "en" | "zh" | "ja";
 
 function getKeywords(shape: string, lang: string) {
     const keywords: Record<string, Record<SupportedLang, string[]>> = {
@@ -86,7 +87,7 @@ function getKeywords(shape: string, lang: string) {
             ja: ["立体感", "シャープなあご", "華やか"],
         },
         oblong: {
-            ko: ["긴형", "긴 타원형", "성숙미"],
+            ko: ["긴 얼굴형", "긴 타원형", "성숙미"],
             en: ["Long Oval", "Refined", "Balanced"],
             zh: ["长形", "长椭圆", "成熟感"],
             ja: ["面長", "ロングオーバル", "大人っぽい"],
@@ -117,7 +118,7 @@ function getConfidenceDotClass(confidence: number) {
 
 interface Props {
     result: FaceShapeAnalysisResult;
-    lang: string;
+    lang: SupportedLang;
     isKo: boolean;
 }
 
@@ -523,6 +524,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                     {/* ═══ LEFT: Image Panel ═══ */}
                     <div className="w-full shrink-0 bg-black relative lg:rounded-[24px] lg:overflow-hidden lg:shadow-[0_8px_60px_-12px_rgba(0,0,0,0.8)]">
                         <div className="relative w-full overflow-hidden">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={result.imageDataUrl}
                                 alt="Analyzed Face"
@@ -801,24 +803,8 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                             <p className="text-xs text-center text-white/50 font-semibold">{t.adPending}</p>
                         </div>
 
-                        {/* ▸ Footer: Domain & Telegram */}
-                        <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
-                            <Link 
-                                href={`/?lang=${lang}`}
-                                className="footer-domain font-cinzel text-white text-[10px] uppercase tracking-[0.2em] font-bold"
-                            >
-                                FINDCORE.ME
-                            </Link>
-                            <a
-                                href="https://t.me/todayshelp"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group flex items-center gap-1.5 text-white transition-colors duration-300"
-                            >
-                                <span className="footer-telegram-label font-cinzel text-xs tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
-                                <span className="footer-telegram-id font-cinzel text-[10px] font-bold">@todayshelp</span>
-                            </a>
-                        </div>
+                        {/* ▸ Report Signature */}
+                        <ReportSignatureStrip lang={safeLang} />
                     </div>
                 </div>
 

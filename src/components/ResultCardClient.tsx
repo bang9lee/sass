@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Download, Check, Link2, RotateCcw, Share2, Home } from 'lucide-react';
+import type { SupportedLang } from "@/lib/site-content";
+import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import Link from 'next/link';
 
 interface ResultCardClientProps {
@@ -14,7 +16,7 @@ interface ResultCardClientProps {
     keywords: string[];
     colorPalette: string[];
     isKo: boolean;
-    lang: string;
+    lang: SupportedLang;
 }
 
 export function ResultCardClient({
@@ -620,21 +622,8 @@ export function ResultCardClient({
                         <p className="text-xs text-center text-white/50 font-semibold">{t.adStatus}</p>
                     </div>
 
-                    {/* 4. Footer: Domain & Telegram */}
-                    <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
-                        <p className="footer-domain font-cinzel text-white text-[10px] uppercase tracking-[0.2em] font-bold">
-                            FINDCORE.ME
-                        </p>
-                        <a
-                            href="https://t.me/todayshelp"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group flex items-center gap-1.5 text-white transition-colors duration-300"
-                        >
-                            <span className="footer-telegram-label font-cinzel text-xs tracking-wide transition-all">Telegram</span>
-                            <span className="footer-telegram-id font-cinzel text-[10px] font-bold">@todayshelp</span>
-                        </a>
-                    </div>
+                    {/* 4. Report Signature */}
+                    <ReportSignatureStrip lang={lang} />
                 </div>
 
                 {/* Action Buttons (Outside Screenshot) */}

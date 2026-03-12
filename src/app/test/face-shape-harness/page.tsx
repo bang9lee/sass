@@ -157,6 +157,7 @@ export default function FaceShapeHarnessPage() {
             {state.status === "done" && (
                 <div style={{ width: "min(80vw, 520px)", marginBottom: "24px" }}>
                     <div style={{ position: "relative", width: "100%", aspectRatio: "3 / 4", overflow: "hidden", borderRadius: "24px", background: "#000" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={state.payload.image}
                             alt="debug"

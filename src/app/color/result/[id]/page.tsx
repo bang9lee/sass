@@ -58,7 +58,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function ColorResultPage({ params, searchParams }: Props) {
     const { id } = await params;
-    const { lang, shape } = await searchParams;
+    const { lang } = await searchParams;
     const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
     const isKo = currentLang === 'ko';
 

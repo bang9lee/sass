@@ -32,6 +32,11 @@ yarn-error.log*
 .tmp/
 4.jpg
 4.png
+4_independent_measurement.png
+4_landmarks_debug.jpg
+4_validation_browlower.png
+face_landmarker.task
+output/
 
 # env files (can opt-in for committing if needed)
 .env*

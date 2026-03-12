@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { getFooterLabels } from "@/lib/site-content";
-
-type Language = 'ko' | 'en' | 'zh' | 'ja';
+import { getFooterLabels, type SupportedLang } from "@/lib/site-content";
 
 interface FooterProps {
-    lang: Language;
+    lang: SupportedLang;
     className?: string;
 }
 

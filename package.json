@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "npx next typegen && node scripts/sync-next-typegen.mjs && node -e \"require('fs').rmSync('tsconfig.tsbuildinfo',{force:true})\" && npx tsc --noEmit",
     "postinstall": "patch-package"
   },
   "dependencies": {

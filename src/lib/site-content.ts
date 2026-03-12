@@ -1,9 +1,24 @@
 import type { Metadata } from "next";
+import { PUBLISHER_PROFILE } from "@/lib/publisher-profile";
 
 export type SupportedLang = "ko" | "en" | "zh" | "ja";
+export type NavigationLabels = {
+    aesthetic: string;
+    color: string;
+    faceShape: string;
+};
+
+const SUPPORTED_LANGS: SupportedLang[] = ["ko", "en", "zh", "ja"];
+const BASE_URL = "https://findcore.me";
+const LOCALE_BY_LANG: Record<SupportedLang, string> = {
+    ko: "ko_KR",
+    en: "en_US",
+    zh: "zh_CN",
+    ja: "ja_JP",
+};
 
 export function resolveSupportedLang(lang?: string): SupportedLang {
-    return ["ko", "en", "zh", "ja"].includes(lang || "") ? (lang as SupportedLang) : "en";
+    return SUPPORTED_LANGS.includes((lang || "") as SupportedLang) ? (lang as SupportedLang) : "en";
 }
 
 type FooterLabels = {
@@ -27,28 +42,6 @@ type PageCopy = {
     sections: ContentSection[];
 };
 
-type GuideIndexCard = {
-    href: string;
-    title: string;
-    summary: string;
-};
-
-type GuideIndexCopy = {
-    title: string;
-    description: string;
-    heading: string;
-    intro: string;
-    cards: GuideIndexCard[];
-};
-
-type GuidePageCopy = {
-    title: string;
-    description: string;
-    heading: string;
-    intro: string;
-    sections: ContentSection[];
-};
-
 const FOOTER_LABELS: Record<SupportedLang, FooterLabels> = {
     ko: { about: "소개", privacy: "개인정보처리방침", terms: "이용약관", guides: "가이드" },
     en: { about: "About", privacy: "Privacy", terms: "Terms", guides: "Guides" },
@@ -56,20 +49,35 @@ const FOOTER_LABELS: Record<SupportedLang, FooterLabels> = {
     ja: { about: "紹介", privacy: "プライバシー", terms: "利用規約", guides: "ガイド" },
 };
 
+const NAVIGATION_LABELS: Record<SupportedLang, NavigationLabels> = {
+    ko: { aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석" },
+    en: { aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis" },
+    zh: { aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析" },
+    ja: { aesthetic: "感性テスト", color: "パーソナルカラー", faceShape: "AI 顔型分析" },
+};
+
 const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
     ko: {
         title: "FINDCORE 소개",
         description: "FINDCORE - 감성 테스트, 퍼스널 컬러, 얼굴형 분석 도구",
         heading: "FINDCORE",
-        intro: "감성 타입 진단, 퍼스널 컬러 분석, AI 얼굴형 분석을 제공하는 스타일 탐색 사이트입니다.",
+        intro: "FINDCORE는 Today's Studio가 운영하는 스타일 탐색 사이트입니다. 감성 테스트, 퍼스널 컬러 분석, AI 얼굴형 분석을 제공하고, 결과를 더 잘 이해할 수 있도록 가이드 문서도 함께 운영합니다.",
         sections: [
             {
-                title: "제공 기능",
-                body: "사진 업로드 또는 질문 응답을 통해 나만의 감성 타입, 퍼스널 컬러 시즌, 얼굴형 분석 결과를 확인할 수 있습니다. 일부 기능은 브라우저에서 직접 얼굴 랜드마크를 검출하여 비율을 계산합니다.",
+                title: "무엇을 제공하나요",
+                body: "질문 기반 감성 테스트, 사진 기반 퍼스널 컬러 분석, AI 얼굴형 분석을 제공합니다. 단순히 결과 카드만 보여주는 데서 끝내지 않고, 촬영 조건과 해석 기준까지 함께 볼 수 있게 가이드도 같이 제공합니다.",
             },
             {
-                title: "문의",
-                body: "https://findcore.me · 텔레그램 : @todayshelp",
+                title: "어떻게 작동하나요",
+                body: "업로드형 도구는 브라우저 안에서 사진을 읽고, 프레임과 랜드마크를 바탕으로 비율이나 색 인상 신호를 계산합니다. 얼굴형은 보정 페이지에서 손본 프레임이 최종 입력으로 반영되고, 퍼스널 컬러는 조명과 자동 보정의 영향을 크게 받습니다.",
+            },
+            {
+                title: "무엇을 약속하지 않나요",
+                body: "FINDCORE는 외모에 대한 절대 평가나 전문 진단을 제공하지 않습니다. 결과는 스타일 참고와 자기 탐색을 돕기 위한 정보이며, 의료·채용·심리 같은 고위험 판단을 대신하지 않습니다.",
+            },
+            {
+                title: "운영과 문의",
+                body: `${PUBLISHER_PROFILE.operatorName} 운영 · 사이트: https://findcore.me · 텔레그램: ${PUBLISHER_PROFILE.telegramHandle}`,
             },
         ],
     },
@@ -77,11 +85,19 @@ const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
         title: "About FINDCORE",
         description: "FINDCORE - Aesthetic test, personal color analysis, and AI face shape tools.",
         heading: "FINDCORE",
-        intro: "A style discovery site offering aesthetic type diagnosis, personal color analysis, and AI face shape measurement.",
+        intro: "A style discovery site offering aesthetic diagnosis, personal color analysis, and AI face-shape measurement. The goal is not only to generate outputs quickly, but also to provide the reference material needed to interpret them well.",
         sections: [
             {
-                title: "Features",
-                body: "Upload a photo or answer prompts to discover your aesthetic type, personal color season, or face shape analysis. Some features detect facial landmarks directly in the browser to calculate proportions.",
+                title: "What the site offers",
+                body: "FINDCORE provides a prompt-based aesthetic test, photo-based personal color analysis, and AI face-shape analysis. The site also includes guide documents so users can improve input quality and interpret results more carefully.",
+            },
+            {
+                title: "How it works",
+                body: "Upload-based tools read the image in the browser and calculate proportion or skin-appearance signals from frames and landmarks. Face-shape analysis reflects manual frame correction, while personal-color analysis is especially sensitive to lighting and automatic camera correction.",
+            },
+            {
+                title: "What it does not promise",
+                body: "FINDCORE does not provide absolute judgments on appearance or replace professional diagnosis. The outputs are style-reference coordinates, not medical, hiring, or psychological conclusions.",
             },
             {
                 title: "Contact",
@@ -93,11 +109,19 @@ const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
         title: "关于 FINDCORE",
         description: "FINDCORE - 美学测试、个人色彩分析、AI脸型分析工具。",
         heading: "FINDCORE",
-        intro: "提供美学类型诊断、个人色彩分析和 AI 脸型测量的风格探索网站。",
+        intro: "提供美学类型诊断、个人色彩分析和 AI 脸型测量的风格探索网站。我们的目标不只是快速给出结果，也希望提供足够的参考文档帮助用户正确理解结果。",
         sections: [
             {
-                title: "功能介绍",
-                body: "通过上传照片或回答问题，发现您的美学类型、个人色彩季节或脸型分析结果。部分功能在浏览器中直接检测面部特征点并计算比例。",
+                title: "网站提供什么",
+                body: "FINDCORE 提供问答式美学测试、基于照片的个人色彩分析，以及 AI 脸型分析。同时也提供指南文档，帮助用户提升输入质量并更谨慎地理解结果。",
+            },
+            {
+                title: "它如何工作",
+                body: "上传型工具会在浏览器中读取图片，并根据框线、关键点或皮肤观感信号进行计算。脸型分析会把手动框线校正纳入最终输入，个人色彩分析则对光线与相机自动修正特别敏感。",
+            },
+            {
+                title: "它不承诺什么",
+                body: "FINDCORE 不提供对外貌的绝对评价，也不替代专业诊断。结果更适合作为风格参考坐标，而不是医疗、招聘或心理判断。",
             },
             {
                 title: "联系方式",
@@ -109,11 +133,19 @@ const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
         title: "FINDCOREについて",
         description: "FINDCORE - 感性テスト、パーソナルカラー分析、AI顔型分析ツール。",
         heading: "FINDCORE",
-        intro: "感性タイプ診断、パーソナルカラー分析、AI顔型測定を提供するスタイル探索サイトです。",
+        intro: "感性タイプ診断、パーソナルカラー分析、AI顔型測定を提供するスタイル探索サイトです。結果を素早く出すだけでなく、結果を理解するための参照文書もあわせて提供します。",
         sections: [
             {
-                title: "機能紹介",
-                body: "写真アップロードまたは質問への回答で、感性タイプ、パーソナルカラーシーズン、顔型分析の結果を確認できます。一部の機能はブラウザ上で顔のランドマークを検出し比率を算出します。",
+                title: "何を提供しているか",
+                body: "FINDCORE では、質問ベースの感性テスト、写真ベースのパーソナルカラー分析、AI 顔型分析を提供しています。さらに、入力条件や結果の読み方を補うためのガイド文書も公開しています。",
+            },
+            {
+                title: "どのように動くか",
+                body: "アップロード型ツールはブラウザ内で画像を読み取り、フレームやランドマーク、肌印象シグナルをもとに計算します。顔型は手動フレーム補正が最終入力に反映され、パーソナルカラーは照明と自動補正の影響を強く受けます。",
+            },
+            {
+                title: "何を約束しないか",
+                body: "FINDCORE は外見への絶対評価や専門診断を提供するものではありません。結果はスタイル参考の座標であり、医療・採用・心理判断を置き換えるものではありません。",
             },
             {
                 title: "お問い合わせ",
@@ -128,24 +160,24 @@ const PRIVACY_COPY: Record<SupportedLang, PageCopy> = {
         title: "개인정보처리방침 | FINDCORE",
         description: "FINDCORE 개인정보처리방침",
         heading: "개인정보처리방침",
-        intro: "FINDCORE는 실제 코드 아키텍처 상 데이터 수집이 물리적으로 불가능한 '100% 무수집(Zero-Data)' 정적 웹사이트입니다.",
-        updatedLabel: "최종 업데이트: 2026년 3월 10일",
+        intro: "이 문서는 FINDCORE에서 어떤 정보가 처리되는지, 그리고 운영자인 Today's Studio가 어떤 범위까지 관여하는지 설명합니다.",
+        updatedLabel: "Today's Studio 운영 · 2026년 3월 10일 업데이트",
         sections: [
             {
-                title: "1. 브라우저 기반 100% 로컬 처리",
-                body: "FINDCORE의 모든 분석(얼굴형, 퍼스널 컬러) 모델은 오직 사용자의 브라우저 내에서만 구동됩니다. 사용자가 등록한 이미지는 저희 서버로 전송(POST API)되는 로직 자체가 코드에 단 하나도 존재하지 않으며, 페이지를 벗어나는 즉시 브라우저 메모리에서 사라집니다.",
+                title: "1. 분석은 브라우저 안에서 진행됩니다",
+                body: "FINDCORE의 얼굴형 분석과 퍼스널 컬러 분석은 사용자의 브라우저 안에서 실행됩니다. 업로드 이미지를 서버로 보내 처리하는 별도 API 흐름은 두고 있지 않습니다.",
             },
             {
-                title: "2. 데이터베이스 및 트래커 무존재",
-                body: "당사 소스 코드에는 사용자 행동이나 로그를 추적하는 흔한 분석 툴(예: Google Analytics 등)이나, 데이터를 저장할 수 있는 형태의 백엔드 데이터베이스 모듈이 아예 설치되어 있지 않습니다. 따라서 접속 기록이나 식별 정보 수집은 시스템적으로 완전히 제로(0)입니다.",
+                title: "2. 운영자가 별도 분석 추적을 두고 있지 않습니다",
+                body: "현재 FINDCORE는 Today's Studio가 운영하며, 일반적인 방문 분석 툴이나 사용자 행동 추적 스크립트를 기본 구조로 두고 있지 않습니다. 또한 사용자 사진을 저장하기 위한 전용 백엔드 데이터베이스도 운영하지 않습니다.",
             },
             {
-                title: "3. 광고용 제3자 쿠키(Google AdSense)",
-                body: "서버 유지비 충당을 위해 화면에 적용된 유일한 외부 스크립트는 '구글 애드센스(Google AdSense)' 배너뿐입니다. 사이트 자체는 어떠한 쿠키나 로컬스토리지를 사용하지 않으나, 구글 애드센스 모듈만이 광고 송출 목적으로 제3자 쿠키를 활용합니다. 원치 않으실 경우 언제든 브라우저에서 쿠키를 차단하실 수 있습니다.",
+                title: "3. Google AdSense가 제3자 쿠키를 사용할 수 있습니다",
+                body: "사이트 운영 과정에서 Google AdSense가 적용될 수 있으며, 이 경우 광고 송출을 위해 제3자 쿠키가 사용될 수 있습니다. 원치 않으시면 브라우저 설정에서 쿠키를 제한하거나 차단하실 수 있습니다.",
             },
             {
-                title: "4. 수집 불가 원칙 및 아동 보호",
-                body: "입력 데이터를 전달받을 어떠한 서버 API가 시스템에 구현조차 되어있지 않기 때문에, 아동의 정보는 물론 그 어떤 서비스 이용자의 어떠한 민감 데이터도 당사가 수집할 물리적, 구조적 방법이 전혀 없습니다.",
+                title: "4. 민감한 정보 입력은 권장하지 않습니다",
+                body: "분석 도구는 스타일 참고용 서비스입니다. 실명, 연락처, 건강정보처럼 민감한 정보를 이미지나 입력값에 포함해 사용하지 않으시길 권장합니다. 아동 사진을 사용할 때에도 보호자가 촬영 조건과 공개 여부를 충분히 확인해 주세요.",
             },
         ],
     },
@@ -231,16 +263,28 @@ const TERMS_COPY: Record<SupportedLang, PageCopy> = {
         title: "이용약관 | FINDCORE",
         description: "FINDCORE 이용약관",
         heading: "이용약관",
-        intro: "FINDCORE 이용에 관한 안내입니다.",
-        updatedLabel: "최종 업데이트: 2026년 3월 9일",
+        intro: "이 문서는 FINDCORE를 사용할 때 기본으로 알아두셔야 할 범위와 책임 기준을 정리한 안내입니다.",
+        updatedLabel: "Today's Studio 운영 · 2026년 3월 9일 업데이트",
         sections: [
             {
-                title: "결과 안내",
-                body: "모든 분석 결과(감성 타입, 퍼스널 컬러, 얼굴형)는 재미와 참고를 위한 것이며, 전문적인 조언이 아닙니다.",
+                title: "1. 결과는 참고용입니다",
+                body: "감성 테스트, 퍼스널 컬러 분석, 얼굴형 분석 결과는 스타일 참고를 위한 정보입니다. 의료, 채용, 심리 평가처럼 중요한 판단을 대신하는 용도로 사용할 수 없습니다.",
             },
             {
-                title: "서비스 변경",
-                body: "사이트의 기능은 사전 고지 없이 변경되거나 중단될 수 있습니다.",
+                title: "2. 서비스 내용은 바뀔 수 있습니다",
+                body: "Today's Studio는 서비스 품질 개선이나 운영 사정에 따라 기능, 문구, 결과 표현 방식을 변경하거나 일부 기능을 중단할 수 있습니다.",
+            },
+            {
+                title: "3. 오용과 무단 이용은 제한됩니다",
+                body: "서비스를 자동화 도구로 과도하게 호출하거나, 정상 사용 범위를 벗어나 시스템에 부담을 주는 방식으로 이용하는 행위는 제한될 수 있습니다.",
+            },
+            {
+                title: "4. 책임 범위",
+                body: "운영자는 결과 해석 방식이나 촬영 조건 차이로 생기는 개인별 편차를 모두 보장할 수 없습니다. 사용자는 결과를 참고 자료로 활용하고, 실제 적용은 본인의 판단 아래 진행해야 합니다.",
+            },
+            {
+                title: "5. 운영 주체와 문의",
+                body: `${PUBLISHER_PROFILE.operatorName} 운영 · 사이트: https://findcore.me · 텔레그램: ${PUBLISHER_PROFILE.telegramHandle}`,
             },
         ],
     },
@@ -299,216 +343,40 @@ const TERMS_COPY: Record<SupportedLang, PageCopy> = {
 
 
 
-const GUIDES_INDEX_COPY: Record<SupportedLang, GuideIndexCopy> = {
-    ko: {
-        title: "가이드 | FINDCORE",
-        description: "퍼스널 컬러와 얼굴형 분석 정확도를 높이기 위한 촬영 및 해석 가이드 모음입니다.",
-        heading: "분석 정확도를 높이는 가이드",
-        intro: "사진 업로드형 도구는 입력 품질에 크게 영향을 받습니다. 아래 가이드를 보면 결과 해석과 촬영 조건을 더 정확하게 맞출 수 있습니다.",
-        cards: [
-            { href: "/guides/face-shape-photo", title: "얼굴형 분석 사진 가이드", summary: "이마, 턱선, 각도, 조명 조건을 어떻게 맞춰야 하는지 설명합니다." },
-            { href: "/guides/personal-color-photo", title: "퍼스널 컬러 촬영 가이드", summary: "피부 톤 왜곡을 줄이는 조명, 배경, 보정 회피 팁을 정리했습니다." },
-            { href: "/guides/result-reading", title: "결과 해석 가이드", summary: "측정값이 무엇을 뜻하는지, 어디까지 신뢰해야 하는지 설명합니다." },
-        ],
-    },
-    en: {
-        title: "Guides | FINDCORE",
-        description: "Guides for improving the input quality and interpretation of FINDCORE analysis tools.",
-        heading: "Guides For Better Analysis Quality",
-        intro: "Image-based tools depend heavily on the quality of the uploaded input. These guides explain how to improve photo conditions and interpret outputs.",
-        cards: [
-            { href: "/guides/face-shape-photo", title: "Face Shape Photo Guide", summary: "How to capture forehead, jawline, angle, and lighting correctly for face-shape analysis." },
-            { href: "/guides/personal-color-photo", title: "Personal Color Photo Guide", summary: "How to reduce skin-tone distortion from lighting, filters, and background color." },
-            { href: "/guides/result-reading", title: "Result Reading Guide", summary: "What the measurement values mean and how much confidence to place in them." },
-        ],
-    },
-    zh: {
-        title: "指南 | FINDCORE",
-        description: "帮助提升 FINDCORE 分析工具输入质量与结果解读质量的指南内容。",
-        heading: "提升分析准确度的指南",
-        intro: "基于照片的工具很依赖输入质量。以下内容可以帮助你改进拍摄条件，并更准确地理解结果。",
-        cards: [
-            { href: "/guides/face-shape-photo", title: "脸型分析拍照指南", summary: "说明额头、下颌线、角度和光线应如何拍摄。" },
-            { href: "/guides/personal-color-photo", title: "个人色彩拍照指南", summary: "整理减少肤色失真的光线、背景与滤镜建议。" },
-            { href: "/guides/result-reading", title: "结果解读指南", summary: "解释各测量值代表什么，以及结果应如何理解。" },
-        ],
-    },
-    ja: {
-        title: "ガイド | FINDCORE",
-        description: "FINDCORE の分析精度を高めるための撮影条件と結果解釈ガイドです。",
-        heading: "分析精度を高めるためのガイド",
-        intro: "写真アップロード型ツールは入力品質の影響を大きく受けます。以下のガイドで、撮影条件と結果の読み方を整えられます。",
-        cards: [
-            { href: "/guides/face-shape-photo", title: "顔型分析の撮影ガイド", summary: "額、あごのライン、角度、照明をどう整えるべきかを説明します。" },
-            { href: "/guides/personal-color-photo", title: "パーソナルカラー撮影ガイド", summary: "肌色の歪みを減らす照明、背景、補正回避のポイントをまとめています。" },
-            { href: "/guides/result-reading", title: "結果の読み方ガイド", summary: "計測値の意味と、どこまで信頼すべきかを説明します。" },
-        ],
-    },
-};
-
-const GUIDE_FACE_SHAPE_PHOTO: Record<SupportedLang, GuidePageCopy> = {
-    ko: {
-        title: "얼굴형 분석 사진 가이드 | FINDCORE",
-        description: "얼굴형 분석 정확도를 높이기 위한 사진 각도, 헤어라인, 조명, 프레임 구성 가이드입니다.",
-        heading: "얼굴형 분석 사진 가이드",
-        intro: "얼굴형 분석은 이마, 광대, 턱선을 안정적으로 읽을 수 있어야 정확도가 올라갑니다.",
-        sections: [
-            { title: "이마와 헤어라인", body: "앞머리를 넘기고 이마와 헤어라인이 보이게 촬영해야 이마 폭과 세로 비율 계산이 안정적입니다." },
-            { title: "정면 각도", body: "고개를 들거나 숙이지 말고, 좌우 회전이 적은 정면에 가까운 구도가 좋습니다. 측면 회전이 크면 광대와 턱 폭이 왜곡됩니다." },
-            { title: "프레임 구성", body: "턱선과 귀 옆 윤곽이 잘리지 않게 포함하세요. 너무 가까운 광각 셀카는 비율을 찌그러뜨릴 수 있습니다." },
-            { title: "조명", body: "강한 그림자나 역광을 피하고 균일한 밝기의 조명을 사용하세요. 그림자가 심하면 윤곽 검출이 불안정해집니다." },
-        ],
-    },
-    en: {
-        title: "Face Shape Photo Guide | FINDCORE",
-        description: "Guidance on angle, hairline visibility, lighting, and framing for more reliable face-shape analysis.",
-        heading: "Face Shape Photo Guide",
-        intro: "Face-shape analysis becomes more stable when the forehead, cheekbones, and jawline are clearly readable.",
-        sections: [
-            { title: "Forehead and hairline", body: "Push bangs back so the forehead and hairline remain visible. This improves forehead-width and vertical-ratio measurements." },
-            { title: "Frontal angle", body: "Keep the head close to frontal without strong upward, downward, or side rotation. Rotated faces distort cheekbone and jaw width." },
-            { title: "Framing", body: "Keep the jawline and side contour inside the frame. Very close wide-angle selfies can warp proportions." },
-            { title: "Lighting", body: "Use even lighting and avoid hard shadows or strong backlight. Heavy shadowing makes contour detection less stable." },
-        ],
-    },
-    zh: {
-        title: "脸型分析拍照指南 | FINDCORE",
-        description: "提升脸型分析稳定性的拍摄角度、发际线、光线与构图建议。",
-        heading: "脸型分析拍照指南",
-        intro: "当额头、颧骨和下颌线清晰可见时，脸型分析会更稳定。",
-        sections: [
-            { title: "额头与发际线", body: "请把刘海拨开，让额头和发际线露出，这样额头宽度和纵向比例会更稳定。" },
-            { title: "正面角度", body: "尽量使用接近正面的角度，避免明显抬头、低头或左右偏转。侧转会影响颧骨与下颌宽度。" },
-            { title: "构图", body: "请确保下颌线和脸部侧边轮廓完整出现在画面中。过近的广角自拍容易造成比例变形。" },
-            { title: "光线", body: "使用均匀明亮的光线，避免强阴影和逆光。阴影过重会降低轮廓识别稳定性。" },
-        ],
-    },
-    ja: {
-        title: "顔型分析の撮影ガイド | FINDCORE",
-        description: "顔型分析の安定性を高めるための角度、生え際、照明、構図のガイドです。",
-        heading: "顔型分析の撮影ガイド",
-        intro: "額、頬骨、あごのラインがはっきり読める写真ほど、顔型分析の安定性が上がります。",
-        sections: [
-            { title: "額と生え際", body: "前髪を上げて、額と生え際が見える状態で撮影してください。額幅と縦比率の計測が安定します。" },
-            { title: "正面に近い角度", body: "上向き、下向き、左右の回転を強く付けず、正面に近い角度で撮影してください。回転が大きいと頬骨幅やあご幅が歪みます。" },
-            { title: "構図", body: "あごのラインと顔の横輪郭が切れないように収めてください。極端に近い広角セルフィーは比率を歪めます。" },
-            { title: "照明", body: "均一で明るい照明を使い、強い影や逆光は避けてください。影が強いと輪郭検出が不安定になります。" },
-        ],
-    },
-};
-
-const GUIDE_PERSONAL_COLOR: Record<SupportedLang, GuidePageCopy> = {
-    ko: {
-        title: "퍼스널 컬러 촬영 가이드 | FINDCORE",
-        description: "피부 톤 왜곡을 줄이기 위한 퍼스널 컬러 사진 촬영 조건 가이드입니다.",
-        heading: "퍼스널 컬러 촬영 가이드",
-        intro: "퍼스널 컬러는 조명과 카메라 보정의 영향을 크게 받기 때문에 촬영 조건이 중요합니다.",
-        sections: [
-            { title: "자연광 우선", body: "가능하면 창가 자연광이나 색온도가 균일한 조명에서 촬영하세요. 형광등, 네온 조명은 피부 색을 크게 바꿀 수 있습니다." },
-            { title: "필터와 보정 금지", body: "뷰티 필터, 피부 보정, 컬러 필터를 끄고 촬영해야 실제 피부 톤과 가까운 결과를 얻을 수 있습니다." },
-            { title: "배경과 의상", body: "너무 강한 색 배경이나 과한 색상의 옷은 피부 인상을 바꿔 보이게 할 수 있습니다. 가능한 중성적인 환경이 좋습니다." },
-            { title: "표정과 가림 최소화", body: "강한 표정, 손, 머리카락, 큰 액세서리로 얼굴이 가려지지 않게 촬영하세요." },
-        ],
-    },
-    en: {
-        title: "Personal Color Photo Guide | FINDCORE",
-        description: "How to reduce skin-tone distortion when taking photos for personal color analysis.",
-        heading: "Personal Color Photo Guide",
-        intro: "Personal color analysis is highly sensitive to lighting and camera correction, so photo conditions matter.",
-        sections: [
-            { title: "Prioritize natural light", body: "Use window light or evenly balanced lighting when possible. Fluorescent or strongly colored light can shift skin tone heavily." },
-            { title: "Disable filters", body: "Turn off beauty mode, smoothing, and color filters. Edited photos make skin tone sampling less reliable." },
-            { title: "Neutral background and clothing", body: "Strong background colors or highly saturated clothing can visually influence skin appearance. Neutral surroundings work better." },
-            { title: "Keep the face clear", body: "Avoid heavy expressions or facial obstruction from hair, hands, or large accessories." },
-        ],
-    },
-    zh: {
-        title: "个人色彩拍照指南 | FINDCORE",
-        description: "减少肤色失真的个人色彩拍照条件指南。",
-        heading: "个人色彩拍照指南",
-        intro: "个人色彩分析对光线和相机校正非常敏感，因此拍摄条件很重要。",
-        sections: [
-            { title: "优先自然光", body: "尽量使用窗边自然光或色温均匀的光线。荧光灯和强烈彩色光会明显改变肤色。" },
-            { title: "关闭滤镜与美颜", body: "请关闭美颜、磨皮和色彩滤镜。经过修饰的照片会降低肤色采样的可靠性。" },
-            { title: "中性背景与服装", body: "过强的背景色或高饱和服装会影响肤色观感。尽量选择中性环境。" },
-            { title: "保持脸部清晰", body: "避免夸张表情以及头发、手部或大饰品遮挡脸部。" },
-        ],
-    },
-    ja: {
-        title: "パーソナルカラー撮影ガイド | FINDCORE",
-        description: "肌色の歪みを減らすためのパーソナルカラー撮影条件ガイドです。",
-        heading: "パーソナルカラー撮影ガイド",
-        intro: "パーソナルカラー分析は照明とカメラ補正の影響を強く受けるため、撮影条件が重要です。",
-        sections: [
-            { title: "自然光を優先", body: "できるだけ窓際の自然光や色温度が均一な照明で撮影してください。蛍光灯や色付き照明は肌色を大きく変えます。" },
-            { title: "フィルターを切る", body: "美肌補正、スムージング、色フィルターはオフにしてください。補正済み写真は肌色の取得精度が下がります。" },
-            { title: "背景と服装", body: "強い背景色や彩度の高い服は肌の見え方に影響します。できるだけ中立的な環境が適しています。" },
-            { title: "顔をはっきり見せる", body: "大きな表情変化や、髪・手・大きなアクセサリーによる顔の遮りは避けてください。" },
-        ],
-    },
-};
-
-const GUIDE_RESULT_READING: Record<SupportedLang, GuidePageCopy> = {
-    ko: {
-        title: "결과 해석 가이드 | FINDCORE",
-        description: "측정값과 추천 문구를 어디까지 신뢰하고 어떻게 읽어야 하는지 설명합니다.",
-        heading: "결과 해석 가이드",
-        intro: "도구형 결과는 숫자, 규칙, 입력 품질이 함께 작동합니다. 결과를 읽을 때는 측정값과 해석 문구를 구분하는 것이 중요합니다.",
-        sections: [
-            { title: "측정값은 무엇인가요", body: "얼굴형 분석의 길이 대비 폭, 이마 대비 턱 폭, 광대 우세도 같은 값은 실제 랜드마크 검출을 바탕으로 계산됩니다." },
-            { title: "추천 문구는 무엇인가요", body: "헤어, 안경, 컨투어 추천은 측정값을 바탕으로 한 스타일 가이드입니다. 절대적인 정답이 아니라 방향 제안에 가깝습니다." },
-            { title: "결과가 흔들리는 경우", body: "앞머리, 그림자, 측면 각도, 광각 왜곡, 보정 필터는 수치와 분류 결과를 흔들 수 있습니다." },
-            { title: "가장 좋은 활용법", body: "한 장의 결과를 절대값으로 보기보다, 좋은 조건의 사진으로 다시 촬영해 일관성이 나오는지 확인하는 것이 좋습니다." },
-        ],
-    },
-    en: {
-        title: "Result Reading Guide | FINDCORE",
-        description: "How to interpret measurements, confidence, and recommendation text in FINDCORE tool outputs.",
-        heading: "Result Reading Guide",
-        intro: "Tool outputs combine measurements, rule-based scoring, and input quality. It helps to separate measured values from recommendation text.",
-        sections: [
-            { title: "What the measurements are", body: "Values such as length-to-width ratio, forehead-to-jaw ratio, and cheekbone dominance are calculated from detected facial landmarks." },
-            { title: "What the recommendations are", body: "Hair, eyewear, and contour suggestions are style guidance derived from those measurements. They are not absolute truths." },
-            { title: "When results shift", body: "Bangs, shadows, side angle, wide-angle distortion, and beauty filters can all move the measured values and classification outcome." },
-            { title: "Best way to use the result", body: "Do not treat one upload as a fixed identity. Repeating the test with better photos and checking consistency gives a better signal." },
-        ],
-    },
-    zh: {
-        title: "结果解读指南 | FINDCORE",
-        description: "说明如何理解 FINDCORE 输出中的测量值、置信度和推荐文字。",
-        heading: "结果解读指南",
-        intro: "工具输出结合了测量值、规则评分和输入质量。解读时，最好把测量值与推荐文字分开理解。",
-        sections: [
-            { title: "什么是测量值", body: "例如长宽比、额头与下颌比、颧骨主导度等，都是基于检测到的人脸关键点计算得出的。" },
-            { title: "什么是推荐内容", body: "发型、眼镜和修容建议属于基于测量值的风格指导，并不是绝对结论。" },
-            { title: "结果何时会波动", body: "刘海、阴影、侧脸角度、广角畸变和美颜滤镜都可能影响测量值和分类结果。" },
-            { title: "最佳使用方式", body: "不要把单次上传视为固定结论。用更好的照片重复测试并观察结果是否一致，会更有参考价值。" },
-        ],
-    },
-    ja: {
-        title: "結果の読み方ガイド | FINDCORE",
-        description: "FINDCORE の出力にある計測値、信頼度、提案文をどう読むべきかを説明します。",
-        heading: "結果の読み方ガイド",
-        intro: "ツールの結果は、計測値、ルールベースの評価、入力品質が組み合わさって作られます。数値と提案文は分けて読むのが有効です。",
-        sections: [
-            { title: "計測値とは", body: "縦横比、額とあごの比率、頬骨の優位性などの値は、検出された顔ランドマークから計算されています。" },
-            { title: "提案文とは", body: "ヘア、眼鏡、コントゥアの提案は、計測値をもとにしたスタイルガイドです。絶対的な正解ではありません。" },
-            { title: "結果がぶれる場合", body: "前髪、影、横向きの角度、広角歪み、美肌フィルターは、数値や分類結果を変動させる要因になります。" },
-            { title: "おすすめの使い方", body: "1回のアップロード結果を固定的に捉えず、条件の良い写真で再試行し、一貫性があるか確認するのが有効です。" },
-        ],
-    },
-};
-
 export function getFooterLabels(lang: SupportedLang) {
     return FOOTER_LABELS[lang];
 }
 
-export function buildPageMetadata(lang: SupportedLang, copy: PageCopy | GuideIndexCopy | GuidePageCopy): Metadata {
+export function getNavigationLabels(lang: SupportedLang) {
+    return NAVIGATION_LABELS[lang];
+}
+
+function buildLanguageAlternate(path: string, lang: SupportedLang) {
+    return path === "/" ? `${BASE_URL}/?lang=${lang}` : `${BASE_URL}${path}?lang=${lang}`;
+}
+
+export function buildPageMetadata(lang: SupportedLang, copy: { title: string; description: string }, path = "/"): Metadata {
+    const canonical = path === "/" ? BASE_URL : `${BASE_URL}${path}`;
+
     return {
         title: copy.title,
         description: copy.description,
         alternates: {
-            canonical: `https://findcore.me`,
+            canonical,
+            languages: Object.fromEntries(SUPPORTED_LANGS.map((supportedLang) => [supportedLang, buildLanguageAlternate(path, supportedLang)])),
+        },
+        openGraph: {
+            title: copy.title,
+            description: copy.description,
+            url: canonical,
+            siteName: "FINDCORE",
+            locale: LOCALE_BY_LANG[lang],
+            type: "website",
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: copy.title,
+            description: copy.description,
         },
     };
 }
@@ -523,22 +391,4 @@ export function getPrivacyCopy(lang: SupportedLang) {
 
 export function getTermsCopy(lang: SupportedLang) {
     return TERMS_COPY[lang];
-}
-
-
-
-export function getGuidesIndexCopy(lang: SupportedLang) {
-    return GUIDES_INDEX_COPY[lang];
-}
-
-export function getFaceShapeGuideCopy(lang: SupportedLang) {
-    return GUIDE_FACE_SHAPE_PHOTO[lang];
-}
-
-export function getPersonalColorGuideCopy(lang: SupportedLang) {
-    return GUIDE_PERSONAL_COLOR[lang];
-}
-
-export function getResultReadingGuideCopy(lang: SupportedLang) {
-    return GUIDE_RESULT_READING[lang];
 }
