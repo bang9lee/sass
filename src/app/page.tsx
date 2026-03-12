@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import HomeClient from '@/components/home-client';
+import { resolveSupportedLang } from '@/lib/site-content';
 
 type Props = {
   searchParams: Promise<{ lang?: string }>;
@@ -81,6 +82,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
-export default function Page() {
-  return <HomeClient />;
+export default async function Page({ searchParams }: Props) {
+  const { lang } = await searchParams;
+  const currentLang = resolveSupportedLang(lang);
+  return <HomeClient lang={currentLang} />;
 }

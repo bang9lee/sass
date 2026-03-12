@@ -458,7 +458,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
 
 
         <div
-            className={`mx-auto flex w-full max-w-md lg:max-w-[1240px] flex-col gap-4 px-4 py-8 pb-10 md:px-6 lg:py-12 ${isKo ? "font-korean" : isEnglish ? "font-cinzel" : ""}`}
+            className={`mx-auto flex w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-[1240px] flex-col gap-4 px-4 py-8 pb-10 md:px-6 lg:py-12 ${isKo ? "font-korean" : isEnglish ? "font-cinzel" : ""}`}
         >
             {/* Background ambiance */}
             <div className="pointer-events-none fixed inset-0 z-[-1]">
@@ -817,7 +817,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                             {styleTargetCopy[styleTarget].badge}
                         </span>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                         {prescriptionCards.map((card) => {
                             const Icon = card.icon;
                             return (
@@ -829,11 +829,13 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                         <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${card.iconClass}`}>
                                             <Icon className="h-4 w-4" />
                                         </span>
-                                        <h4 className="text-[15px] font-black text-white tracking-tight">{card.title}</h4>
+                                        <h4 className="text-[14px] sm:text-[15px] font-black text-white tracking-tight leading-snug break-keep">
+                                            {card.title}
+                                        </h4>
                                     </div>
                                     <ul className="space-y-2.5 pl-1">
                                         {card.items.map((item) => (
-                                            <li key={item} className="flex items-start gap-2.5 text-[13px] leading-[1.65] text-white">
+                                            <li key={item} className="flex items-start gap-2.5 text-[12.5px] sm:text-[13px] leading-[1.65] text-white break-keep">
                                                 <span className={`mt-[8px] flex h-1.5 w-1.5 shrink-0 rounded-full ${card.bulletClass}`} />
                                                 <span>{item}</span>
                                             </li>

@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display, Noto_Sans_KR, Cinzel } from "next/font/google";
+import { AppRuntime } from "@/components/app-runtime";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -9,12 +10,28 @@ const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://findcore.me'),
+  applicationName: "FINDCORE",
   title: "Find My Aesthetic Core",
   description: "Discover your unique visual atmosphere and authentic personal color. Find your seasonal palette and aesthetic core.",
   keywords: ["Aesthetic", "Personal Color", "퍼스널컬러", "Color Analysis", "봄웜", "여름쿨", "가을웜", "겨울쿨", "Visual Identity"],
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FINDCORE",
+  },
   other: {
     "google-adsense-account": "ca-pub-7537131530412793"
   }
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -25,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} ${notoSansKR.variable} ${cinzel.variable} font-sans antialiased min-h-screen bg-black text-white overflow-x-hidden selection:bg-pink-500/30`}>
+        <AppRuntime />
         {/* Cinematic Background - Hidden on mobile to prevent double-rendering and GPU overload */}
         <div className="hidden md:block fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
           {/* Static Grain Texture */}

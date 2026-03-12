@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { Play } from "lucide-react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { Footer } from "./footer";
 import { SiteHeader } from "@/components/site-header";
@@ -12,10 +10,11 @@ import { motion } from "framer-motion";
 
 type Language = "ko" | "en" | "zh" | "ja";
 
-function HomeContent() {
-    const searchParams = useSearchParams();
-    const langParam = searchParams.get("lang");
-    const lang: Language = (["ko", "en", "zh", "ja"].includes(langParam || "") ? langParam : "en") as Language;
+interface HomeClientProps {
+    lang: Language;
+}
+
+export default function HomeClient({ lang }: HomeClientProps) {
     const isKorean = lang === "ko";
 
     const t = {
@@ -81,7 +80,7 @@ function HomeContent() {
                         <div className="w-full flex items-center justify-center min-h-0 lg:h-auto lg:w-1/2 lg:max-w-none py-2 lg:py-0">
                             <div className="relative w-full h-full max-h-[45vh] lg:max-h-none aspect-4/5 max-w-sm lg:max-w-md mobile-fade-in-scale" style={{ animationDelay: "0.3s" }}>
                                 <div className="relative w-full h-full overflow-hidden rounded-4xl lg:rounded-[2.5rem] border border-white/20 shadow-2xl">
-                                    <Image src="/images/hero.webp" alt="Aesthetic" fill className="object-cover lg:object-cover" priority sizes="(max-width: 768px) 100vw, 50vw" />
+                                    <Image src="/images/hero.webp" alt="Aesthetic" fill className="object-cover lg:object-cover" priority placeholder="empty" sizes="(max-width: 768px) 100vw, 50vw" />
                                 </div>
                             </div>
                         </div>
@@ -108,13 +107,5 @@ function HomeContent() {
                 <Footer lang={lang} />
             </div>
         </AuroraBackground>
-    );
-}
-
-export default function HomeClient() {
-    return (
-        <Suspense fallback={<div className="h-screen bg-black" />}>
-            <HomeContent />
-        </Suspense>
     );
 }

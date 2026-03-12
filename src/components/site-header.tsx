@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
 import { getNavigationLabels, type SupportedLang } from "@/lib/site-content";
@@ -105,11 +105,20 @@ export function SiteHeader({
         fixed: "fixed top-0 left-0 right-0",
     }[position];
 
-    const navItems = [
-        { href: `/?lang=${lang}`, label: labels.aesthetic, section: "aesthetic" as const },
-        { href: `/color?lang=${lang}`, label: labels.color, section: "color" as const },
-        { href: `/face-shape?lang=${lang}`, label: labels.faceShape, section: "face-shape" as const },
-    ];
+    const navItems = useMemo(
+        () => [
+            { href: `/?lang=${lang}`, label: labels.aesthetic, section: "aesthetic" as const },
+            { href: `/color?lang=${lang}`, label: labels.color, section: "color" as const },
+            { href: `/face-shape?lang=${lang}`, label: labels.faceShape, section: "face-shape" as const },
+        ],
+        [lang, labels]
+    );
+
+    useEffect(() => {
+        navItems.forEach((item) => {
+            router.prefetch(item.href);
+        });
+    }, [router, navItems]);
 
     const handleLanguageChange = (nextLang: SupportedLang) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -137,6 +146,7 @@ export function SiteHeader({
                                 <Link
                                     key={item.section}
                                     href={item.href}
+                                    prefetch
                                     className={getDesktopLinkClass(item.section, activeSection)}
                                 >
                                     {item.label}
@@ -189,6 +199,7 @@ export function SiteHeader({
                                 >
                                     <Link
                                         href={item.href}
+                                        prefetch
                                         onClick={() => setIsMenuOpen(false)}
                                         className={getMobileLinkClass(item.section, activeSection)}
                                     >
