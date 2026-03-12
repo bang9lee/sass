@@ -12,6 +12,7 @@ import { Menu, X } from "lucide-react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LanguageSelector } from "@/components/language-selector";
 import { getFooterLabels } from "@/lib/site-content";
+import { Footer } from "./footer";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Language = 'ko' | 'en' | 'zh' | 'ja';
@@ -31,22 +32,34 @@ function InnerContent() {
         ko: {
             menuAesthetic: "감성 테스트",
             menuPersonalColor: "퍼스널 컬러",
-            menuFaceShape: "AI얼굴형분석"
+            menuFaceShape: "AI얼굴형분석",
+            noResultTitle: "분석 결과를 찾을 수 없습니다.",
+            noResultBody: "얼굴형 분석은 업로드 직후 세션에 저장됩니다. 다시 업로드해서 새로 분석해 주세요.",
+            backToFaceShape: "AI 얼굴형 분석으로 돌아가기",
         },
         en: {
             menuAesthetic: "Aesthetic Test",
             menuPersonalColor: "Personal Color",
-            menuFaceShape: "AI Face Shape Analysis"
+            menuFaceShape: "AI Face Shape Analysis",
+            noResultTitle: "Analysis result not found.",
+            noResultBody: "The face-shape result is stored in session right after upload. Please run a new analysis.",
+            backToFaceShape: "Back to AI Face Shape Analysis",
         },
         zh: {
             menuAesthetic: "美学测试",
             menuPersonalColor: "个人色彩",
-            menuFaceShape: "脸型分析"
+            menuFaceShape: "AI 脸型分析",
+            noResultTitle: "找不到分析结果。",
+            noResultBody: "脸型分析结果会在上传后立即保存到会话中。请重新上传照片并再次分析。",
+            backToFaceShape: "返回 AI 脸型分析",
         },
         ja: {
             menuAesthetic: "感性テスト",
             menuPersonalColor: "パーソナルカラー",
-            menuFaceShape: "顔型分析"
+            menuFaceShape: "AI 顔型分析",
+            noResultTitle: "分析結果が見つかりません。",
+            noResultBody: "顔型分析の結果はアップロード直後にセッションへ保存されます。もう一度写真をアップロードして解析してください。",
+            backToFaceShape: "AI 顔型分析に戻る",
         }
     }[lang];
     const footer = getFooterLabels(lang);
@@ -78,17 +91,13 @@ function InnerContent() {
             <AuroraBackground className="justify-start">
                 <div className="relative min-h-screen w-full overflow-hidden px-4 py-10 z-10 flex flex-col items-center justify-center">
                     <div className="w-full max-w-xl rounded-[32px] border border-white/10 bg-black/40 p-12 text-center text-white shadow-2xl backdrop-blur-2xl">
-                        <h1 className="text-2xl font-bold tracking-tight">{lang === "ko" ? "분석 결과를 찾을 수 없습니다." : "Analysis result not found."}</h1>
-                        <p className="mt-3 text-sm text-zinc-400">
-                            {lang === "ko"
-                                ? "얼굴형 분석은 업로드 직후 세션에 저장됩니다. 다시 업로드해서 새로 분석해 주세요."
-                                : "The face-shape result is stored in session right after upload. Please run a new analysis."}
-                        </p>
+                        <h1 className="text-2xl font-bold tracking-tight">{t.noResultTitle ?? "Analysis result not found."}</h1>
+                        <p className="mt-3 text-sm text-zinc-400">{t.noResultBody ?? "The face-shape result is stored in session right after upload. Please run a new analysis."}</p>
                         <Link
                             href={`/face-shape?lang=${lang}`}
                             className="mt-8 inline-flex rounded-xl bg-white px-6 py-3 text-sm font-bold text-black transition hover:bg-zinc-200"
                         >
-                            {lang === "ko" ? "AI 얼굴형 분석으로 돌아가기" : "Back to AI Face Shape Analysis"}
+                            {t.backToFaceShape ?? "Back to AI Face Shape Analysis"}
                         </Link>
                     </div>
                 </div>
@@ -158,23 +167,7 @@ function InnerContent() {
                     <FaceShapeResultCardClient result={result} lang={lang} isKo={isKorean} />
                 </main>
 
-                <footer className="w-full shrink-0 border-t border-white/5 bg-black/20 px-8 py-6 backdrop-blur-sm relative">
-                    <div className="mx-auto grid max-w-6xl items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
-                        <p className="hidden text-white/38 text-[10px] uppercase tracking-[0.2em] font-light md:block">findcore.me</p>
-                        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-white/48">
-                            <Link href={`/about?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.about}</Link>
-                            <Link href={`/guides?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.guides}</Link>
-                            <Link href={`/privacy?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.privacy}</Link>
-                            <Link href={`/terms?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.terms}</Link>
-
-                        </div>
-                        <div className="text-center md:text-right">
-                            <a href="https://t.me/todayshelp" target="_blank" rel="noopener noreferrer" className="text-[11px] text-white/44 transition-colors hover:text-white/78">
-                                Telegram @todayshelp
-                            </a>
-                        </div>
-                    </div>
-                </footer>
+                <Footer lang={lang} />
             </div>
         </AuroraBackground>
     );

@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LanguageSelector } from "@/components/language-selector";
+import { Footer } from "./footer";
 import { getFooterLabels } from "@/lib/site-content";
 
 
@@ -258,31 +259,7 @@ function HomeContent() {
                     </div>
                 </main>
 
-                {/* Footer - minimal full-width premium style */}
-                <footer className="w-full shrink-0 border-t border-white/5 bg-black/20 px-8 py-6 backdrop-blur-sm" style={{ animationDelay: '0.3s' }}>
-                    <div className="mx-auto grid max-w-6xl items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
-                        <p className="hidden text-white/38 text-[10px] uppercase tracking-[0.2em] font-light md:block">
-                            findcore.me
-                        </p>
-                        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-white/48">
-                            <Link href={`/about?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.about}</Link>
-                            <Link href={`/guides?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.guides}</Link>
-                            <Link href={`/privacy?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.privacy}</Link>
-                            <Link href={`/terms?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.terms}</Link>
-
-                        </div>
-                        <div className="text-center md:text-right">
-                            <a
-                                href="https://t.me/todayshelp"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[11px] text-white/44 transition-colors hover:text-white/78"
-                            >
-                                Telegram @todayshelp
-                            </a>
-                        </div>
-                    </div>
-                </footer>
+                <Footer lang={lang} />
             </div>
         </AuroraBackground>
     );

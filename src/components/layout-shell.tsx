@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LanguageSelector } from "./language-selector";
+import { Footer } from "./footer";
 import { getFooterLabels } from "@/lib/site-content";
 
 type Language = 'ko' | 'en' | 'zh' | 'ja';
@@ -114,25 +115,7 @@ export function LayoutShell({ children, lang }: LayoutShellProps) {
                 {children}
             </main>
 
-            {/* Footer */}
-            <footer className="w-full shrink-0 border-t border-white/5 bg-black/20 px-8 py-10 backdrop-blur-sm">
-                <div className="mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-[1fr_auto_1fr]">
-                    <p className="hidden text-white/30 text-[10px] uppercase tracking-[0.2em] font-light md:block">
-                        findcore.me
-                    </p>
-                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-white/50">
-                        <NextLink href={`/about?lang=${lang}`} className="hover:text-white transition-colors">{footer.about}</NextLink>
-                        <NextLink href={`/guides?lang=${lang}`} className="hover:text-white transition-colors">{footer.guides}</NextLink>
-                        <NextLink href={`/privacy?lang=${lang}`} className="hover:text-white transition-colors">{footer.privacy}</NextLink>
-                        <NextLink href={`/terms?lang=${lang}`} className="hover:text-white transition-colors">{footer.terms}</NextLink>
-                    </div>
-                    <div className="text-center md:text-right">
-                        <a href="https://t.me/todayshelp" target="_blank" rel="noopener noreferrer" className="text-[11px] text-white/40 hover:text-white transition-colors">
-                            Telegram @todayshelp
-                        </a>
-                    </div>
-                </div>
-            </footer>
+            <Footer lang={lang} />
         </div>
     );
 }

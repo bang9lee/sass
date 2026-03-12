@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import {
     Check,
@@ -17,7 +16,13 @@ import {
 import {
     buildExecutiveSummary,
     getFaceShapeCopy,
+    resolvePresentedFaceShape,
 } from "@/lib/face-shape-content";
+import {
+    getFaceStyleRecommendations,
+    getFaceStyleTargetCopy,
+    toFaceStyleTarget,
+} from "@/lib/face-shape-style-content";
 import type {
     FacePoint,
     FaceShapeAnalysisResult,
@@ -45,46 +50,69 @@ function pairPath(points?: [FacePoint, FacePoint] | null) {
     return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
 }
 
-function clamp(value: number, min: number, max: number) {
-    return Math.min(max, Math.max(min, value));
+function buildFifthGuideXs(guide?: [FacePoint, FacePoint] | null) {
+    if (!guide) return [];
+    const [left, right] = guide[0].x <= guide[1].x ? guide : [guide[1], guide[0]];
+    const width = right.x - left.x;
+    if (width <= 0.02) return [];
+    return [1, 2, 3, 4].map((step) => left.x + (width * step) / 5);
 }
+type SupportedLang = "ko" | "en" | "zh" | "ja";
 
-function getBounds(points?: FacePoint[] | null) {
-    if (!points?.length) return null;
-    return points.reduce(
-        (acc, point) => ({
-            minX: Math.min(acc.minX, point.x),
-            maxX: Math.max(acc.maxX, point.x),
-            minY: Math.min(acc.minY, point.y),
-            maxY: Math.max(acc.maxY, point.y),
-        }),
-        {
-            minX: points[0].x,
-            maxX: points[0].x,
-            minY: points[0].y,
-            maxY: points[0].y,
+function getKeywords(shape: string, lang: string) {
+    const keywords: Record<string, Record<SupportedLang, string[]>> = {
+        oval: {
+            ko: ["계란형", "매끄러운", "황금비율"],
+            en: ["Egg-shape", "Smooth", "Golden Ratio"],
+            zh: ["椭圆形", "线条柔和", "比例稳定"],
+            ja: ["卵型", "なめらか", "バランス型"],
         },
-    );
-}
-
-function getKeywords(shape: string, isKo: boolean) {
-    const keywords: Record<string, { ko: string[]; en: string[] }> = {
-        oval: { ko: ["계란형", "매끄러운", "황금비율"], en: ["Egg-shape", "Smooth", "Golden Ratio"] },
-        round: { ko: ["부드러운", "동안얼굴", "곡선미"], en: ["Soft", "Youthful", "Curved"] },
-        square: { ko: ["세련된", "이지적인", "귀족턱"], en: ["Sophisticated", "Intellectual", "Defined Jaw"] },
-        heart: { ko: ["입체적인", "샤프한턱선", "매혹적인"], en: ["Dimensional", "Sharp Chin", "Charming"] },
-        oblong: { ko: ["우아한", "성숙미", "슬림한"], en: ["Elegant", "Mature", "Slim"] },
-        diamond: { ko: ["유니크한", "시크한", "광대매력"], en: ["Unique", "Chic", "Cheekbones"] },
-        pear: { ko: ["안정감있는", "부드러운턱선"], en: ["Stable", "Soft Jawline"] },
+        round: {
+            ko: ["부드러운", "동안얼굴", "곡선미"],
+            en: ["Soft", "Youthful", "Curved"],
+            zh: ["柔和", "显年轻", "圆润线条"],
+            ja: ["やわらかい", "若々しい", "曲線的"],
+        },
+        square: {
+            ko: ["세련된", "이지적인", "귀족턱"],
+            en: ["Sophisticated", "Intellectual", "Defined Jaw"],
+            zh: ["利落", "知性", "下颌清晰"],
+            ja: ["洗練", "知的", "あごライン明確"],
+        },
+        heart: {
+            ko: ["입체적인", "샤프한턱선", "매혹적인"],
+            en: ["Dimensional", "Sharp Chin", "Charming"],
+            zh: ["立体感", "尖下巴", "吸睛"],
+            ja: ["立体感", "シャープなあご", "華やか"],
+        },
+        oblong: {
+            ko: ["긴형", "긴 타원형", "성숙미"],
+            en: ["Long Oval", "Refined", "Balanced"],
+            zh: ["长形", "长椭圆", "成熟感"],
+            ja: ["面長", "ロングオーバル", "大人っぽい"],
+        },
+        diamond: {
+            ko: ["유니크한", "시크한", "광대매력"],
+            en: ["Unique", "Chic", "Cheekbones"],
+            zh: ["个性强", "利落", "颧骨突出"],
+            ja: ["個性的", "シック", "頬骨が映える"],
+        },
+        pear: {
+            ko: ["안정감있는", "부드러운턱선"],
+            en: ["Stable", "Soft Jawline"],
+            zh: ["稳重", "下半脸存在感"],
+            ja: ["安定感", "下顔面に重心"],
+        },
     };
 
-    return keywords[shape] ? (isKo ? keywords[shape].ko : keywords[shape].en) : [];
+    const safeLang: SupportedLang = lang === "ko" || lang === "en" || lang === "zh" || lang === "ja" ? lang : "en";
+    return keywords[shape] ? keywords[shape][safeLang] : [];
 }
 
 function getConfidenceDotClass(confidence: number) {
-    if (confidence >= 80) return "bg-emerald-400";
-    if (confidence >= 65) return "bg-lime-300";
-    return "bg-amber-300";
+    if (confidence >= 80) return "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]";
+    if (confidence >= 65) return "bg-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.5)]";
+    return "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.5)]";
 }
 
 interface Props {
@@ -99,50 +127,47 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
     const [showShareModal, setShowShareModal] = useState(false);
     const [downloading, setDownloading] = useState(false);
     const isEnglish = lang === "en";
+    const safeLang: SupportedLang = lang === "ko" || lang === "en" || lang === "zh" || lang === "ja" ? lang : "en";
+    const presentedShape = resolvePresentedFaceShape(result);
+    const styleTarget = toFaceStyleTarget(result.styleTarget);
+    const styleTargetCopy = getFaceStyleTargetCopy(safeLang);
+    const styleRecommendations = getFaceStyleRecommendations(presentedShape, safeLang, styleTarget);
 
-    const shapeCopy = getFaceShapeCopy(result.faceShape, lang);
+    const shapeCopy = getFaceShapeCopy(presentedShape, safeLang);
     const executiveSummary = buildExecutiveSummary(result, lang);
-    const keywords = getKeywords(result.faceShape, isKo).slice(0, 3);
+    const keywords = getKeywords(presentedShape, safeLang).slice(0, 3);
+    const masculineContourTitle =
+        styleTarget === "masculine"
+            ? {
+                ko: "윤곽/그루밍 포인트",
+                en: "Grooming & Contour",
+                zh: "轮廓修饰重点",
+                ja: "輪郭とグルーミング",
+            }[safeLang]
+            : null;
 
-    const locale =
-        lang === "ko"
-            ? "ko-KR"
-            : lang === "ja"
-                ? "ja-JP"
-                : lang === "zh"
-                    ? "zh-CN"
-                    : "en-US";
-    const measuredDate = Number.isNaN(Date.parse(result.measuredAt))
-        ? new Date()
-        : new Date(result.measuredAt);
-    const localizedDate = measuredDate.toLocaleDateString(locale, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
-
-    const t = isKo
-        ? {
-            headerTitle: "AI 얼굴형 분석",
+    const t = {
+        ko: {
+            headerTitle: "AI 전문 얼굴형 분석 리포트",
             resultLabel: "분석 결과",
-            verified: "AI Verified",
+            verified: "AI 검증",
             analysisSummary: "분석 요약",
             ratio: "가로세로 비율",
             widthRatio: "상하 너비 비율",
             jawAngle: "하악각",
-            thirds: "안면 3분할",
-            ideal: "이상적 비율 1:1:1",
+            thirds: "안면 3분할 치수",
+            ideal: "이상 비율 1:1:1",
             upperThird: "상안부",
             middleThird: "중안부",
             lowerThird: "하안부",
-            strengths: "잘 어울리는 포인트",
+            strengths: "구조적 강점",
             prescriptions: "스타일 처방",
-            hair: "헤어스타일",
-            eyewear: "아이웨어",
-            contour: "컨투어링",
+            hair: "헤어스타일 추천",
+            eyewear: "아이웨어 추천",
+            contour: "컨투어링 포인트",
             hairline: "헤어라인",
-            browLine: "눈썹 하연선",
-            noseBase: "코밑선",
+            browLine: "눈썹 연선",
+            noseBase: "코끝선",
             chinLine: "턱끝선",
             share: "공유",
             save: "저장",
@@ -153,45 +178,124 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             saved: "결과 이미지를 저장했습니다.",
             shareModalTitle: "결과 링크 공유",
             copyLink: "링크 복사",
+            linkLabel: "링크",
             close: "닫기",
             failedSave: "이미지 저장에 실패했습니다.",
-            adPending: "광고 대기중",
-        }
-        : {
-            headerTitle: "AI Face Shape Analysis",
-            resultLabel: "Result",
+            adPending: "광고대기중",
+            contactLabel: "문의 @todayshelp",
+        },
+        en: {
+            headerTitle: "Professional Face Shape Analysis",
+            resultLabel: "ANALYSIS RESULT",
             verified: "AI Verified",
             analysisSummary: "Summary",
             ratio: "Length Ratio",
-            widthRatio: "Upper/Lower Width",
+            widthRatio: "Width Ratio",
             jawAngle: "Jaw Angle",
             thirds: "Facial Thirds",
-            ideal: "Ideal 1:1:1",
+            ideal: "Ideal Ratio 1:1:1",
             upperThird: "Upper",
             middleThird: "Middle",
             lowerThird: "Lower",
-            strengths: "Best Styling Points",
+            strengths: "Structural Strengths",
             prescriptions: "Style Prescription",
             hair: "Hairstyle",
             eyewear: "Eyewear",
             contour: "Contouring",
             hairline: "Hairline",
-            browLine: "Brow Lower Line",
+            browLine: "Brow Line",
             noseBase: "Nose Base",
             chinLine: "Chin Line",
             share: "Share",
             save: "Save",
             saving: "Saving",
             home: "Home",
-            retry: "Analyze Again",
+            retry: "Retry",
             copied: "Link copied.",
             saved: "Result image saved.",
             shareModalTitle: "Share Result Link",
             copyLink: "Copy Link",
+            linkLabel: "URL",
             close: "Close",
             failedSave: "Failed to save image.",
             adPending: "Ad Pending",
-        };
+            contactLabel: "Contact @todayshelp",
+        },
+        zh: {
+            headerTitle: "AI 专业脸型分析报告",
+            resultLabel: "分析结果",
+            verified: "AI 已校验",
+            analysisSummary: "分析摘要",
+            ratio: "长宽比例",
+            widthRatio: "上下宽度比",
+            jawAngle: "下颌角",
+            thirds: "面部三庭比例",
+            ideal: "理想比例 1:1:1",
+            upperThird: "上庭",
+            middleThird: "中庭",
+            lowerThird: "下庭",
+            strengths: "结构优势",
+            prescriptions: "造型建议",
+            hair: "发型建议",
+            eyewear: "眼镜建议",
+            contour: "修容重点",
+            hairline: "发际线",
+            browLine: "眉线",
+            noseBase: "鼻底线",
+            chinLine: "下巴线",
+            share: "分享",
+            save: "保存",
+            saving: "保存中",
+            home: "首页",
+            retry: "重新分析",
+            copied: "链接已复制。",
+            saved: "结果图片已保存。",
+            shareModalTitle: "分享结果链接",
+            copyLink: "复制链接",
+            linkLabel: "链接",
+            close: "关闭",
+            failedSave: "图片保存失败。",
+            adPending: "广告待处理",
+            contactLabel: "联系 @todayshelp",
+        },
+        ja: {
+            headerTitle: "AI 顔型分析レポート",
+            resultLabel: "分析結果",
+            verified: "AI 検証済み",
+            analysisSummary: "分析要約",
+            ratio: "縦横比",
+            widthRatio: "上下幅の比率",
+            jawAngle: "下顎角",
+            thirds: "顔の三庭バランス",
+            ideal: "理想比率 1:1:1",
+            upperThird: "上庭",
+            middleThird: "中庭",
+            lowerThird: "下庭",
+            strengths: "骨格の強み",
+            prescriptions: "スタイル提案",
+            hair: "ヘア提案",
+            eyewear: "アイウェア提案",
+            contour: "コントゥアのポイント",
+            hairline: "生え際",
+            browLine: "眉ライン",
+            noseBase: "鼻下ライン",
+            chinLine: "あご先ライン",
+            share: "共有",
+            save: "保存",
+            saving: "保存中",
+            home: "ホーム",
+            retry: "再分析",
+            copied: "リンクをコピーしました。",
+            saved: "結果画像を保存しました。",
+            shareModalTitle: "結果リンクを共有",
+            copyLink: "リンクをコピー",
+            linkLabel: "リンク",
+            close: "閉じる",
+            failedSave: "画像の保存に失敗しました。",
+            adPending: "広告待機中",
+            contactLabel: "お問い合わせ @todayshelp",
+        },
+    }[safeLang];
 
     const topPoint = result.overlay.faceHeight[0];
     const chinPoint = result.overlay.faceHeight[1];
@@ -199,46 +303,48 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
     const nosePoint = result.overlay.noseBase;
     const contourPath = linePath(result.overlay.contour, true);
     const axisPath = pairPath(result.overlay.centerLine);
-    const contourBounds = getBounds(result.overlay.contour);
     const axisX = result.overlay.centerLine
         ? (result.overlay.centerLine[0].x + result.overlay.centerLine[1].x) / 2
         : (topPoint.x + chinPoint.x) / 2;
-    const guideLabelLeft = `${clamp(((contourBounds?.minX ?? 0.18) * 100) - 13, 3.5, 10)}%`;
+    const fifthGuideXs = buildFifthGuideXs(result.overlay.upperThirdGuide ?? result.overlay.cheekboneWidth);
+    const fifthGuideRange = result.overlay.centerLine
+        ? [result.overlay.centerLine[0], result.overlay.centerLine[1]]
+        : result.overlay.faceHeight;
 
     const guideItems = [
         {
             key: "hairline",
             label: t.hairline,
             y: topPoint.y,
-            lineColor: "#e5a321",
-            chipClass: "border-[rgba(241,185,77,0.7)] bg-[rgba(0,0,0,0.72)] text-[#ffd88f]",
+            lineColor: "#f6c453",
+            chipClass: "bg-black/80 text-[#fff1c7] border-y border-r border-[#f6c453]/40",
         },
         {
             key: "brow",
             label: t.browLine,
             y: browPoint.y,
-            lineColor: "#2cb7ff",
-            chipClass: "border-[rgba(91,200,255,0.7)] bg-[rgba(0,0,0,0.72)] text-[#b8ebff]",
+            lineColor: "#67e8f9",
+            chipClass: "bg-black/80 text-[#defafe] border-y border-r border-[#67e8f9]/40",
         },
         {
             key: "nose",
             label: t.noseBase,
             y: nosePoint.y,
-            lineColor: "#ff5252",
-            chipClass: "border-[rgba(255,116,116,0.7)] bg-[rgba(0,0,0,0.72)] text-[#ffc5c5]",
+            lineColor: "#fb7185",
+            chipClass: "bg-black/80 text-[#fecdd3] border-y border-r border-[#fb7185]/40",
         },
         {
             key: "chin",
             label: t.chinLine,
             y: chinPoint.y,
-            lineColor: "#e5a321",
-            chipClass: "border-[rgba(241,185,77,0.7)] bg-[rgba(0,0,0,0.72)] text-[#ffd88f]",
+            lineColor: "#4e80ff",
+            chipClass: "bg-black/80 text-[#e8f0ff] border-y border-r border-[#4e80ff]/40",
         },
     ];
 
     const metricCards = [
-        { label: t.ratio, value: `1 : ${result.metrics.faceLengthToWidth.toFixed(2)}` },
-        { label: t.widthRatio, value: `${result.metrics.foreheadToJaw.toFixed(2)} : 1` },
+        { label: t.ratio, value: `1:${result.metrics.faceLengthToWidth.toFixed(2)}` },
+        { label: t.widthRatio, value: `${result.metrics.foreheadToJaw.toFixed(2)}:1` },
         { label: t.jawAngle, value: `${result.metrics.jawAngle.toFixed(1)}°` },
     ];
 
@@ -249,30 +355,30 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
     ];
     const maxThirdValue = Math.max(...thirds.map((item) => item.value), 33.3);
 
-    const highlightPoints = shapeCopy.strengths.slice(0, 2);
+    const highlightPoints = shapeCopy.strengths.slice(0, 3);
     const prescriptionCards = [
         {
             key: "hair",
             title: t.hair,
-            items: shapeCopy.hairstyle.slice(0, 3),
+            items: styleRecommendations.hairstyle.slice(0, 3),
             icon: Scissors,
-            iconClass: "bg-[#15263d] text-[#53a9ff]",
-            bulletClass: "bg-[#53a9ff]",
+            iconClass: "bg-[#4e80ff]/10 text-[#4e80ff]",
+            bulletClass: "bg-[#4e80ff]",
         },
         {
             key: "eyewear",
             title: t.eyewear,
-            items: shapeCopy.eyewear.slice(0, 3),
+            items: styleRecommendations.eyewear.slice(0, 3),
             icon: Glasses,
-            iconClass: "bg-[#24213a] text-[#8f87ff]",
+            iconClass: "bg-[#8f87ff]/10 text-[#8f87ff]",
             bulletClass: "bg-[#8f87ff]",
         },
         {
             key: "contour",
-            title: t.contour,
-            items: shapeCopy.contour.slice(0, 3),
+            title: masculineContourTitle ?? t.contour,
+            items: styleRecommendations.contour.slice(0, 3),
             icon: Sparkles,
-            iconClass: "bg-[#2f2217] text-[#f0b35d]",
+            iconClass: "bg-[#f0b35d]/10 text-[#f0b35d]",
             bulletClass: "bg-[#f0b35d]",
         },
     ];
@@ -330,12 +436,12 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
         try {
             const htmlToImage = await import("html-to-image");
             const dataUrl = await htmlToImage.toPng(cardRef.current, {
-                backgroundColor: "#050505",
+                backgroundColor: "#03060b",
                 pixelRatio: 2,
                 cacheBust: true,
             });
             const link = document.createElement("a");
-            link.download = `findcore-face-${result.faceShape}.png`;
+            link.download = `findcore-face-${presentedShape}.png`;
             link.href = dataUrl;
             link.click();
             showTemporaryToast(t.saved);
@@ -348,16 +454,23 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
     };
 
     return (
+
+
         <div
-            className={`mx-auto flex w-full max-w-[1440px] flex-col gap-4 px-4 pb-10 sm:px-6 ${isKo ? "font-korean" : isEnglish ? "font-cinzel" : ""}`}
+            className={`mx-auto flex w-full max-w-md lg:max-w-[1240px] flex-col gap-4 px-4 py-8 pb-10 md:px-6 lg:py-12 ${isKo ? "font-korean" : isEnglish ? "font-cinzel" : ""}`}
         >
+            {/* Background ambiance */}
+            <div className="pointer-events-none fixed inset-0 z-[-1]">
+                <div className="absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_at_top,rgba(45,127,249,0.05),transparent_70%)]" />
+            </div>
+
             {toastMessage && (
                 <div className="pointer-events-none fixed left-1/2 top-8 z-50 -translate-x-1/2">
-                    <div className="flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(36,37,40,0.92)] px-5 py-3 shadow-2xl backdrop-blur-2xl">
+                    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#111] px-5 py-3 shadow-2xl backdrop-blur-2xl">
                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500">
                             <Check className="h-3 w-3 text-white" />
                         </span>
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-[13px] font-semibold text-white">
                             {toastMessage}
                         </span>
                     </div>
@@ -366,35 +479,35 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
 
             {showShareModal && (
                 <div
-                    className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(0,0,0,0.65)] backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
                     onClick={() => setShowShareModal(false)}
                 >
                     <div
-                        className="w-full max-w-md rounded-t-[30px] border border-[rgba(255,255,255,0.1)] bg-[#111214] p-6 pb-8 text-white shadow-2xl"
+                        className="w-full max-w-md bg-[#1a1a1a] rounded-t-3xl p-6 pb-10 animate-in slide-in-from-bottom duration-300"
                         onClick={(event) => event.stopPropagation()}
                     >
-                        <div className="mx-auto mb-6 h-1 w-14 rounded-full bg-[rgba(255,255,255,0.15)]" />
-                        <h3 className="text-center text-xl font-bold">
+                        <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6" />
+                        <h3 className="text-white font-bold text-lg text-center mb-6">
                             {t.shareModalTitle}
                         </h3>
-                        <div className="mt-6 rounded-2xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-[rgba(255,255,255,0.4)]">
-                                URL
+                        <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4 mb-6">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 mb-1">
+                                {t.linkLabel}
                             </p>
-                            <p className="mt-2 break-all text-sm text-[rgba(255,255,255,0.88)]">
+                            <p className="text-sm text-white/90 truncate">
                                 {shareUrl}
                             </p>
                         </div>
                         <button
                             onClick={handleCopyLink}
-                            className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-4 font-semibold text-black transition hover:bg-[rgba(255,255,255,0.9)]"
+                            className="w-full py-4 flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(90deg,#4e80ff,#2d5cf9)] px-5 text-[15px] font-bold text-white transition active:scale-95 shadow-[0_0_30px_-5px_rgba(78,128,255,0.5)]"
                         >
                             <Link2 className="h-5 w-5" />
                             <span>{t.copyLink}</span>
                         </button>
                         <button
                             onClick={() => setShowShareModal(false)}
-                            className="mt-3 w-full py-3 text-sm font-medium text-[rgba(255,255,255,0.55)]"
+                            className="w-full py-3 mt-3 text-[13px] font-bold text-white/40 transition hover:text-white"
                         >
                             {t.close}
                         </button>
@@ -402,330 +515,388 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 </div>
             )}
 
-            <div
-                ref={cardRef}
-                className="overflow-hidden rounded-[32px] border border-[rgba(255,255,255,0.1)] bg-[#050505] text-white shadow-[0_28px_120px_-40px_rgba(255,255,255,0.28)]"
-            >
-                <div className="flex items-center justify-between gap-4 border-b border-[rgba(255,255,255,0.08)] px-6 py-4 sm:px-8 sm:py-5">
-                    <div className="flex items-center">
-                        <span className="font-cinzel text-[13px] font-light tracking-[0.26em] text-[rgba(255,255,255,0.88)] sm:text-[18px]">
-                            FINDCORE
-                        </span>
-                    </div>
-                    <p className="text-right text-[9px] font-semibold tracking-[0.08em] text-[rgba(255,255,255,0.52)] sm:text-[12px]">
-                        {t.headerTitle} · {localizedDate}
-                    </p>
-                </div>
+            <div className="w-full flex flex-col gap-4">
+                <div
+                    ref={cardRef}
+                    className="relative w-full flex flex-col lg:grid lg:grid-cols-[1fr_1fr] lg:gap-10 bg-[#050505] lg:bg-transparent text-white rounded-[32px] sm:rounded-4xl lg:rounded-none overflow-hidden lg:overflow-visible"
+                >
+                    {/* ═══ LEFT: Image Panel ═══ */}
+                    <div className="w-full shrink-0 bg-black relative lg:rounded-[24px] lg:overflow-hidden lg:shadow-[0_8px_60px_-12px_rgba(0,0,0,0.8)]">
+                        <div className="relative w-full overflow-hidden">
+                            <img
+                                src={result.imageDataUrl}
+                                alt="Analyzed Face"
+                                className="w-full h-auto block"
+                            />
+                            {/* Overlay — soft on desktop, cinematic on mobile */}
+                            <div className="absolute inset-0 bg-linear-to-b from-black/10 via-transparent to-black/80 lg:to-black/20 z-10 pointer-events-none" />
 
-                <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-                    <section className="border-b border-[rgba(255,255,255,0.08)] p-5 sm:p-8 lg:border-b-0 lg:border-r lg:p-10">
-                        <div className="mx-auto w-full max-w-[640px]">
-                            <div className="relative aspect-4/5 overflow-hidden rounded-[30px] border border-[rgba(255,255,255,0.1)] bg-black">
-                                <Image
-                                    src={result.imageDataUrl}
-                                    alt="Face analysis"
-                                    fill
-                                    priority
-                                    unoptimized
-                                    className="object-cover object-center"
-                                />
-                                <div className="absolute inset-0 bg-linear-to-b from-[rgba(0,0,0,0.28)] via-transparent to-[rgba(0,0,0,0.82)]" />
-
-                                <div className="absolute left-5 top-5 z-30">
-                                    <div className="flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(0,0,0,0.55)] px-3 py-1.5 backdrop-blur-xl">
-                                        <span
-                                            className={`h-2.5 w-2.5 rounded-full ${confidenceDotClass}`}
-                                        />
-                                        <span className="font-cinzel text-[10px] font-semibold tracking-[0.04em] text-[rgba(255,255,255,0.92)]">
-                                            {t.verified} {result.confidence.toFixed(0)}%
-                                        </span>
-                                    </div>
+                            {/* Verified Badge */}
+                            <div className="absolute left-3 top-3 lg:left-4 lg:top-4 z-30">
+                                <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-black/50 px-2.5 py-1 backdrop-blur-xl shadow-lg">
+                                    <span className={`h-2 w-2 rounded-full ${confidenceDotClass}`} />
+                                    <span className="font-sans text-[9px] font-bold tracking-widest text-white/90 uppercase">
+                                        {t.verified} {result.confidence.toFixed(0)}%
+                                    </span>
                                 </div>
+                            </div>
 
-                                <svg
-                                    className="pointer-events-none absolute inset-0 z-20 h-full w-full"
-                                    viewBox="0 0 100 100"
-                                    preserveAspectRatio="none"
-                                >
-                                    {guideItems.map((guide) => (
+                            {/* ── Technical Clinical Analysis Overlay ── */}
+                            <svg
+                                className="pointer-events-none absolute inset-0 z-20 h-full w-full"
+                                viewBox="0 0 100 100"
+                                preserveAspectRatio="none"
+                            >
+                                <defs>
+                                    <pattern id="scanner-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.1"/>
+                                    </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" fill="url(#scanner-grid)" />
+
+                                {/* Clinical Dimension Lines (Technical Ticks) */}
+                                {guideItems.map((guide) => (
+                                    <g key={`${guide.key}-tech`}>
+                                        {/* Background contrast line */}
                                         <line
-                                            key={guide.key}
-                                            x1="0"
-                                            y1={guide.y * 100}
-                                            x2="100"
-                                            y2={guide.y * 100}
-                                            stroke={guide.lineColor}
-                                            strokeWidth="0.3"
+                                            x1="0" y1={guide.y * 100}
+                                            x2="100" y2={guide.y * 100}
+                                            stroke="rgba(0,0,0,0.4)" strokeWidth="0.4"
                                         />
-                                    ))}
-                                    {axisPath && (
-                                        <path
-                                            d={axisPath}
-                                            fill="none"
-                                            stroke="rgba(255,255,255,0.34)"
-                                            strokeWidth="0.22"
-                                            strokeDasharray="1 0.9"
+                                        <line
+                                            x1="0" y1={guide.y * 100}
+                                            x2="100" y2={guide.y * 100}
+                                            stroke="rgba(255,255,255,0.3)" strokeWidth="0.15"
                                         />
-                                    )}
-                                    {contourPath && (
-                                        <>
-                                            <path
-                                                d={contourPath}
-                                                fill="none"
-                                                stroke="rgba(82,116,255,0.68)"
-                                                strokeWidth="0.52"
-                                            />
-                                            <path
-                                                d={contourPath}
-                                                fill="none"
-                                                stroke="rgba(255,255,255,0.9)"
-                                                strokeWidth="0.18"
-                                            />
-                                        </>
-                                    )}
-                                    {guideItems.map((guide) => (
-                                        <circle
-                                            key={`${guide.key}-point`}
-                                            cx={axisX * 100}
-                                            cy={guide.y * 100}
-                                            r="1.45"
-                                            fill={guide.lineColor}
-                                            stroke="rgba(255,255,255,0.95)"
-                                            strokeWidth="0.34"
-                                        />
-                                    ))}
-                                </svg>
+                                        {/* Dimension Ticks on edges */}
+                                        <line x1="1" y1={guide.y * 100 - 1.2} x2="1" y2={guide.y * 100 + 1.2} stroke="rgba(255,255,255,0.6)" strokeWidth="0.3" />
+                                        <line x1="99" y1={guide.y * 100 - 1.2} x2="99" y2={guide.y * 100 + 1.2} stroke="rgba(255,255,255,0.6)" strokeWidth="0.3" />
+                                    </g>
+                                ))}
 
-                                <div className="pointer-events-none absolute inset-0 z-30">
-                                    {guideItems.map((guide) => (
-                                        <div
-                                            key={`${guide.key}-chip`}
-                                            className="absolute"
-                                            style={{
-                                                top: `${guide.y * 100}%`,
-                                                left: guideLabelLeft,
-                                                transform: "translateY(-50%)",
-                                            }}
-                                        >
-                                            <span
-                                                className={`inline-flex rounded-full border px-3 py-1.5 text-[11px] font-semibold tracking-tight shadow-lg ${guide.chipClass}`}
-                                            >
+                                {/* Center Axis (Vertical Scanner Line) */}
+                                {axisPath && (
+                                    <g>
+                                        <path d={axisPath} fill="none" stroke="rgba(0,0,0,0.4)" strokeWidth="0.4" />
+                                        <path
+                                            d={axisPath} fill="none"
+                                            stroke="rgba(255,255,255,0.5)" strokeWidth="0.15"
+                                            strokeDasharray="0.5 0.5"
+                                        />
+                                    </g>
+                                )}
+
+                                {/* Facial Fifths (Vertical Guide Lines) */}
+                                {fifthGuideRange && fifthGuideXs.map((x, index) => (
+                                    <path
+                                        key={`fifth-${index}`}
+                                        d={`M ${x * 100} ${fifthGuideRange[0].y * 100} L ${x * 100} ${fifthGuideRange[1].y * 100}`}
+                                        fill="none"
+                                        stroke="rgba(103,232,249,0.42)"
+                                        strokeWidth="0.16"
+                                        strokeDasharray="1 1"
+                                    />
+                                ))}
+
+                                {/* High-Precision Face Contour (Clinical Cyan) */}
+                                {contourPath && (
+                                    <g>
+                                        <path d={contourPath} fill="none" stroke="black" strokeWidth="0.8" opacity="0.3" />
+                                        <path
+                                            d={contourPath} fill="none"
+                                            stroke="#4e80ff" strokeWidth="0.42"
+                                            strokeLinejoin="round" strokeLinecap="round"
+                                        />
+                                    </g>
+                                )}
+
+                                {/* Medical Crosshair Markers (+) */}
+                                {guideItems.map((guide) => (
+                                    <g key={`${guide.key}-marker`}>
+                                        {/* Crosshair Background Contrast */}
+                                        <line
+                                            x1={axisX * 100 - 2} y1={guide.y * 100}
+                                            x2={axisX * 100 + 2} y2={guide.y * 100}
+                                            stroke="rgba(0,0,0,0.5)" strokeWidth="0.6"
+                                        />
+                                        <line
+                                            x1={axisX * 100} y1={guide.y * 100 - 2}
+                                            x2={axisX * 100} y2={guide.y * 100 + 2}
+                                            stroke="rgba(0,0,0,0.5)" strokeWidth="0.6"
+                                        />
+                                        {/* Crosshair Foreground */}
+                                        <line
+                                            x1={axisX * 100 - 1.8} y1={guide.y * 100}
+                                            x2={axisX * 100 + 1.8} y2={guide.y * 100}
+                                            stroke={guide.lineColor} strokeWidth="0.3"
+                                        />
+                                        <line
+                                            x1={axisX * 100} y1={guide.y * 100 - 1.8}
+                                            x2={axisX * 100} y2={guide.y * 100 + 1.8}
+                                            stroke={guide.lineColor} strokeWidth="0.3"
+                                        />
+                                        {/* Centering Dot */}
+                                        <circle cx={axisX * 100} cy={guide.y * 100} r="0.6" fill="black" opacity="0.4" />
+                                        <circle cx={axisX * 100} cy={guide.y * 100} r="0.3" fill="white" />
+                                    </g>
+                                ))}
+
+                                {/* Precision Width Indicators */}
+                                <line x1="20" y1="5" x2="80" y2="5" stroke="rgba(255,255,255,0.3)" strokeWidth="0.15" strokeDasharray="1 1" />
+                            </svg>
+
+                            {/* Clinical Callout Labels — High Visibility Medical Aesthetic */}
+                            <div className="pointer-events-none absolute inset-0 z-25">
+                                {guideItems.map((guide, idx) => (
+                                    <div
+                                        key={`${guide.key}-label`}
+                                        className="absolute"
+                                        style={{
+                                            top: `${guide.y * 100}%`,
+                                            left: '0',
+                                            transform: 'translateY(-100%)',
+                                        }}
+                                    >
+                                        <div className="flex flex-col items-start gap-1 border-l-2 border-white/60 pl-2.5 py-1.5 bg-black/40 backdrop-blur-md rounded-r-lg shadow-2xl">
+                                            <span className="text-[8px] font-mono leading-none tracking-widest text-sky-400/90 font-bold">
+                                                ID_SCAN_{idx.toString().padStart(2, '0')}
+                                            </span>
+                                            <span className="text-[12px] font-black leading-none tracking-tight text-white uppercase font-mono drop-shadow-sm">
                                                 {guide.label}
                                             </span>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="text-[9px] font-mono leading-none text-emerald-400 font-black">
+                                                    COORD_Y {(guide.y * 100).toFixed(2)}
+                                                </span>
+                                                <div className="h-1 w-4 bg-white/10 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-emerald-400/50" style={{ width: `${guide.y * 100}%` }} />
+                                                </div>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
+                                    </div>
+                                ))}
 
-                                <div className="absolute inset-x-0 bottom-0 z-30 bg-linear-to-t from-black via-[rgba(0,0,0,0.78)] to-transparent px-6 pb-6 pt-20 sm:px-8 sm:pb-8">
+                            </div>
+
+                            {/* Mobile-only title overlay */}
+                            <div className="absolute inset-0 px-5 pt-6 pb-5 flex flex-col justify-end z-30 lg:hidden">
+                                <div className="flex flex-col items-start gap-1">
+                                    <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60 drop-shadow-md">
+                                        {t.headerTitle}
+                                    </p>
+                                    <h1 className="text-3xl font-black leading-none tracking-tight text-transparent drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] sm:text-4xl bg-clip-text bg-linear-to-b from-white to-white/70">
+                                        {shapeCopy.name}
+                                    </h1>
                                     {keywords.length > 0 && (
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-1.5 pt-2">
                                             {keywords.map((keyword) => (
-                                                <span
-                                                    key={keyword}
-                                                    className="rounded-sm border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-1 text-[10px] font-semibold text-[rgba(255,255,255,0.9)]"
-                                                >
+                                                <span key={keyword} className="px-2.5 py-1 rounded-full text-[10px] font-medium border backdrop-blur-md bg-zinc-900/60 border-white/20 text-white tracking-wide shadow-sm">
                                                     #{keyword}
                                                 </span>
                                             ))}
                                         </div>
                                     )}
-                                    <p className="mt-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-[rgba(255,255,255,0.38)]">
-                                        {t.resultLabel}
-                                    </p>
-                                    <h1 className="mt-1 text-[28px] font-black tracking-tight text-white sm:text-[34px] lg:text-[40px]">
-                                        {shapeCopy.name}
-                                    </h1>
                                 </div>
                             </div>
                         </div>
-                    </section>
+                    </div>
 
-                    <section className="p-5 sm:p-7 lg:p-8">
-                        <div className="flex flex-col gap-6">
-                            <div>
-                                <h2 className="text-[24px] font-black tracking-tight text-white sm:text-[28px] lg:text-[34px]">
-                                    {t.analysisSummary}
-                                </h2>
-                                <p className="mt-2 max-w-3xl text-[12px] font-medium leading-[1.72] text-[rgba(255,255,255,0.78)] sm:text-[13px] lg:text-[15px]">
-                                    {executiveSummary}
+                    {/* ═══ RIGHT: Professional Report Dashboard ═══ */}
+                    <div className="flex flex-col px-5 py-7 z-10 w-full text-left bg-black lg:bg-transparent lg:pl-8 lg:pr-0 lg:py-0" style={{ gap: '1.5rem' }}>
+
+                        {/* ▸ Desktop Title Block */}
+                        <div className="hidden lg:flex flex-col gap-5 pb-5 border-b border-white/8">
+                            <div className="flex flex-col items-start">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400/60 mb-2">
+                                    {t.resultLabel}
                                 </p>
+                                <h1 className="text-[32px] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/50">
+                                    {shapeCopy.name}
+                                </h1>
+                                {keywords.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-4">
+                                        {keywords.map((keyword) => (
+                                            <span key={keyword} className="px-3 py-1.5 rounded-full text-[10px] font-bold border bg-white/10 border-white/15 text-white tracking-wide shadow-xs">
+                                                #{keyword}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-
-                            <div className="grid gap-3 sm:grid-cols-3">
+                            {/* Inline metrics row */}
+                            <div className="grid grid-cols-3 gap-2">
                                 {metricCards.map((metric) => (
-                                    <div
-                                        key={metric.label}
-                                        className="rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.06)] px-4 py-4"
-                                    >
-                                        <p className="text-[10px] font-semibold text-[rgba(255,255,255,0.44)]">
-                                            {metric.label}
-                                        </p>
-                                        <p className="mt-2 text-[24px] font-black tracking-tight text-white tabular-nums sm:text-[28px]">
-                                            {metric.value}
-                                        </p>
+                                    <div key={metric.label} className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/3 px-3.5 py-2.5">
+                                        <div>
+                                            <p className="text-[8px] font-bold uppercase text-white/35 tracking-wider mb-0.5">{metric.label}</p>
+                                            <p className="text-[16px] font-mono font-black tracking-tight text-white leading-none">{metric.value}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
+                        </div>
 
-                            <div className="rounded-[26px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] p-4 sm:p-5">
-                                <div className="flex items-center justify-between gap-3">
-                                    <h3 className="text-[17px] font-black tracking-tight text-white sm:text-[19px]">
-                                        {t.thirds}
-                                    </h3>
-                                    <span className="text-[10px] font-medium text-[rgba(255,255,255,0.42)]">
-                                        {t.ideal}
-                                    </span>
+                        {/* Mobile-only metrics */}
+                        <div className="grid grid-cols-3 gap-2 lg:hidden">
+                            {metricCards.map((metric) => (
+                                <div key={metric.label} className="flex flex-col items-center justify-center rounded-xl border border-white/8 bg-white/3 p-3">
+                                    <p className="text-[8px] font-bold uppercase text-white/40 mb-1 text-center tracking-wider">{metric.label}</p>
+                                    <p className="text-[14px] font-mono font-bold tracking-tight text-white">{metric.value}</p>
                                 </div>
-                                <div className="mt-4 space-y-4">
-                                    {thirds.map((segment) => (
-                                        <div
-                                            key={segment.label}
-                                            className="grid grid-cols-[78px_minmax(0,1fr)_64px] items-center gap-3 sm:grid-cols-[94px_minmax(0,1fr)_78px] sm:gap-4"
-                                        >
-                                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.78)] sm:text-[12px]">
-                                                {segment.label}
-                                            </span>
-                                            <div className="h-3 overflow-hidden rounded-full bg-[rgba(0,0,0,0.7)]">
-                                                <div
-                                                    className="h-full rounded-full bg-linear-to-r from-[#2678ff] via-[#418fff] to-[#68bbff]"
-                                                    style={{
-                                                        width: `${(segment.value / maxThirdValue) * 100}%`,
-                                                    }}
-                                                />
-                                            </div>
-                                            <span className="text-right text-[14px] font-bold text-white tabular-nums sm:text-[16px]">
-                                                {segment.value.toFixed(1)}%
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
+                            ))}
+                        </div>
+
+                        {/* ▸ Executive Summary */}
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                                <div className="w-0.5 h-3.5 rounded-full bg-blue-400" />
+                                <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-400/90">{t.analysisSummary}</h3>
                             </div>
+                            <p className="text-[13px] lg:text-[13.5px] text-white/85 leading-[1.8] tracking-wide pl-3">
+                                {executiveSummary}
+                            </p>
+                        </div>
 
-                            <div>
-                                <h3 className="text-[17px] font-black tracking-tight text-white sm:text-[19px]">
-                                    {t.strengths}
-                                </h3>
-                                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                                    {highlightPoints.map((point, index) => (
-                                        <div
-                                            key={point}
-                                            className="flex items-start gap-3 rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-4 py-4"
-                                        >
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] text-[10px] font-bold text-[rgba(255,255,255,0.9)]">
-                                                {index + 1}
-                                            </span>
-                                            <p className="text-[12px] font-medium leading-relaxed text-[rgba(255,255,255,0.86)] sm:text-[13px]">
-                                                {point}
-                                            </p>
-                                        </div>
-                                    ))}
+                        {/* ▸ Thirds */}
+                        <div className="rounded-xl border border-white/8 bg-white/3 p-5">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1 h-4 rounded-full bg-sky-400" />
+                                    <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-sky-300">{t.thirds}</h3>
                                 </div>
+                                <span className="text-[9px] font-mono font-bold text-white/40 tracking-widest bg-white/5 px-2 py-1 rounded">{t.ideal}</span>
+                            </div>
+                            <div className="space-y-3.5">
+                                {thirds.map((seg) => (
+                                    <div key={seg.label} className="grid grid-cols-[50px_1fr_44px] items-center gap-3">
+                                        <span className="text-[12px] font-bold text-white">{seg.label}</span>
+                                        <div className="relative h-[8px] overflow-hidden rounded-full bg-white/8">
+                                            <div className="absolute inset-y-0 left-0 rounded-full bg-[linear-gradient(90deg,#4e80ff,#6b9fff)]" style={{ width: `${(seg.value / maxThirdValue) * 100}%` }} />
+                                            <div className="absolute inset-y-0 left-[33.3%] w-px bg-white/25 z-10" />
+                                        </div>
+                                        <span className="text-right text-[12px] font-mono font-bold text-white">{seg.value.toFixed(1)}%</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </section>
+
+                        {/* ▸ Strengths */}
+                        <div className="rounded-xl border border-white/8 bg-white/3 p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-1 h-4 rounded-full bg-emerald-400" />
+                                <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-emerald-300">{t.strengths}</h3>
+                            </div>
+                            <div className="space-y-3">
+                                {highlightPoints.map((pt) => (
+                                    <div key={pt} className="flex items-start gap-2.5">
+                                        <div className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                                        <p className="text-[13px] leading-[1.7] text-white">{pt}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ▸ Ad Placeholder */}
+                        <div className="w-full bg-[#1A1A1A] border-t border-white/5 py-3 px-6 mt-auto">
+                            <p className="text-xs text-center text-white/50 font-semibold">{t.adPending}</p>
+                        </div>
+
+                        {/* ▸ Footer: Domain & Telegram */}
+                        <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
+                            <Link 
+                                href={`/?lang=${lang}`}
+                                className="footer-domain font-cinzel text-white text-[10px] uppercase tracking-[0.2em] font-bold"
+                            >
+                                FINDCORE.ME
+                            </Link>
+                            <a
+                                href="https://t.me/todayshelp"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex items-center gap-1.5 text-white transition-colors duration-300"
+                            >
+                                <span className="footer-telegram-label font-cinzel text-xs tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
+                                <span className="footer-telegram-id font-cinzel text-[10px] font-bold">@todayshelp</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
-                <section className="border-t border-[rgba(255,255,255,0.08)] px-5 py-6 sm:px-8 sm:py-7 lg:px-10 lg:py-8">
-                    <h3 className="text-[24px] font-black tracking-tight text-white sm:text-[28px] lg:text-[34px]">
-                        {t.prescriptions}
-                    </h3>
-                    <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                {/* ═══ FULL-WIDTH: Style Prescriptions ═══ */}
+                <div className="w-full text-white mt-2">
+                    <div className="mb-5 flex flex-wrap items-center gap-2">
+                        <div className="w-1 h-4 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
+                        <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-amber-300">{t.prescriptions}</h3>
+                        <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[10px] font-bold text-amber-100/90">
+                            {styleTargetCopy[styleTarget].badge}
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {prescriptionCards.map((card) => {
                             const Icon = card.icon;
-
                             return (
-                                <article
-                                    key={card.key}
-                                    className="rounded-[26px] border border-[rgba(255,255,255,0.08)] bg-[#101114] p-5"
+                                <div 
+                                    key={card.key} 
+                                    className="rounded-2xl border border-white/15 bg-white/4 p-5 lg:p-6 transition-all hover:bg-white/7 hover:border-white/25"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <span
-                                            className={`flex h-10 w-10 items-center justify-center rounded-full ${card.iconClass}`}
-                                        >
-                                            <Icon className="h-5 w-5" />
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${card.iconClass}`}>
+                                            <Icon className="h-4 w-4" />
                                         </span>
-                                        <h4 className="text-[15px] font-black tracking-tight text-white sm:text-[16px]">
-                                            {card.title}
-                                        </h4>
+                                        <h4 className="text-[15px] font-black text-white tracking-tight">{card.title}</h4>
                                     </div>
-                                    <ul className="mt-4 space-y-2.5">
+                                    <ul className="space-y-2.5 pl-1">
                                         {card.items.map((item) => (
-                                            <li
-                                                key={item}
-                                                className="flex items-start gap-3 text-[12px] leading-relaxed text-[rgba(255,255,255,0.78)] sm:text-[13px]"
-                                            >
-                                                <span
-                                                    className={`mt-[0.6rem] h-1.5 w-1.5 shrink-0 rounded-full ${card.bulletClass}`}
-                                                />
+                                            <li key={item} className="flex items-start gap-2.5 text-[13px] leading-[1.65] text-white">
+                                                <span className={`mt-[8px] flex h-1.5 w-1.5 shrink-0 rounded-full ${card.bulletClass}`} />
                                                 <span>{item}</span>
                                             </li>
                                         ))}
                                     </ul>
-                                </article>
+                                </div>
                             );
                         })}
                     </div>
-                </section>
-
-                <div className="border-t border-[rgba(255,255,255,0.08)] bg-[#09090a] px-6 py-7 text-center sm:px-8">
-                    <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[rgba(255,255,255,0.34)]">
-                        {t.adPending}
-                    </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-4 border-t border-[rgba(255,255,255,0.08)] bg-[#050505] px-6 py-5 sm:px-8">
-                    <p className="font-cinzel text-[10px] uppercase tracking-[0.28em] text-[rgba(255,255,255,0.46)]">
-                        FINDCORE.ME
-                    </p>
-                    <a
-                        href="https://t.me/todayshelp"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-white transition hover:text-cyan-200"
+                {/* Action Buttons */}
+                <div className="mx-auto mt-2 lg:mt-3 grid w-full max-w-md lg:max-w-lg gap-3">
+                    <div className="grid grid-cols-2 gap-3 w-full">
+                    <button
+                        onClick={handleShare}
+                        className="flex items-center justify-center py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold transition-all backdrop-blur-md active:scale-95 border border-white/10"
                     >
-                        <span className="font-cinzel text-[15px] tracking-[0.08em]">Telegram</span>
-                        <span className="font-cinzel text-[11px] tracking-[0.06em] text-[rgba(255,255,255,0.72)]">
-                            @todayshelp
-                        </span>
-                    </a>
+                        <Share2 className="w-6 h-6" />
+                    </button>
+                    <button
+                        onClick={handleDownloadImage}
+                        disabled={downloading}
+                        className="flex items-center justify-center py-4 rounded-full bg-linear-to-r from-[#4e80ff] to-[#2d5cf9] hover:from-[#3b6df0] hover:to-[#1a4be0] text-white font-bold transition-all shadow-[0_0_20px_-5px_rgba(78,128,255,0.5)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {downloading ? (
+                            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <Download className="w-6 h-6" />
+                        )}
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 w-full mt-1">
+                    <Link
+                        href={`/?lang=${lang}`}
+                        className="flex items-center justify-center w-full py-4 rounded-full bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5 active:scale-95"
+                    >
+                        <Home className="w-6 h-6" />
+                    </Link>
+                    <Link
+                        href={`/face-shape?lang=${lang}`}
+                        className="flex items-center justify-center w-full py-4 rounded-full bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-colors border border-white/5 active:scale-95"
+                    >
+                        <RotateCcw className="w-6 h-6" />
+                    </Link>
                 </div>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <button
-                    onClick={handleShare}
-                    className="flex items-center justify-center gap-2 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.06)] px-5 py-4 text-sm font-semibold text-white transition hover:bg-[rgba(255,255,255,0.12)]"
-                >
-                    <Share2 className="h-5 w-5" />
-                    <span>{t.share}</span>
-                </button>
-                <button
-                    onClick={handleDownloadImage}
-                    disabled={downloading}
-                    className="flex items-center justify-center gap-2 rounded-full bg-white px-5 py-4 text-sm font-bold text-black transition hover:bg-[rgba(255,255,255,0.9)] disabled:cursor-not-allowed disabled:bg-[rgba(255,255,255,0.7)]"
-                >
-                    {downloading ? (
-                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-[rgba(0,0,0,0.2)] border-t-black" />
-                    ) : (
-                        <Download className="h-5 w-5" />
-                    )}
-                    <span>{downloading ? t.saving : t.save}</span>
-                </button>
-                <Link
-                    href={`/?lang=${lang}`}
-                    className="flex items-center justify-center gap-2 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] px-5 py-4 text-sm font-semibold text-[rgba(255,255,255,0.82)] transition hover:bg-[rgba(255,255,255,0.1)] hover:text-white"
-                >
-                    <Home className="h-5 w-5" />
-                    <span>{t.home}</span>
-                </Link>
-                <Link
-                    href={`/face-shape?lang=${lang}`}
-                    className="flex items-center justify-center gap-2 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] px-5 py-4 text-sm font-semibold text-[rgba(255,255,255,0.82)] transition hover:bg-[rgba(255,255,255,0.1)] hover:text-white"
-                >
-                    <RotateCcw className="h-5 w-5" />
-                    <span>{t.retry}</span>
-                </Link>
-            </div>
+        </div>
         </div>
     );
 }

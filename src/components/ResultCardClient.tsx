@@ -622,17 +622,17 @@ export function ResultCardClient({
 
                     {/* 4. Footer: Domain & Telegram */}
                     <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
-                        <p className="footer-domain text-white text-[10px] uppercase tracking-[0.2em] font-light">
-                            findcore.me
+                        <p className="footer-domain font-cinzel text-white text-[10px] uppercase tracking-[0.2em] font-bold">
+                            FINDCORE.ME
                         </p>
                         <a
                             href="https://t.me/todayshelp"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group flex items-center gap-1.5 text-white hover:text-cyan-200 transition-colors duration-300"
+                            className="group flex items-center gap-1.5 text-white transition-colors duration-300"
                         >
-                            <span className="footer-telegram-label font-serif text-sm italic tracking-wide group-hover:tracking-wider transition-all">Telegram</span>
-                            <span className="footer-telegram-id font-serif italic text-[10px] font-light opacity-90 group-hover:opacity-100">@todayshelp</span>
+                            <span className="footer-telegram-label font-cinzel text-xs tracking-wide transition-all">Telegram</span>
+                            <span className="footer-telegram-id font-cinzel text-[10px] font-bold">@todayshelp</span>
                         </a>
                     </div>
                 </div>

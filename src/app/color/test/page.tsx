@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { RotateCcw, Upload, Move, PenTool, ZoomIn, ZoomOut, Undo2, Check, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { LanguageSelector } from "@/components/language-selector";
-import { getFooterLabels } from "@/lib/site-content";
+import { Footer } from "@/components/footer";
 import { SeasonId, SubSeasonId, analyzePersonalColor } from "@/lib/color-data";
 import { analyzePersonalColorAI, preloadModel, getFaceContour } from "@/lib/face-color-analysis";
 import {
@@ -16,9 +16,11 @@ import {
     getFaceShapeEditorDraft,
     getFaceShapeEditorPreview,
     getFaceShapeContour,
+    normalizeFaceShapeEditorHandles,
     type FacePoint,
     type FaceShapePreviewResult,
     preloadFaceShapeModel,
+    type FaceStyleTarget,
 } from "@/lib/face-shape-analysis-official";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaceShapeFrameEditor } from "@/components/FaceShapeFrameEditor";
@@ -78,6 +80,20 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeCropHint: "앞머리와 이마가 보이게 맞춘 뒤 얼굴 윤곽을 따라 그려주세요.",
         shapeFrameFallback: "AI 초안을 못 잡아도 괜찮습니다. 바깥 프레임을 직접 맞춘 뒤 그대로 분석할 수 있습니다.",
         shapeGateBlocked: "사진 또는 프레임 품질이 아직 부족합니다. 아래 품질 항목을 기준으로 프레임을 더 맞추거나 사진을 다시 선택해 주세요.",
+        shapeDetectAlert: "얼굴을 찾지 못했습니다. 앞머리를 넘겨 이마와 헤어라인이 보이게 한 정면 사진으로 다시 시도하거나 직접 그려주세요.",
+        shapeAnalyzeAlert: "얼굴을 인식하지 못했습니다. 앞머리를 넘겨 이마와 헤어라인이 보이고, 턱선이 잘리지 않은 정면 사진으로 다시 시도해 주세요.",
+        shapeAutoDetectIdle: "AI 자동 얼굴 감지",
+        shapeAutoDetectBusy: "AI 분석 중...",
+        shapeMoveZoom: "사진 이동/확대",
+        shapeDrawArea: "얼굴 선 그리기",
+        shapeScanning1: "안면 정밀 스캐닝 중...",
+        shapeScanning2: "골든 레이쇼 랜드마크 분석...",
+        shapeScanning3: "패턴 매칭 및 조화도 계산...",
+        shapeScanning4: "전문가용 스타일 리포트 생성...",
+        shapeProcessingLabel: "인지 처리 중",
+        shapeCoreActive: "AI 코어 활성",
+        shapeProbability: "확률",
+        shapeSyncSuccess: "동기화 완료",
     },
     en: {
         title: "Personal Color Test",
@@ -99,6 +115,20 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeCropHint: "Frame the forehead and hairline clearly, then trace around the face outline.",
         shapeFrameFallback: "If the AI draft misses, you can still place the outer frame yourself and analyze from that frame.",
         shapeGateBlocked: "The photo or frame quality is still too weak. Refine the frame using the quality panel below, or choose a better photo.",
+        shapeDetectAlert: "Face not detected. Try a near-frontal photo with the forehead and hairline visible, or draw manually.",
+        shapeAnalyzeAlert: "Face detection failed. Try again with a near-frontal photo where the forehead, hairline, and jawline are clearly visible.",
+        shapeAutoDetectIdle: "AI Auto Detect",
+        shapeAutoDetectBusy: "AI Analyzing...",
+        shapeMoveZoom: "Move & Zoom",
+        shapeDrawArea: "Draw Area",
+        shapeScanning1: "Precision facial scanning...",
+        shapeScanning2: "Golden Ratio landmark analysis...",
+        shapeScanning3: "Pattern matching & harmony calc...",
+        shapeScanning4: "Generating expert style report...",
+        shapeProcessingLabel: "Cognitive Processing",
+        shapeCoreActive: "AI_CORE_ACTIVE",
+        shapeProbability: "PROBABILITY",
+        shapeSyncSuccess: "SYNC_SUCCESS",
     },
     zh: {
         title: "个人色彩测试",
@@ -120,6 +150,20 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeCropHint: "先确保额头和发际线清晰可见，再沿着脸部轮廓描绘。",
         shapeFrameFallback: "即使 AI 草稿失败，您也可以手动调整外轮廓后继续分析。",
         shapeGateBlocked: "当前照片或外框质量仍然不足。请参考下方质量面板继续调整，或重新选择照片。",
+        shapeDetectAlert: "未检测到脸部。请换一张露出额头和发际线的近正面照片，或直接手动画线。",
+        shapeAnalyzeAlert: "脸部检测失败。请使用额头、发际线和下颌线清晰可见的近正面照片重新尝试。",
+        shapeAutoDetectIdle: "AI 自动检测脸部",
+        shapeAutoDetectBusy: "AI 分析中...",
+        shapeMoveZoom: "移动与缩放照片",
+        shapeDrawArea: "描绘脸部轮廓",
+        shapeScanning1: "正在精细扫描面部...",
+        shapeScanning2: "正在分析黄金比例关键点...",
+        shapeScanning3: "正在计算匹配度与和谐度...",
+        shapeScanning4: "正在生成专业风格报告...",
+        shapeProcessingLabel: "认知处理中",
+        shapeCoreActive: "AI 核心已激活",
+        shapeProbability: "概率",
+        shapeSyncSuccess: "同步完成",
     },
     ja: {
         title: "パーソナルカラーテスト",
@@ -141,6 +185,20 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeCropHint: "前髪や額が見えるように合わせてから、顔の輪郭をなぞってください。",
         shapeFrameFallback: "AI 下書きに失敗しても、外側フレームを手動で合わせてそのまま分析できます。",
         shapeGateBlocked: "写真またはフレーム品質がまだ不足しています。下の品質パネルを見ながら調整するか、写真を変えてください。",
+        shapeDetectAlert: "顔を検出できませんでした。額と生え際が見える正面寄りの写真に変えるか、手動で輪郭を描いてください。",
+        shapeAnalyzeAlert: "顔検出に失敗しました。額、生え際、あごラインがはっきり見える正面寄りの写真で再度お試しください。",
+        shapeAutoDetectIdle: "AI 自動顔検出",
+        shapeAutoDetectBusy: "AI 解析中...",
+        shapeMoveZoom: "写真を移動・拡大",
+        shapeDrawArea: "顔の輪郭を描く",
+        shapeScanning1: "顔を高精度でスキャン中...",
+        shapeScanning2: "黄金比ランドマークを解析中...",
+        shapeScanning3: "パターン一致度と調和度を計算中...",
+        shapeScanning4: "プロ仕様のスタイルレポートを生成中...",
+        shapeProcessingLabel: "認知処理中",
+        shapeCoreActive: "AI コア稼働中",
+        shapeProbability: "確率",
+        shapeSyncSuccess: "同期完了",
     },
 };
 
@@ -152,17 +210,31 @@ function ColorTestContent() {
     const lang = (['ko', 'en', 'zh', 'ja'].includes(searchParams.get('lang') || '') ? searchParams.get('lang') : 'en') as Lang;
     const mode = searchParams.get('mode') || 'color';
     const isKorean = lang === 'ko';
+    const isEnglish = lang === 'en';
     const t = UI_TEXT[lang];
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const footer = getFooterLabels(lang);
     const MENU_LABELS: Record<Lang, { aesthetic: string; color: string; faceShape: string }> = {
         ko: { aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI얼굴형분석" },
         en: { aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis" },
-        zh: { aesthetic: "美学测试", color: "个人色彩", faceShape: "脸型分析" },
-        ja: { aesthetic: "感性テスト", color: "パーソナルカラー", faceShape: "顔型分析" },
+        zh: { aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析" },
+        ja: { aesthetic: "感性テスト", color: "パーソナルカラー", faceShape: "AI 顔型分析" },
     };
     const menu = MENU_LABELS[lang];
+    const pageTitle =
+        mode === 'shape'
+            ? {
+                ko: 'AI 얼굴형 분석 업로드 | FINDCORE',
+                en: 'AI Face Shape Analysis Upload | FINDCORE',
+                zh: 'AI 脸型分析上传 | FINDCORE',
+                ja: 'AI 顔型分析アップロード | FINDCORE',
+            }[lang]
+            : {
+                ko: '퍼스널 컬러 테스트 | FINDCORE',
+                en: 'Personal Color Test | FINDCORE',
+                zh: '个人色彩测试 | FINDCORE',
+                ja: 'パーソナルカラーテスト | FINDCORE',
+            }[lang];
 
     const [step, setStep] = useState<Step>('upload');
     const [scanningStatus, setScanningStatus] = useState(0);
@@ -174,11 +246,16 @@ function ColorTestContent() {
     const [activeSeason, setActiveSeason] = useState<SeasonId | null>(null);
     const [shapeFrameHandles, setShapeFrameHandles] = useState<FacePoint[]>([]);
     const [shapeFrameDraft, setShapeFrameDraft] = useState<FacePoint[]>([]);
+    const [shapeStyleTarget, setShapeStyleTarget] = useState<FaceStyleTarget>("neutral");
     const [isShapeFrameLoading, setIsShapeFrameLoading] = useState(false);
     const [shapeFrameNotice, setShapeFrameNotice] = useState<string | null>(null);
     const [shapeFramePreview, setShapeFramePreview] = useState<FaceShapePreviewResult | null>(null);
     const [isShapeFramePreviewing, setIsShapeFramePreviewing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        document.title = pageTitle;
+    }, [pageTitle]);
 
     // Crop state
     const cropCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -270,6 +347,7 @@ function ColorTestContent() {
         setPoints([]);
         setShapeFrameHandles([]);
         setShapeFrameDraft([]);
+        setShapeStyleTarget("neutral");
         setShapeFrameNotice(null);
         setShapeFramePreview(null);
         setIsShapeFramePreviewing(false);
@@ -492,11 +570,7 @@ function ColorTestContent() {
         try {
             const contour = mode === 'shape' ? await getFaceShapeContour(img) : await getFaceContour(img);
             if (!contour) {
-                alert(
-                    isKorean
-                        ? "얼굴을 찾지 못했습니다. 앞머리를 넘겨 이마와 헤어라인이 보이게 한 정면 사진으로 다시 시도하거나 직접 그려주세요."
-                        : "Face not detected. Try a near-frontal photo with the forehead and hairline visible, or draw manually."
-                );
+                alert(t.shapeDetectAlert);
                 return;
             }
 
@@ -542,18 +616,25 @@ function ColorTestContent() {
         setShapeFramePreview(null);
         try {
             const draft = await getFaceShapeEditorDraft(img);
-            setShapeFrameHandles(draft.handles);
-            setShapeFrameDraft(draft.handles);
+            const normalizedHandles = normalizeFaceShapeEditorHandles(draft.handles);
+            setShapeFrameHandles(normalizedHandles);
+            setShapeFrameDraft(normalizedHandles);
         } catch (error) {
             console.error("Shape frame draft failed", error);
             const fallbackDraft = getFallbackFaceShapeEditorDraft();
-            setShapeFrameHandles(fallbackDraft.handles);
-            setShapeFrameDraft(fallbackDraft.handles);
+            const normalizedHandles = normalizeFaceShapeEditorHandles(fallbackDraft.handles);
+            setShapeFrameHandles(normalizedHandles);
+            setShapeFrameDraft(normalizedHandles);
             setShapeFrameNotice(t.shapeFrameFallback);
         } finally {
             setIsShapeFrameLoading(false);
         }
     }, [t.shapeFrameFallback]);
+
+    useEffect(() => {
+        if (shapeFrameHandles.length <= 12) return;
+        setShapeFrameHandles(normalizeFaceShapeEditorHandles(shapeFrameHandles));
+    }, [shapeFrameHandles]);
 
     useEffect(() => {
         if (step !== 'shape-adjust' || mode !== 'shape') return;
@@ -656,7 +737,13 @@ function ColorTestContent() {
                 if (!shapeResult) {
                     throw new Error('Face shape analysis result is missing.');
                 }
-                sessionStorage.setItem('lastFaceShapeAnalysis', JSON.stringify(shapeResult));
+                sessionStorage.setItem(
+                    'lastFaceShapeAnalysis',
+                    JSON.stringify({
+                        ...shapeResult,
+                        styleTarget: shapeStyleTarget,
+                    })
+                );
                 router.push(`/face-shape/result?lang=${lang}`);
             } else {
                 if (!colorResult || !('season' in colorResult)) {
@@ -670,11 +757,7 @@ function ColorTestContent() {
             console.error("Analysis failed", e);
             setIsAnalyzing(false);
             if (mode === 'shape') {
-                alert(
-                    isKorean
-                        ? "얼굴을 인식하지 못했습니다. 앞머리를 넘겨 이마와 헤어라인이 보이고, 턱선이 잘리지 않은 정면 사진으로 다시 시도해 주세요."
-                        : "Face detection failed. Try again with a near-frontal photo where the forehead, hairline, and jawline are clearly visible."
-                );
+                alert(t.shapeAnalyzeAlert);
                 setStep(manualFrameHandles?.length ? 'shape-adjust' : 'crop');
             }
         }
@@ -715,7 +798,7 @@ function ColorTestContent() {
                     <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
                     <div className="relative z-10 flex flex-col items-center gap-14 max-w-3xl w-full">
                         <div className="text-center space-y-6">
-                            <h1 className={`text-4xl md:text-7xl font-extrabold text-white tracking-tighter leading-tight px-4 ${isKorean ? 'font-korean' : 'font-cinzel'}`}>
+                            <h1 className={`text-4xl md:text-7xl font-extrabold text-white tracking-tighter leading-tight px-4 ${isKorean ? 'font-korean' : isEnglish ? 'font-cinzel' : ''}`}>
                                 {isShape ? t.shapeTitle : t.title}
                             </h1>
                             <p className={`text-zinc-400 text-sm md:text-lg leading-relaxed max-w-[300px] md:max-w-md mx-auto ${isKorean ? 'font-korean break-keep' : ''}`}>
@@ -792,9 +875,7 @@ function ColorTestContent() {
                             {isAutoDetecting && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin z-10" />}
 
                             <span className={`z-10 ${isKorean ? 'font-korean' : ''}`}>
-                                {isAutoDetecting
-                                    ? (isKorean ? 'AI 분석 중...' : 'AI Analyzing...')
-                                    : (isKorean ? 'AI 자동 얼굴 감지' : 'AI Auto Detect')}
+                                {isAutoDetecting ? t.shapeAutoDetectBusy : t.shapeAutoDetectIdle}
                             </span>
                         </button>
 
@@ -813,14 +894,14 @@ function ColorTestContent() {
                                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-colors relative z-10 ${cropMode === 'move' ? 'text-black' : 'text-zinc-400 hover:text-white'}`}
                                 >
                                     <Move className="w-4 h-4" />
-                                    {isKorean ? '사진 이동/확대' : 'Move & Zoom'}
+                                    {t.shapeMoveZoom}
                                 </button>
                                 <button
                                     onClick={() => setCropMode('draw')}
                                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-colors relative z-10 ${cropMode === 'draw' ? 'text-black' : 'text-zinc-400 hover:text-white'}`}
                                 >
                                     <PenTool className="w-4 h-4" />
-                                    {isKorean ? '얼굴 선 그리기' : 'Draw Area'}
+                                    {t.shapeDrawArea}
                                 </button>
                             </div>
 
@@ -875,7 +956,8 @@ function ColorTestContent() {
                     aspectRatio={shapeAspectRatio}
                     handles={shapeFrameHandles}
                     contour={shapeContour}
-                    isKo={isKorean}
+                    lang={lang}
+                    styleTarget={shapeStyleTarget}
                     isLoading={isShapeFrameLoading}
                     isAnalyzing={isAnalyzing}
                     isPreviewing={isShapeFramePreviewing}
@@ -889,6 +971,7 @@ function ColorTestContent() {
                         }
                     }}
                     onReset={handleReset}
+                    onChangeStyleTarget={setShapeStyleTarget}
                     onAnalyze={() => {
                         void handleAnalyzeAdjustedFrame();
                     }}
@@ -901,10 +984,10 @@ function ColorTestContent() {
         // =============================================
         if (step === 'analyzing') {
             const statuses = [
-                isKorean ? "안면 정밀 스캐닝 중..." : "Precision facial scanning...",
-                isKorean ? "골든 레이쇼 랜드마크 분석..." : "Golden Ratio landmark analysis...",
-                isKorean ? "패턴 매칭 및 조화도 계산..." : "Pattern matching & harmony calc...",
-                isKorean ? "전문가용 스타일 리포트 생성..." : "Generating expert style report..."
+                t.shapeScanning1,
+                t.shapeScanning2,
+                t.shapeScanning3,
+                t.shapeScanning4,
             ];
 
             return (
@@ -992,7 +1075,7 @@ function ColorTestContent() {
                         {/* Status Message */}
                         <div className="space-y-6 w-full px-4">
                             <div className="flex flex-col items-center gap-1">
-                                <span className="text-cyan-400/60 font-cinzel text-[9px] tracking-[0.5em] uppercase">Cognitive Processing</span>
+                                <span className={`text-cyan-400/60 text-[9px] tracking-[0.5em] uppercase ${isEnglish ? 'font-cinzel' : ''}`}>{t.shapeProcessingLabel}</span>
                                 <div className="h-0.5 w-12 bg-linear-to-r from-transparent via-cyan-400/40 to-transparent" />
                             </div>
 
@@ -1001,7 +1084,7 @@ function ColorTestContent() {
                                     key={scanningStatus}
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className={`text-white text-xl font-medium tracking-tight ${isKorean ? 'font-korean' : 'font-cinzel tracking-wider text-2xl'}`}
+                                    className={`text-white text-xl font-medium tracking-tight ${isKorean ? 'font-korean' : isEnglish ? 'font-cinzel tracking-wider text-2xl' : ''}`}
                                 >
                                     {statuses[scanningStatus]}
                                 </motion.p>
@@ -1031,14 +1114,14 @@ function ColorTestContent() {
                             <div className="flex flex-col gap-1 items-start">
                                 <div className="flex items-center gap-2">
                                     <div className="w-1 h-1 bg-cyan-400 rounded-full animate-ping" />
-                                    <span>AI_CORE_ACTIVE</span>
+                                    <span>{t.shapeCoreActive}</span>
                                 </div>
                                 <span className="opacity-50">VER: 2.0.4-LUXE</span>
                             </div>
                             <div className="h-8 w-px bg-white/10" />
                             <div className="flex flex-col gap-1 items-end">
-                                <span>PROBABILITY: 0.9998</span>
-                                <span className="opacity-50 text-cyan-400">SYNC_SUCCESS</span>
+                                <span>{t.shapeProbability}: 0.9998</span>
+                                <span className="opacity-50 text-cyan-400">{t.shapeSyncSuccess}</span>
                             </div>
                         </div>
                     </div>
@@ -1262,22 +1345,7 @@ function ColorTestContent() {
             {renderStep()}
 
             {/* Footer */}
-            <footer className="w-full shrink-0 border-t border-white/5 bg-black/20 px-8 py-6 backdrop-blur-sm mt-auto">
-                <div className="mx-auto grid max-w-6xl items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
-                    <p className="hidden text-white/38 text-[10px] uppercase tracking-[0.2em] font-light md:block">findcore.me</p>
-                    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-white/48">
-                        <Link href={`/about?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.about}</Link>
-                        <Link href={`/guides?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.guides}</Link>
-                        <Link href={`/privacy?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.privacy}</Link>
-                        <Link href={`/terms?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.terms}</Link>
-                    </div>
-                    <div className="text-center text-[11px] text-white/44 md:text-right">
-                        <a href="https://t.me/todayshelp" target="_blank" rel="noopener noreferrer" className="hover:text-white/78 transition-colors">
-                            Telegram @todayshelp
-                        </a>
-                    </div>
-                </div>
-            </footer>
+            <Footer lang={lang} />
         </div>
     );
 }
@@ -1289,3 +1357,5 @@ export default function ColorTestPage() {
         </Suspense>
     );
 }
+
+

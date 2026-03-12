@@ -18,6 +18,7 @@ export type FaceShapeId =
     | "pear";
 
 export type FaceStyleProfile = "balanced" | "asian-soft" | "western-structured";
+export type FaceStyleTarget = "feminine" | "masculine" | "neutral";
 
 export interface FacePoint {
     x: number;
@@ -112,6 +113,7 @@ export interface FaceShapeAnalysisResult {
     secondaryShape: FaceShapeId;
     confidence: number;
     profile: FaceStyleProfile;
+    styleTarget?: FaceStyleTarget;
     measuredAt: string;
     metrics: FaceShapeMetrics;
     quality: FaceShapeQuality;
@@ -243,7 +245,7 @@ const DEFAULT_HAIRLINE_SHIFT = 0.075;
 const HAIR_SCAN_SAMPLES = 19;
 const HAIR_THRESHOLD = 0.34;
 const EDGE_THRESHOLD = 16;
-const EDITOR_CURVE_SAMPLES = 10;
+const EDITOR_CURVE_SAMPLES = 16;
 const QUALITY_IMAGE_LONGEST_EDGE = 320;
 export const FACE_SHAPE_ANALYSIS_VERSION = "2026-03-12-mediapipe-report-v5";
 
@@ -417,6 +419,20 @@ function getPointAtProgress(points: FacePoint[], progress: number): FacePoint {
     return points[index];
 }
 
+const LEGACY_EDITOR_HANDLE_PICK_MAP = [0, 1, 2, 3, 4, 5, 7, 9, 10, 11, 13, 15] as const;
+
+export function normalizeFaceShapeEditorHandles(handles: FacePoint[]) {
+    if (handles.length <= 12) {
+        return handles.map((point) => clampPoint(point));
+    }
+
+    if (handles.length >= 16) {
+        return LEGACY_EDITOR_HANDLE_PICK_MAP.map((index) => clampPoint(handles[index] ?? handles[0] ?? { x: 0.5, y: 0.5 }));
+    }
+
+    return handles.slice(0, 12).map((point) => clampPoint(point));
+}
+
 function getContourExtents(points: FacePoint[]) {
     return points.reduce(
         (extents, point) => ({
@@ -465,25 +481,69 @@ function buildOpenCurveFromPoints(points: FacePoint[], samplesPerSegment = EDITO
     return curve;
 }
 
+function getEditorHandleLayout() {
+    return {
+        rightJaw: 7,
+        chin: 8,
+        leftJaw: 9,
+        rightStart: 5,
+        rightEnd: 7,
+        leftStart: 9,
+    } as const;
+}
+
+function buildEditorChinShoulders(handles: FacePoint[]) {
+    const layout = getEditorHandleLayout();
+    const rightJaw = clampPoint(handles[layout.rightJaw] ?? handles[handles.length - 1] ?? { x: 0.66, y: 0.72 });
+    const chin = clampPoint(handles[layout.chin] ?? { x: 0.5, y: 0.86 });
+    const leftJaw = clampPoint(handles[layout.leftJaw] ?? handles[0] ?? { x: 0.34, y: 0.72 });
+    const jawAverageY = average([rightJaw.y, leftJaw.y]);
+    const chinDepth = Math.max(chin.y - jawAverageY, 0.0001);
+    const shoulderY = clamp(
+        chin.y - Math.max(chinDepth * 0.22, 0.008),
+        jawAverageY + chinDepth * 0.34,
+        chin.y - 0.003
+    );
+
+    return [
+        clampPoint({
+            x: chin.x + (rightJaw.x - chin.x) * 0.48,
+            y: shoulderY,
+        }),
+        clampPoint({
+            x: chin.x + (leftJaw.x - chin.x) * 0.48,
+            y: shoulderY,
+        }),
+    ] as const;
+}
+
 export function buildFaceShapeEditorContour(handles: FacePoint[], samplesPerSegment = EDITOR_CURVE_SAMPLES) {
-    if (handles.length < 3) return handles.map((point) => clampPoint(point));
-    if (handles.length >= 12) {
-        const topArc = buildOpenCurveFromPoints(handles.slice(0, 5), samplesPerSegment);
-        const rightArc = buildOpenCurveFromPoints(handles.slice(4, 9), samplesPerSegment);
-        const leftArc = buildOpenCurveFromPoints([handles[8], ...handles.slice(9), handles[0]], samplesPerSegment);
+    const normalizedHandles = normalizeFaceShapeEditorHandles(handles);
+    if (normalizedHandles.length < 3) return normalizedHandles;
+
+    if (normalizedHandles.length >= 12) {
+        const topArc = buildOpenCurveFromPoints(normalizedHandles.slice(0, 5), samplesPerSegment);
+        const rightArc = buildOpenCurveFromPoints(normalizedHandles.slice(4, 8), samplesPerSegment);
+        const [rightChinShoulder, leftChinShoulder] = buildEditorChinShoulders(normalizedHandles);
+        const bottomArc = buildOpenCurveFromPoints(
+            [normalizedHandles[7], rightChinShoulder, normalizedHandles[8], leftChinShoulder, normalizedHandles[9]],
+            samplesPerSegment
+        );
+        const leftArc = buildOpenCurveFromPoints([normalizedHandles[9], ...normalizedHandles.slice(10), normalizedHandles[0]], samplesPerSegment);
         return [
             ...topArc,
             ...rightArc.slice(1),
+            ...bottomArc.slice(1),
             ...leftArc.slice(1, -1),
         ].map((point) => clampPoint(point));
     }
 
     const contour: FacePoint[] = [];
-    for (let index = 0; index < handles.length; index += 1) {
-        const p0 = handles[(index - 1 + handles.length) % handles.length];
-        const p1 = handles[index];
-        const p2 = handles[(index + 1) % handles.length];
-        const p3 = handles[(index + 2) % handles.length];
+    for (let index = 0; index < normalizedHandles.length; index += 1) {
+        const p0 = normalizedHandles[(index - 1 + normalizedHandles.length) % normalizedHandles.length];
+        const p1 = normalizedHandles[index];
+        const p2 = normalizedHandles[(index + 1) % normalizedHandles.length];
+        const p3 = normalizedHandles[(index + 2) % normalizedHandles.length];
         for (let step = 0; step < samplesPerSegment; step += 1) {
             contour.push(catmullRomPoint(p0, p1, p2, p3, step / samplesPerSegment));
         }
@@ -492,10 +552,10 @@ export function buildFaceShapeEditorContour(handles: FacePoint[], samplesPerSegm
 }
 
 function buildManualHairlineFromHandles(handles: FacePoint[]): HairlineRefinement {
-    const topHandles = handles.slice(0, 5).map((point) => clampPoint(point));
+    const topHandles = normalizeFaceShapeEditorHandles(handles).slice(0, 5);
     const centerHandle = topHandles[Math.floor(topHandles.length / 2)] ?? topHandles[0] ?? { x: 0.5, y: 0.2 };
     return {
-        points: buildOpenCurveFromPoints(topHandles, 12),
+        points: buildOpenCurveFromPoints(topHandles, 16),
         top: centerHandle,
         reliability: undefined,
         method: "manual",
@@ -504,47 +564,62 @@ function buildManualHairlineFromHandles(handles: FacePoint[]): HairlineRefinemen
 }
 
 function buildFaceShapeEditorHandles(geometry: FaceGeometry) {
-    const topLeft = getPointAtProgress(geometry.topContour, 0);
+    const extents = getContourExtents(geometry.contour);
+    const width = extents.maxX - extents.minX;
+    const height = geometry.frameBounds.bottom.y - geometry.frameBounds.top.y;
+    const rawTopLeft = getPointAtProgress(geometry.topContour, 0);
     const rawTopUpperLeft = getPointAtProgress(geometry.topContour, 0.25);
-    const topCenter = geometry.frameBounds.top;
+    const rawTopCenter = getCenter([
+        getPointAtProgress(geometry.topContour, 0.42),
+        getPointAtProgress(geometry.topContour, 0.5),
+        getPointAtProgress(geometry.topContour, 0.58),
+    ]);
     const rawTopUpperRight = getPointAtProgress(geometry.topContour, 0.75);
-    const topRight = getPointAtProgress(geometry.topContour, 1);
+    const rawTopRight = getPointAtProgress(geometry.topContour, 1);
+    const topLeft = {
+        x: rawTopLeft.x - width * 0.0025,
+        y: rawTopLeft.y - height * 0.002,
+    };
+    const topCenter = {
+        x: rawTopCenter.x,
+        y: rawTopCenter.y - height * 0.004,
+    };
     const topUpperLeft = {
-        x: rawTopUpperLeft.x,
-        y: Math.max(rawTopUpperLeft.y, average([topLeft.y, topCenter.y])),
+        x: rawTopUpperLeft.x - width * 0.0015,
+        y: rawTopUpperLeft.y - height * 0.0035,
     };
     const topUpperRight = {
-        x: rawTopUpperRight.x,
-        y: Math.max(rawTopUpperRight.y, average([topRight.y, topCenter.y])),
+        x: rawTopUpperRight.x + width * 0.0015,
+        y: rawTopUpperRight.y - height * 0.0035,
+    };
+    const topRight = {
+        x: rawTopRight.x + width * 0.0025,
+        y: rawTopRight.y - height * 0.002,
     };
     const cheekY = average([geometry.cheekGuide[0].y, geometry.cheekGuide[1].y]);
     const templeGuide = getHorizontalGuide(
         geometry.contour,
         clamp(average([topUpperRight.y, cheekY]), geometry.frameBounds.top.y + 0.02, cheekY - 0.01)
     );
-    const extents = getContourExtents(geometry.contour);
-    const width = extents.maxX - extents.minX;
-    const height = geometry.frameBounds.bottom.y - geometry.frameBounds.top.y;
-
     // The editor draft should hug the visible contour, not a padded safety margin.
     return [
-        { x: topLeft.x - width * 0.008, y: topLeft.y - height * 0.006 },
-        { x: topUpperLeft.x - width * 0.004, y: topUpperLeft.y - height * 0.014 },
-        { x: topCenter.x, y: topCenter.y - height * 0.016 },
-        { x: topUpperRight.x + width * 0.004, y: topUpperRight.y - height * 0.014 },
-        { x: topRight.x + width * 0.008, y: topRight.y - height * 0.006 },
+        topLeft,
+        topUpperLeft,
+        topCenter,
+        topUpperRight,
+        topRight,
         {
-            x: (templeGuide?.[1].x ?? geometry.cheekGuide[1].x) + width * 0.01,
-            y: templeGuide?.[1].y ?? cheekY - height * 0.03,
+            x: (templeGuide?.[1].x ?? geometry.cheekGuide[1].x) + width * 0.002,
+            y: (templeGuide?.[1].y ?? cheekY - height * 0.03) + height * 0.004,
         },
-        { x: geometry.cheekGuide[1].x + width * 0.008, y: geometry.cheekGuide[1].y },
-        { x: geometry.jawGuide[1].x + width * 0.008, y: geometry.jawGuide[1].y + height * 0.008 },
-        { x: geometry.frameBounds.bottom.x, y: geometry.frameBounds.bottom.y + height * 0.012 },
-        { x: geometry.jawGuide[0].x - width * 0.008, y: geometry.jawGuide[0].y + height * 0.008 },
-        { x: geometry.cheekGuide[0].x - width * 0.008, y: geometry.cheekGuide[0].y },
+        { x: geometry.cheekGuide[1].x + width * 0.0025, y: geometry.cheekGuide[1].y },
+        { x: geometry.jawGuide[1].x + width * 0.0035, y: geometry.jawGuide[1].y + height * 0.005 },
+        { x: geometry.frameBounds.bottom.x, y: geometry.frameBounds.bottom.y + height * 0.008 },
+        { x: geometry.jawGuide[0].x - width * 0.0035, y: geometry.jawGuide[0].y + height * 0.005 },
+        { x: geometry.cheekGuide[0].x - width * 0.0025, y: geometry.cheekGuide[0].y },
         {
-            x: (templeGuide?.[0].x ?? geometry.cheekGuide[0].x) - width * 0.01,
-            y: templeGuide?.[0].y ?? cheekY - height * 0.03,
+            x: (templeGuide?.[0].x ?? geometry.cheekGuide[0].x) - width * 0.002,
+            y: (templeGuide?.[0].y ?? cheekY - height * 0.03) + height * 0.004,
         },
     ].map((point) => clampPoint(point));
 }
@@ -1081,14 +1156,15 @@ async function resolveHairline(imageElement: HTMLImageElement, landmarks: Normal
 
     const smoothed = smoothHairlinePoints(interpolated);
     const centerIndex = Math.floor(smoothed.length / 2);
-    const centralBand = smoothed.slice(Math.max(0, centerIndex - 1), Math.min(smoothed.length, centerIndex + 2));
-    const loweredHairlineY = percentile(smoothed.map((point) => point.y), 0.75);
+    const centralBand = smoothed.slice(Math.max(0, centerIndex - 2), Math.min(smoothed.length, centerIndex + 3));
+    const centralYs = centralBand.map((point) => point.y);
+    const representativeHairlineY = percentile(centralYs, 0.62);
     const top = {
         x: average(centralBand.map((point) => point.x)),
         y: clamp(
-            loweredHairlineY,
-            average(centralBand.map((point) => point.y)),
-            percentile(smoothed.map((point) => point.y), 0.92)
+            representativeHairlineY,
+            percentile(centralYs, 0.3),
+            percentile(centralYs, 0.82)
         ),
     };
 
@@ -1213,7 +1289,7 @@ function buildFaceGeometry(
     const manualHairline = manualFrame ? buildManualHairlineFromHandles(manualFrame.handles) : null;
     const topContour = manualHairline?.points ?? hairline.points;
     const boundsTop = manualHairline?.top ?? hairline.top;
-    const frameBottom = manualFrame?.handles[8] ?? chin;
+    const frameBottom = manualFrame?.handles[getEditorHandleLayout().chin] ?? chin;
     const measurementBottom = manualFrame
         ? {
             x: chin.x,
@@ -1330,6 +1406,8 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
         );
     const chinFullness = closeness(chinJaw, 0.88, 0.14);
     const chinNarrowness = normalizedScore(0.85 - chinJaw, 0, 0.16);
+    const cheekProminence = normalizedScore(cheekJaw, 1.08, 1.22);
+    const foreheadNarrowness = normalizedScore(0.99 - foreheadJaw, 0, 0.14);
     const middleDominance = normalizedScore(
         metrics.middleThird - average([metrics.upperThird, metrics.lowerThird]),
         1.5,
@@ -1356,12 +1434,27 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
 
     // Prevent vertically stretched, narrow-chin faces from collapsing into the round bucket.
     scores.round = Math.max(0, scores.round + balancedThirds * 0.55 + chinFullness * 0.45 - longFaceSignal * 1.85 - chinNarrowness * 0.55);
-    scores.oval += balancedThirds * 0.35 + longFaceSignal * 0.45;
+    scores.oval +=
+        balancedThirds * 0.28 +
+        longFaceSignal * 0.34 -
+        cheekProminence * 1 -
+        foreheadNarrowness * 0.75 -
+        chinNarrowness * 1.05;
     scores.oblong += normalizedScore(length, 1.24, 1.42) * 2.4 + longFaceSignal * 1.65;
+    scores.diamond +=
+        cheekProminence * 0.85 +
+        foreheadNarrowness * 0.65 +
+        chinNarrowness * 0.75 +
+        normalizedScore(length, 1.2, 1.4) * 0.3;
 
     if (length >= 1.22 && middleDominance >= 0.62) {
         scores.oblong += 1.35;
         scores.oval = Math.max(0, scores.oval - 0.4);
+    }
+
+    if (length >= 1.29 && middleDominance >= 0.38) {
+        scores.oblong += 1.45;
+        scores.oval = Math.max(0, scores.oval - 0.3);
     }
 
     if (length >= 1.26 && dominantVerticalStretch >= 0.75 && chinNarrowness >= 0.45) {
@@ -1760,10 +1853,11 @@ function buildPreviewResultFromPreparedContext(
     context: PreparedFaceShapeContext,
     handles?: FacePoint[]
 ): FaceShapePreviewResult {
-    const manualFrame = handles?.length
+    const normalizedHandles = handles?.length ? normalizeFaceShapeEditorHandles(handles) : undefined;
+    const manualFrame = normalizedHandles?.length
         ? {
-            handles: handles.map((point) => clampPoint(point)),
-            contour: buildFaceShapeEditorContour(handles.map((point) => clampPoint(point))),
+            handles: normalizedHandles,
+            contour: buildFaceShapeEditorContour(normalizedHandles),
         }
         : undefined;
     const geometry = buildFaceGeometry(context.landmarks, context.hairline, manualFrame);
@@ -1830,11 +1924,11 @@ export function getFallbackFaceShapeEditorDraft(): FaceShapeEditorDraft {
         { x: 0.63, y: 0.14 },
         { x: 0.75, y: 0.24 },
         { x: 0.82, y: 0.39 },
-        { x: 0.78, y: 0.52 },
+        { x: 0.8, y: 0.5 },
         { x: 0.73, y: 0.69 },
         { x: 0.5, y: 0.87 },
         { x: 0.27, y: 0.69 },
-        { x: 0.22, y: 0.52 },
+        { x: 0.2, y: 0.5 },
         { x: 0.18, y: 0.39 },
     ];
 
@@ -1864,9 +1958,10 @@ export async function analyzeFaceShapeFromEditor(
     imageDataUrl?: string
 ): Promise<FaceShapeAnalysisResult> {
     const context = await getPreparedFaceShapeContext(imageElement);
+    const normalizedHandles = normalizeFaceShapeEditorHandles(handles);
     const manualFrame: ManualFrameOverride = {
-        handles: handles.map((point) => clampPoint(point)),
-        contour: buildFaceShapeEditorContour(handles.map((point) => clampPoint(point))),
+        handles: normalizedHandles,
+        contour: buildFaceShapeEditorContour(normalizedHandles),
     };
     const geometry = buildFaceGeometry(context.landmarks, context.hairline, manualFrame);
     const metrics = buildMetrics(context.landmarks, geometry);

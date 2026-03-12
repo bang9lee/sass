@@ -7,6 +7,7 @@ import { Menu, X, Play } from "lucide-react";
 import Image from "next/image";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LanguageSelector } from "@/components/language-selector";
+import { Footer } from "./footer";
 import { getFooterLabels } from "@/lib/site-content";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -18,6 +19,7 @@ function FaceShapeHomeContent() {
     const langParam = searchParams.get('lang');
     const lang: Language = (['ko', 'en', 'zh', 'ja'].includes(langParam || '') ? langParam : 'en') as Language;
     const isKorean = lang === 'ko';
+    const isEnglish = lang === 'en';
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -42,24 +44,23 @@ function FaceShapeHomeContent() {
         },
         zh: {
             title1: "精准 AI",
-            title2: "脸型分析",
+            title2: "AI 脸型分析",
             subtitle: "AI 精确分析您的五官比例，\n为您推荐最适合的发型和眼镜框。",
             button: "开始测试",
             menuAesthetic: "美学测试",
             menuPersonalColor: "个人色彩",
-            menuFaceShape: "脸型分析"
+            menuFaceShape: "AI 脸型分析"
         },
         ja: {
             title1: "精密 AI",
-            title2: "顔型分析",
-            subtitle: "AIがあなたの顔のパーツ比率を精巧に分析し、\n最も似合うヘアスタイルとメガネをご提案します。",
-            button: "診断を始める",
-            menuAesthetic: "感性テスト",
-            menuPersonalColor: "パーソナルカラー",
-            menuFaceShape: "顔型分析"
+            title2: "AI 顔型分析",
+            subtitle: "AI가 얼굴의 밸런스를 정밀하게 분석하여,\n가장 어울리는 헤어스타일과 안경을 제안합니다.",
+            button: "진단을 시작하기",
+            menuAesthetic: "감성 테스트",
+            menuPersonalColor: "퍼스널 컬러",
+            menuFaceShape: "AI 얼굴형 분석"
         }
     }[lang];
-    const footer = getFooterLabels(lang);
 
     return (
         <AuroraBackground className="justify-start">
@@ -122,7 +123,7 @@ function FaceShapeHomeContent() {
                 <main className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-0 relative">
                     <div className="w-full max-w-6xl mx-auto h-full flex flex-col lg:flex-row items-center justify-start lg:justify-center gap-4 lg:gap-16 pt-20 sm:pt-40 lg:pt-0 pb-4 lg:pb-0">
                         <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left gap-2 lg:gap-6 shrink-0 z-10">
-                            <h1 className={`text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight tracking-tight ${isKorean ? 'font-korean' : 'font-serif'}`}>
+                            <h1 className={`text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight tracking-tight ${isKorean ? 'font-korean' : isEnglish ? 'font-serif' : ''}`}>
                                 <span className="block text-white mobile-slide-up">{t.title1}</span>
                                 <span className="block text-transparent bg-clip-text bg-linear-to-r from-cyan-400 via-blue-400 to-indigo-400 gradient-text-animated mobile-slide-up drop-shadow-[0_0_30px_rgba(34,211,238,0.3)]" style={{ animationDelay: '0.1s' }}>
                                     {t.title2}
@@ -169,23 +170,7 @@ function FaceShapeHomeContent() {
                     </div>
                 </main>
 
-                <footer className="w-full shrink-0 border-t border-white/5 bg-black/20 px-8 py-6 backdrop-blur-sm relative">
-                    <div className="mx-auto grid max-w-6xl items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
-                        <p className="hidden text-white/38 text-[10px] uppercase tracking-[0.2em] font-light md:block">findcore.me</p>
-                        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-white/48">
-                            <Link href={`/about?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.about}</Link>
-                            <Link href={`/guides?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.guides}</Link>
-                            <Link href={`/privacy?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.privacy}</Link>
-                            <Link href={`/terms?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.terms}</Link>
-
-                        </div>
-                        <div className="text-center md:text-right">
-                            <a href="https://t.me/todayshelp" target="_blank" rel="noopener noreferrer" className="text-[11px] text-white/44 transition-colors hover:text-white/78">
-                                Telegram @todayshelp
-                            </a>
-                        </div>
-                    </div>
-                </footer>
+                <Footer lang={lang} />
             </div>
         </AuroraBackground>
     );

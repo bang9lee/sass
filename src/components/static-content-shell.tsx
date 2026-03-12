@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
 import { getFooterLabels, type SupportedLang } from "@/lib/site-content";
+import { Footer } from "@/components/footer";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 
 interface StaticContentShellProps {
@@ -123,22 +124,7 @@ export function StaticContentShell({
                     </div>
                 </main>
 
-                <footer className="w-full shrink-0 border-t border-white/5 bg-black/20 px-8 py-6 backdrop-blur-sm mt-auto">
-                    <div className="mx-auto grid max-w-6xl items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
-                        <p className="hidden text-white/38 text-[10px] uppercase tracking-[0.2em] font-light md:block">findcore.me</p>
-                        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-white/48">
-                            <Link href={`/about?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.about}</Link>
-                            <Link href={`/guides?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.guides}</Link>
-                            <Link href={`/privacy?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.privacy}</Link>
-                            <Link href={`/terms?lang=${lang}`} className="hover:text-white/78 transition-colors">{footer.terms}</Link>
-                        </div>
-                        <div className="text-center text-[11px] text-white/44 md:text-right">
-                            <a href="https://t.me/todayshelp" target="_blank" rel="noopener noreferrer" className="hover:text-white/78 transition-colors">
-                                Telegram @todayshelp
-                            </a>
-                        </div>
-                    </div>
-                </footer>
+                <Footer lang={lang} />
             </div>
         </AuroraBackground>
     );
