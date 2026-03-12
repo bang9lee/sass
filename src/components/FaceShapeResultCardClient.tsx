@@ -436,11 +436,13 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
         setDownloading(true);
         try {
             const htmlToImage = await import("html-to-image");
+            
             const dataUrl = await htmlToImage.toPng(cardRef.current, {
                 backgroundColor: "#03060b",
-                pixelRatio: 2,
                 cacheBust: true,
+                pixelRatio: 2,
             });
+
             const link = document.createElement("a");
             link.download = `findcore-face-${presentedShape}.png`;
             link.href = dataUrl;

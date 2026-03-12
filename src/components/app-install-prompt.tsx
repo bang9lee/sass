@@ -40,12 +40,13 @@ export function AppInstallPrompt() {
             return;
         }
 
-        const dismissedAt = window.localStorage.getItem(DISMISS_KEY);
-        if (dismissedAt && Date.now() - Number(dismissedAt) < DISMISS_TTL) {
-            return;
-        }
-
         const handleBeforeInstallPrompt = (event: Event) => {
+            // Re-check localStorage inside the handler to account for dismissals in other tabs
+            const dismissedAt = window.localStorage.getItem(DISMISS_KEY);
+            if (dismissedAt && Date.now() - Number(dismissedAt) < DISMISS_TTL) {
+                return;
+            }
+
             event.preventDefault();
             setInstallEvent(event as BeforeInstallPromptEvent);
             setIsVisible(true);
@@ -56,12 +57,24 @@ export function AppInstallPrompt() {
             setIsVisible(false);
         };
 
+        const handleFocus = () => {
+            const dismissedAt = window.localStorage.getItem(DISMISS_KEY);
+            if (dismissedAt && Date.now() - Number(dismissedAt) < DISMISS_TTL) {
+                setIsVisible(false);
+            }
+        };
+
         window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
         window.addEventListener("appinstalled", handleInstalled);
+        window.addEventListener("focus", handleFocus);
+
+        // Also check immediately in case it was already dismissed before mounting
+        handleFocus();
 
         return () => {
             window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
             window.removeEventListener("appinstalled", handleInstalled);
+            window.removeEventListener("focus", handleFocus);
         };
     }, []);
 
@@ -123,7 +136,7 @@ export function AppInstallPrompt() {
     }
 
     return (
-        <div className="pointer-events-none fixed inset-x-4 bottom-4 z-[80] flex justify-center">
+        <div className="pointer-events-none fixed inset-x-4 bottom-4 z-80 flex justify-center">
             <div className="pointer-events-auto w-full max-w-md rounded-[1.75rem] border border-white/12 bg-black/78 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
                 <p className={`text-sm font-semibold text-white ${lang === "ko" ? "font-korean break-keep" : ""}`}>{copy.title}</p>
                 <p className={`mt-2 text-sm leading-6 text-white/68 ${lang === "ko" ? "font-korean break-keep" : ""}`}>{copy.description}</p>

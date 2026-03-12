@@ -457,7 +457,7 @@ export function FaceShapeFrameEditor({
                         <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#090b0f] shadow-[0_20px_80px_rgba(0,0,0,0.5)]">
                             <div
                                 ref={stageRef}
-                                className="relative w-full overflow-hidden bg-black"
+                                className="relative w-full overflow-hidden bg-black touch-none"
                                 style={{ aspectRatio }}
                                 onPointerMove={(event) => {
                                     if (activeHandle === null) return;
