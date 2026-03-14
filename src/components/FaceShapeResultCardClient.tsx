@@ -576,8 +576,8 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
         };
 
         try {
-            // 2. Extra long wait for Safari's layout engine (1200px shift)
-            await new Promise((resolve) => setTimeout(resolve, isIOS ? 1200 : 800));
+            // 2. Extra long wait for Safari's layout engine (1200px shift + high-res stability)
+            await new Promise((resolve) => setTimeout(resolve, isIOS ? 1500 : 800));
             await ensureImagesReady();
 
             const htmlToImage = await import("html-to-image");
@@ -619,72 +619,77 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 });
             }
 
-            // Capture the UI (with or without photo)
-            const capturedCanvas = await htmlToImage.toCanvas(cardRef.current, captureOptions);
+            // ─── AGGRESSIVE SAFARI CAPTURE STRATEGY ───
+            let capturedCanvas: HTMLCanvasElement | null = null;
+            let retryCount = 0;
+            const maxRetries = isIOS ? 3 : 1;
+
+            while (retryCount < maxRetries) {
+                try {
+                    capturedCanvas = await htmlToImage.toCanvas(cardRef.current, captureOptions);
+                    if (capturedCanvas && capturedCanvas.width > 200) break;
+                } catch (e) {
+                    console.warn(`Capture retry ${retryCount + 1}`, e);
+                }
+                retryCount++;
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            if (!capturedCanvas) throw new Error("Canvas capture failed after retries");
             let finalCanvas = capturedCanvas;
 
             // ─── COMPOSITION STRATEGY FOR iOS ───
-            // If on iOS and photo should be included, we manually stitch the original photo behind the UI.
-            // This is the ONLY reliable way to fix the WebKit 'blank photo' bug.
-            if (isIOS && includePhoto && result.imageDataUrl) {
+            if (isIOS && includePhoto && result.imageDataUrl && imgNode) {
                 const compositeCanvas = document.createElement('canvas');
                 compositeCanvas.width = capturedCanvas.width;
                 compositeCanvas.height = capturedCanvas.height;
                 const ctx = compositeCanvas.getContext('2d');
 
                 if (ctx) {
-                    if (imgNode) {
-                        const imgRect = imgNode.getBoundingClientRect();
-                        const cardRect = cardRef.current.getBoundingClientRect();
-                        
-                        const scaleX = capturedCanvas.width / cardRect.width;
-                        const scaleY = capturedCanvas.height / cardRect.height;
-                        
-                        const x = (imgRect.left - cardRect.left) * scaleX;
-                        const y = (imgRect.top - cardRect.top) * scaleY;
-                        const w = imgRect.width * scaleX;
-                        const h = imgRect.height * scaleY;
+                    const imgRect = imgNode.getBoundingClientRect();
+                    const cardRect = cardRef.current.getBoundingClientRect();
+                    
+                    const scaleX = capturedCanvas.width / cardRect.width;
+                    const scaleY = capturedCanvas.height / cardRect.height;
+                    
+                    const x = (imgRect.left - cardRect.left) * scaleX;
+                    const y = (imgRect.top - cardRect.top) * scaleY;
+                    const w = imgRect.width * scaleX;
+                    const h = imgRect.height * scaleY;
 
-                        // 1. Draw Background Color
-                        ctx.fillStyle = "#03060b";
-                        ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+                    // 1. Draw Background
+                    ctx.fillStyle = "#03060b";
+                    ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
 
-                        let cornerRadius = 0;
-                        if (imagePanelRef.current) {
-                            const radiusValue = window.getComputedStyle(imagePanelRef.current).borderRadius;
-                            const parsedRadius = parseFloat(radiusValue);
-                            if (!Number.isNaN(parsedRadius)) {
-                                cornerRadius = parsedRadius * scaleX;
-                            }
+                    // 2. Clip for Rounded Corners
+                    let cornerRadius = 0;
+                    if (imagePanelRef.current) {
+                        const radiusValue = window.getComputedStyle(imagePanelRef.current).borderRadius;
+                        const parsedRadius = parseFloat(radiusValue);
+                        if (!Number.isNaN(parsedRadius)) {
+                            cornerRadius = parsedRadius * scaleX;
                         }
-
-                        if (cornerRadius > 0) {
-                            ctx.save();
-                            clipRoundedRect(ctx, x, y, w, h, cornerRadius);
-                        }
-
-                        // 2. Draw Original Photo (decoded manually to avoid iOS WebKit capture failures)
-                        const drewPhoto = await drawFaceImage(ctx, imgNode, result.imageDataUrl, x, y, w, h);
-                        if (!drewPhoto) {
-                            throw new Error("Face photo failed to decode");
-                        }
-
-                        if (cornerRadius > 0) {
-                            ctx.restore();
-                        }
-
-                        // 3. Draw Captured UI Overlay (the lines, text, and metrics)
-                        ctx.drawImage(capturedCanvas, 0, 0);
-                        
-                        finalCanvas = compositeCanvas;
                     }
+
+                    if (cornerRadius > 0) {
+                        ctx.save();
+                        clipRoundedRect(ctx, x, y, w, h, cornerRadius);
+                    }
+
+                    // 3. Draw Original Photo
+                    const drewPhoto = await drawFaceImage(ctx, imgNode, result.imageDataUrl, x, y, w, h);
+                    if (!drewPhoto) throw new Error("Face photo failed to decode");
+
+                    if (cornerRadius > 0) ctx.restore();
+
+                    // 4. Draw Captured UI Overlay
+                    ctx.drawImage(capturedCanvas, 0, 0);
+                    finalCanvas = compositeCanvas;
                 }
             }
 
-            // 5. Convert Final Canvas -> DataURL
+            // 5. Convert & Download
             const dataUrl = finalCanvas.toDataURL('image/png', 1.0);
-
-            // 6. Download
             const link = document.createElement("a");
             link.download = `findcore-face-${presentedShape}.png`;
             link.href = dataUrl;
