@@ -186,7 +186,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
                             transition={{ duration: 1 }}
                             className="flex flex-col items-center gap-2"
                         >
-                            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-[0.1em] text-white/90 font-cinzel uppercase">
+                            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-widest text-white/90 font-cinzel uppercase">
                                 {t.heroTagline}
                             </h1>
                             <div className="w-16 h-px bg-white/10 mt-4" />
