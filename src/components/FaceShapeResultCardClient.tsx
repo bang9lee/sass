@@ -467,7 +467,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             const htmlToImage = await import("html-to-image");
 
             const captureOptions = {
-                backgroundColor: "#03060b",
+                backgroundColor: isIOS ? "transparent" : "#03060b", // Transparent for manual stitching on iOS
                 pixelRatio: isIOS ? 1.5 : 2,
                 width: 1200,
                 cacheBust: true,
@@ -477,35 +477,38 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 }
             };
 
-            // 3. Optional First Pass (iOS only) to prime the memory
-            if (isIOS) {
-                await htmlToImage.toCanvas(cardRef.current, captureOptions);
-                await new Promise((resolve) => setTimeout(resolve, 300));
-            }
+            // Capture the UI (with or without photo)
+            const capturedCanvas = await htmlToImage.toCanvas(cardRef.current, captureOptions);
+            let finalCanvas = capturedCanvas;
 
-            // 4. Final Pass using toCanvas
-            const canvas = await htmlToImage.toCanvas(cardRef.current, captureOptions);
-            const ctx = canvas.getContext('2d');
+            // ─── COMPOSITION STRATEGY FOR iOS ───
+            // If on iOS and photo should be included, we manually stitch the original photo behind the UI.
+            // This is the ONLY reliable way to fix the WebKit 'blank photo' bug.
+            if (isIOS && includePhoto && result.imageDataUrl) {
+                const compositeCanvas = document.createElement('canvas');
+                compositeCanvas.width = capturedCanvas.width;
+                compositeCanvas.height = capturedCanvas.height;
+                const ctx = compositeCanvas.getContext('2d');
 
-            // ─── SAFARI REPAIR LOGIC: Manually re-draw the photo behind the lines if missing ───
-            if (isIOS && includePhoto && ctx && result.imageDataUrl) {
-                try {
+                if (ctx) {
                     const imgNode = cardRef.current.querySelector('img[alt="Analyzed Face"]') as HTMLImageElement;
                     if (imgNode) {
                         const imgRect = imgNode.getBoundingClientRect();
                         const cardRect = cardRef.current.getBoundingClientRect();
                         
-                        // Calculate scaling factors to map DOM coordinates to Canvas pixels
-                        const scaleX = canvas.width / cardRect.width;
-                        const scaleY = canvas.height / cardRect.height;
+                        const scaleX = capturedCanvas.width / cardRect.width;
+                        const scaleY = capturedCanvas.height / cardRect.height;
                         
                         const x = (imgRect.left - cardRect.left) * scaleX;
                         const y = (imgRect.top - cardRect.top) * scaleY;
                         const w = imgRect.width * scaleX;
                         const h = imgRect.height * scaleY;
 
-                        // Use destination-over to draw the photo BEHIND any already captured HUD lines/text
-                        // This fixes the 'blank photo' issue without overwriting validly captured UI.
+                        // 1. Draw Background Color
+                        ctx.fillStyle = "#03060b";
+                        ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+
+                        // 2. Draw Original Photo (Direct from DataURL - Bypasses Browser Cloning)
                         const faceImg = new Image();
                         faceImg.crossOrigin = "anonymous";
                         faceImg.src = result.imageDataUrl;
@@ -513,22 +516,21 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                         await new Promise((resolve, reject) => {
                             faceImg.onload = resolve;
                             faceImg.onerror = reject;
-                            // Timeout in case image fails to load
-                            setTimeout(resolve, 2000);
+                            setTimeout(resolve, 3000); // 3s timeout
                         });
 
-                        ctx.globalCompositeOperation = 'destination-over';
                         ctx.drawImage(faceImg, x, y, w, h);
-                        // Reset to default
-                        ctx.globalCompositeOperation = 'source-over';
+
+                        // 3. Draw Captured UI Overlay (the lines, text, and metrics)
+                        ctx.drawImage(capturedCanvas, 0, 0);
+                        
+                        finalCanvas = compositeCanvas;
                     }
-                } catch (repairErr) {
-                    console.error("Safari repair failed", repairErr);
                 }
             }
 
-            // 5. Convert Canvas -> DataURL
-            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            // 5. Convert Final Canvas -> DataURL
+            const dataUrl = finalCanvas.toDataURL('image/png', 1.0);
 
             // 6. Download
             const link = document.createElement("a");
