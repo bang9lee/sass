@@ -466,24 +466,66 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
 
             const htmlToImage = await import("html-to-image");
 
-            // 3. Optional First Pass (iOS only) to prime the memory
-            if (isIOS) {
-                await htmlToImage.toCanvas(cardRef.current, { pixelRatio: 1 });
-                await new Promise((resolve) => setTimeout(resolve, 500));
-            }
-
-            // 4. Final Pass using toCanvas (more stable on Safari)
-            const canvas = await htmlToImage.toCanvas(cardRef.current, {
+            const captureOptions = {
                 backgroundColor: "#03060b",
-                // Safari memory limit safeguard: Use 1.5x on iOS, 2x elsewhere
                 pixelRatio: isIOS ? 1.5 : 2,
                 width: 1200,
-                cacheBust: false,
+                cacheBust: true,
                 style: {
                     transform: 'scale(1)',
                     transformOrigin: 'top left'
                 }
-            });
+            };
+
+            // 3. Optional First Pass (iOS only) to prime the memory
+            if (isIOS) {
+                await htmlToImage.toCanvas(cardRef.current, captureOptions);
+                await new Promise((resolve) => setTimeout(resolve, 300));
+            }
+
+            // 4. Final Pass using toCanvas
+            const canvas = await htmlToImage.toCanvas(cardRef.current, captureOptions);
+            const ctx = canvas.getContext('2d');
+
+            // ─── SAFARI REPAIR LOGIC: Manually re-draw the photo behind the lines if missing ───
+            if (isIOS && includePhoto && ctx && result.imageDataUrl) {
+                try {
+                    const imgNode = cardRef.current.querySelector('img[alt="Analyzed Face"]') as HTMLImageElement;
+                    if (imgNode) {
+                        const imgRect = imgNode.getBoundingClientRect();
+                        const cardRect = cardRef.current.getBoundingClientRect();
+                        
+                        // Calculate scaling factors to map DOM coordinates to Canvas pixels
+                        const scaleX = canvas.width / cardRect.width;
+                        const scaleY = canvas.height / cardRect.height;
+                        
+                        const x = (imgRect.left - cardRect.left) * scaleX;
+                        const y = (imgRect.top - cardRect.top) * scaleY;
+                        const w = imgRect.width * scaleX;
+                        const h = imgRect.height * scaleY;
+
+                        // Use destination-over to draw the photo BEHIND any already captured HUD lines/text
+                        // This fixes the 'blank photo' issue without overwriting validly captured UI.
+                        const faceImg = new Image();
+                        faceImg.crossOrigin = "anonymous";
+                        faceImg.src = result.imageDataUrl;
+                        
+                        await new Promise((resolve, reject) => {
+                            faceImg.onload = resolve;
+                            faceImg.onerror = reject;
+                            // Timeout in case image fails to load
+                            setTimeout(resolve, 2000);
+                        });
+
+                        ctx.globalCompositeOperation = 'destination-over';
+                        ctx.drawImage(faceImg, x, y, w, h);
+                        // Reset to default
+                        ctx.globalCompositeOperation = 'source-over';
+                    }
+                } catch (repairErr) {
+                    console.error("Safari repair failed", repairErr);
+                }
+            }
 
             // 5. Convert Canvas -> DataURL
             const dataUrl = canvas.toDataURL('image/png', 1.0);
@@ -579,6 +621,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                             <img
                                 src={result.imageDataUrl}
                                 alt="Analyzed Face"
+                                crossOrigin="anonymous"
                                 className={`w-full h-auto block ${(downloading && !includePhoto) ? "opacity-0 invisible" : "opacity-100"}`}
                             />
                             {/* Overlay — soft on desktop, cinematic on mobile */}
@@ -606,8 +649,6 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                     </pattern>
                                 </defs>
                                 <rect width="100%" height="100%" fill="url(#scanner-grid)" />
-
-                                {/* Clinical Dimension Lines (Technical Ticks) */}
                                 {guideItems.map((guide) => (
                                     <g key={`${guide.key}-tech`}>
                                         {/* Horizontal scan line - Increased visibility dash */}
@@ -694,7 +735,6 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                     </g>
                                 ))}
 
-                                {/* Precision Width Indicators */}
                                 <line x1="20" y1="5" x2="80" y2="5" stroke="rgba(255,255,255,0.3)" strokeWidth="0.15" strokeDasharray="1 1" />
                             </svg>
 
