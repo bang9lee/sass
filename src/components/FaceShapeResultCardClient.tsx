@@ -583,7 +583,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             const htmlToImage = await import("html-to-image");
 
             const captureOptions = {
-                backgroundColor: isIOS ? "transparent" : "#03060b", // Transparent for manual stitching on iOS
+                backgroundColor: (isIOS && includePhoto) ? "transparent" : "#03060b", 
                 pixelRatio: isIOS ? 1.5 : 2,
                 width: 1200,
                 cacheBust: true,
@@ -591,7 +591,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                     transform: 'scale(1)',
                     transformOrigin: 'top left'
                 },
-                filter: isIOS
+                filter: (isIOS && includePhoto)
                     ? (node: Node) => {
                         if (node instanceof HTMLImageElement && node.alt === "Analyzed Face") {
                             return false;
@@ -603,7 +603,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
 
             const imgNode = cardRef.current.querySelector('img[alt="Analyzed Face"]') as HTMLImageElement | null;
 
-            if (isIOS) {
+            if (isIOS && includePhoto) {
                 setTempStyle(cardShellRef.current, { backgroundColor: "transparent", backgroundImage: "none" });
                 setTempStyle(imagePanelRef.current, { backgroundColor: "transparent", backgroundImage: "none" });
             }
