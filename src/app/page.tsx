@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import HomeClient from '@/components/home-client';
+import MainHomeClient from '@/components/main-home-client';
 import { resolveSupportedLang } from '@/lib/site-content';
 
 type Props = {
@@ -12,20 +12,20 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   const metadataMap = {
     ko: {
-      title: '나의 감성 타입 찾기 테스트',
-      description: '나만의 시각적 분위기와 감성 타입을 찾아보세요.',
+      title: 'FINDCORE | AI 감성 & 스타일 분석 플랫폼',
+      description: 'AI가 제안하는 당신만의 독창적인 에스테틱과 얼굴형, 퍼스널 컬러 분석을 경험해보세요.',
     },
     en: {
-      title: 'Find My Aesthetic Core Test',
-      description: 'Discover your unique visual atmosphere.',
+      title: 'FINDCORE | AI Aesthetic & Style Platform',
+      description: 'Discover your unique aesthetic, face shape, and personal color with professional AI analysis.',
     },
     zh: {
-      title: '寻找我的美学类型 (Aesthetic Core Test)',
-      description: '探索你独特的视觉氛围。',
+      title: 'FINDCORE | AI 美学与风格平台',
+      description: '通过专业的 AI 分析，探索您独特的美学类型、脸型和个人色彩。',
     },
     ja: {
-      title: '私の感性タイプ診断 (Aesthetic Core Test)',
-      description: 'あなただけの視覚的な雰囲気を発見しましょう。',
+      title: 'FINDCORE | AI 感性＆スタイル分析プラットフォーム',
+      description: 'AIが提案するあなただけの独創的な感성、顔型、パーソナルカラー 분석を体験してください。',
     }
   };
 
@@ -36,38 +36,24 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     title: meta.title,
     description: meta.description,
     keywords: [
-      "Aesthetic Test", "Core Test", "미학 테스트", "감성 테스트", "분위기 테스트",
-      "Dark Academia", "Cottagecore", "Y2K", "Cyberpunk", "Minimalism",
-      "심리테스트", "MBTI", "성격테스트"
+      "FINDCORE", "Aesthetic Test", "Face Shape Analysis", "Personal Color", "AI Style",
+      "에스테틱 테스트", "얼굴형 분석", "퍼스널 컬러", "AI 분석", "감성 분석"
     ],
     robots: {
       index: true,
       follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-      },
-    },
-    alternates: {
-      canonical: baseUrl,
-      languages: {
-        'ko': `${baseUrl}/?lang=ko`,
-        'en': `${baseUrl}/?lang=en`,
-        'zh': `${baseUrl}/?lang=zh`,
-        'ja': `${baseUrl}/?lang=ja`,
-      },
     },
     openGraph: {
       title: meta.title,
       description: meta.description,
       url: `${baseUrl}/?lang=${currentLang}`,
-      siteName: 'Aesthetic Core Test',
+      siteName: 'FINDCORE',
       images: [
         {
           url: `${baseUrl}/images/hero.webp`,
           width: 800,
           height: 1000,
-          alt: meta.title,
+          alt: 'FINDCORE',
         },
       ],
       locale: currentLang,
@@ -85,5 +71,5 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function Page({ searchParams }: Props) {
   const { lang } = await searchParams;
   const currentLang = resolveSupportedLang(lang);
-  return <HomeClient lang={currentLang} />;
+  return <MainHomeClient lang={currentLang} />;
 }

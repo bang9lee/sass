@@ -159,8 +159,36 @@ export function ColorResultCardClient({
         if (!cardRef.current) return;
 
         setDownloading(true);
+        const restoreStyles: (() => void)[] = [];
+
+        const setTempStyle = (el: HTMLElement | null, styles: Partial<CSSStyleDeclaration>) => {
+            if (!el) return;
+            const prev: any = {};
+            const elStyle = el.style as any;
+            const styleChanges = styles as any;
+            Object.keys(styles).forEach((key) => {
+                prev[key] = elStyle[key];
+                elStyle[key] = styleChanges[key];
+            });
+            restoreStyles.push(() => {
+                Object.keys(prev).forEach((key) => {
+                    elStyle[key] = prev[key];
+                });
+            });
+        };
 
         try {
+            const logoCore = cardRef.current.querySelector('.logo-core') as HTMLElement;
+            if (logoCore) {
+                setTempStyle(logoCore, {
+                    backgroundImage: 'linear-gradient(to right, #60a5fa, #a855f7, #f472b6)',
+                    webkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                    display: 'inline-block'
+                });
+            }
+
             const mod = await import('html-to-image');
             const dataUrl = await mod.toPng(cardRef.current, {
                 backgroundColor: '#000000',
@@ -179,6 +207,7 @@ export function ColorResultCardClient({
             console.error('Capture failed:', err);
             alert(t.failedSave);
         } finally {
+            restoreStyles.forEach(restore => restore());
             setDownloading(false);
         }
     };

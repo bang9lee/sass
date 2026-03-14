@@ -607,6 +607,17 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 setTempStyle(cardShellRef.current, { backgroundColor: "transparent", backgroundImage: "none" });
                 setTempStyle(imagePanelRef.current, { backgroundColor: "transparent", backgroundImage: "none" });
             }
+            
+            const logoCore = cardRef.current?.querySelector('.logo-core') as HTMLElement;
+            if (logoCore) {
+                setTempStyle(logoCore, {
+                    backgroundImage: 'linear-gradient(to right, #60a5fa, #a855f7, #f472b6)',
+                    webkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                    display: 'inline-block'
+                });
+            }
 
             // Capture the UI (with or without photo)
             const capturedCanvas = await htmlToImage.toCanvas(cardRef.current, captureOptions);

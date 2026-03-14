@@ -1,0 +1,44 @@
+import { Metadata } from 'next';
+import HomeClient from '@/components/home-client';
+import { resolveSupportedLang } from '@/lib/site-content';
+
+type Props = {
+  searchParams: Promise<{ lang?: string }>;
+};
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { lang } = await searchParams;
+  const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
+
+  const metadataMap = {
+    ko: {
+      title: '에스테틱 코어 테스트 | FINDCORE',
+      description: '나만의 시각적 분위기와 감성 타입을 찾아보세요.',
+    },
+    en: {
+      title: 'Aesthetic Core Test | FINDCORE',
+      description: 'Discover your unique visual atmosphere.',
+    },
+    zh: {
+      title: '美学类型测试 | FINDCORE',
+      description: '探索你独特的视觉氛围。',
+    },
+    ja: {
+      title: '感性タイプ診断 | FINDCORE',
+      description: 'あなただけの視覚的な雰囲기를 발견하세요.',
+    }
+  };
+
+  const meta = metadataMap[currentLang] || metadataMap.en;
+
+  return {
+    title: meta.title,
+    description: meta.description,
+  };
+}
+
+export default async function AestheticPage({ searchParams }: Props) {
+  const { lang } = await searchParams;
+  const currentLang = resolveSupportedLang(lang);
+  return <HomeClient lang={currentLang} />;
+}

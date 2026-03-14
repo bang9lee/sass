@@ -3,6 +3,7 @@ import { PUBLISHER_PROFILE } from "@/lib/publisher-profile";
 
 export type SupportedLang = "ko" | "en" | "zh" | "ja";
 export type NavigationLabels = {
+    home: string;
     aesthetic: string;
     color: string;
     faceShape: string;
@@ -50,10 +51,10 @@ const FOOTER_LABELS: Record<SupportedLang, FooterLabels> = {
 };
 
 const NAVIGATION_LABELS: Record<SupportedLang, NavigationLabels> = {
-    ko: { aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석" },
-    en: { aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis" },
-    zh: { aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析" },
-    ja: { aesthetic: "感性テスト", color: "パーソナルカラー", faceShape: "AI 顔型分析" },
+    ko: { home: "홈", aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석" },
+    en: { home: "Home", aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis" },
+    zh: { home: "首页", aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析" },
+    ja: { home: "ホーム", aesthetic: "感性テスト", color: "パーソ널 컬러", faceShape: "AI 顔型分析" },
 };
 
 const ABOUT_COPY: Record<SupportedLang, PageCopy> = {

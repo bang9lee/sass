@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
 import { getNavigationLabels, type SupportedLang } from "@/lib/site-content";
 
-type SiteSection = "aesthetic" | "color" | "face-shape" | null;
+type SiteSection = "home" | "aesthetic" | "color" | "face-shape" | null;
 
 export type SiteHeaderProps = {
     lang: SupportedLang;
@@ -18,7 +18,11 @@ export type SiteHeaderProps = {
 };
 
 function resolveActiveSection(pathname: string, mode: string | null): SiteSection {
-    if (pathname === "/" || pathname === "/test" || pathname.startsWith("/result/")) {
+    if (pathname === "/") {
+        return "home";
+    }
+
+    if (pathname === "/test" || pathname.startsWith("/result/")) {
         return "aesthetic";
     }
 
@@ -48,6 +52,10 @@ function resolveActiveSection(pathname: string, mode: string | null): SiteSectio
     }
 
     if (pathname.startsWith("/test")) {
+        return "aesthetic";
+    }
+
+    if (pathname.startsWith("/aesthetic")) {
         return "aesthetic";
     }
 
@@ -107,7 +115,8 @@ export function SiteHeader({
 
     const navItems = useMemo(
         () => [
-            { href: `/?lang=${lang}`, label: labels.aesthetic, section: "aesthetic" as const },
+            { href: `/?lang=${lang}`, label: labels.home, section: "home" as const },
+            { href: `/aesthetic?lang=${lang}`, label: labels.aesthetic, section: "aesthetic" as const },
             { href: `/color?lang=${lang}`, label: labels.color, section: "color" as const },
             { href: `/face-shape?lang=${lang}`, label: labels.faceShape, section: "face-shape" as const },
         ],
@@ -176,7 +185,7 @@ export function SiteHeader({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="fixed inset-0 z-[60] flex flex-col bg-black/95 backdrop-blur-2xl sm:hidden"
+                        className="fixed inset-0 z-60 flex flex-col bg-black/95 backdrop-blur-2xl sm:hidden"
                     >
                         <div className="flex justify-end px-4 py-3">
                             <button

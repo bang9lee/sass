@@ -611,25 +611,25 @@ export function FaceShapeFrameEditor({
                             <div className="flex flex-col gap-4 rounded-[32px] border border-white/10 bg-[#070b12] p-5 lg:p-6 shadow-xl">
                                 
                                 {/* AI Action Items */}
-                                <div className="mb-2">
-                                    <div className="mb-4 flex items-center justify-between">
-                                        <h3 className="text-[14px] font-bold text-white/90">{labels.actionTitle}</h3>
-                                        <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-[10px] font-bold text-white/50">{liveInsights.length || 1} {labels.itemUnit}</span>
-                                    </div>
-                                    {!preview.gate.canAnalyze && (
+                                {!preview.gate.canAnalyze && (
+                                    <div className="mb-2">
+                                        <div className="mb-4 flex items-center justify-between">
+                                            <h3 className="text-[14px] font-bold text-white/90">{labels.actionTitle}</h3>
+                                            <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-[10px] font-bold text-white/50">{liveInsights.length || 1} {labels.itemUnit}</span>
+                                        </div>
                                         <div className="mb-3 rounded-xl bg-rose-500/10 px-4 py-3 border border-rose-500/20">
                                             <p className="text-[12px] font-medium text-rose-300/90">{labels.guide}</p>
                                         </div>
-                                    )}
-                                    <div className="grid gap-2">
-                                        {(liveInsights.length ? liveInsights : [labels.insightEmpty]).map((text, index) => (
-                                            <div key={`${text}-${index}`} className="flex items-start gap-3 rounded-xl bg-white/2 border border-white/5 px-4 py-3.5">
-                                                <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${liveInsights.length ? "bg-[#4e80ff]" : "bg-emerald-400"}`} />
-                                                <p className="text-[12px] leading-relaxed text-white/80">{text}</p>
-                                            </div>
-                                        ))}
+                                        <div className="grid gap-2">
+                                            {(liveInsights.length ? liveInsights : [labels.insightEmpty]).map((text, index) => (
+                                                <div key={`${text}-${index}`} className="flex items-start gap-3 rounded-xl bg-white/2 border border-white/5 px-4 py-3.5">
+                                                    <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${liveInsights.length ? "bg-[#4e80ff]" : "bg-emerald-400"}`} />
+                                                    <p className="text-[12px] leading-relaxed text-white/80">{text}</p>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <hr className="border-white/5" />
 

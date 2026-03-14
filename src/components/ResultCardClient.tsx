@@ -300,6 +300,15 @@ export function ResultCardClient({
             const footerIcon = clone.querySelector('.footer-telegram-icon');
 
             if (footerDomain) (footerDomain as HTMLElement).style.fontSize = '24px'; // 10 -> 24
+            
+            const logoCore = clone.querySelector('.logo-core');
+            if (logoCore) {
+                (logoCore as HTMLElement).style.backgroundImage = 'linear-gradient(to right, #60a5fa, #a855f7, #f472b6)';
+                (logoCore as HTMLElement).style.webkitBackgroundClip = 'text';
+                (logoCore as HTMLElement).style.backgroundClip = 'text';
+                (logoCore as HTMLElement).style.color = 'transparent';
+                (logoCore as HTMLElement).style.display = 'inline-block';
+            }
 
             if (footerTgLabel) {
                 (footerTgLabel as HTMLElement).style.fontSize = '32px'; // Italic label
