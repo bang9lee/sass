@@ -441,6 +441,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
         setDownloading(true);
 
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        let restoreImageStyle: (() => void) | null = null;
 
         // 1. Thoroughly ensure all images are ready for the canvas
         const ensureImagesReady = async () => {
@@ -459,6 +460,83 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             await Promise.all(promises);
         };
 
+        const waitForImage = (img: HTMLImageElement, timeoutMs = 12000) =>
+            new Promise<void>((resolve, reject) => {
+                if (img.complete && img.naturalWidth > 0) {
+                    resolve();
+                    return;
+                }
+                let done = false;
+                const timer = window.setTimeout(() => {
+                    if (done) return;
+                    done = true;
+                    reject(new Error("Image load timeout"));
+                }, timeoutMs);
+                img.onload = () => {
+                    if (done) return;
+                    done = true;
+                    window.clearTimeout(timer);
+                    resolve();
+                };
+                img.onerror = () => {
+                    if (done) return;
+                    done = true;
+                    window.clearTimeout(timer);
+                    reject(new Error("Image load error"));
+                };
+            });
+
+        const drawFaceImage = async (
+            ctx: CanvasRenderingContext2D,
+            imgNode: HTMLImageElement | null,
+            src: string,
+            x: number,
+            y: number,
+            w: number,
+            h: number
+        ) => {
+            if (imgNode && imgNode.complete && imgNode.naturalWidth > 0) {
+                ctx.drawImage(imgNode, x, y, w, h);
+                return true;
+            }
+
+            if (typeof createImageBitmap === "function") {
+                try {
+                    const response = await fetch(src);
+                    const blob = await response.blob();
+                    const bitmap = await createImageBitmap(blob);
+                    ctx.drawImage(bitmap, x, y, w, h);
+                    if ("close" in bitmap) bitmap.close();
+                    return true;
+                } catch {
+                    // Fall through to HTMLImageElement loading.
+                }
+            }
+
+            try {
+                const faceImg = new Image();
+                faceImg.crossOrigin = "anonymous";
+                faceImg.src = src;
+                if ("decode" in faceImg) {
+                    try {
+                        await faceImg.decode();
+                    } catch {
+                        await waitForImage(faceImg);
+                    }
+                } else {
+                    await waitForImage(faceImg);
+                }
+                if (faceImg.naturalWidth > 0) {
+                    ctx.drawImage(faceImg, x, y, w, h);
+                    return true;
+                }
+            } catch {
+                return false;
+            }
+
+            return false;
+        };
+
         try {
             // 2. Extra long wait for Safari's layout engine (1200px shift)
             await new Promise((resolve) => setTimeout(resolve, isIOS ? 1200 : 800));
@@ -474,8 +552,29 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 style: {
                     transform: 'scale(1)',
                     transformOrigin: 'top left'
-                }
+                },
+                filter: isIOS
+                    ? (node: Node) => {
+                        if (node instanceof HTMLImageElement && node.alt === "Analyzed Face") {
+                            return false;
+                        }
+                        return true;
+                    }
+                    : undefined
             };
+
+            const imgNode = cardRef.current.querySelector('img[alt="Analyzed Face"]') as HTMLImageElement | null;
+
+            if (isIOS && imgNode) {
+                const prevVisibility = imgNode.style.visibility;
+                const prevOpacity = imgNode.style.opacity;
+                imgNode.style.visibility = "hidden";
+                imgNode.style.opacity = "0";
+                restoreImageStyle = () => {
+                    imgNode.style.visibility = prevVisibility;
+                    imgNode.style.opacity = prevOpacity;
+                };
+            }
 
             // Capture the UI (with or without photo)
             const capturedCanvas = await htmlToImage.toCanvas(cardRef.current, captureOptions);
@@ -491,7 +590,6 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 const ctx = compositeCanvas.getContext('2d');
 
                 if (ctx) {
-                    const imgNode = cardRef.current.querySelector('img[alt="Analyzed Face"]') as HTMLImageElement;
                     if (imgNode) {
                         const imgRect = imgNode.getBoundingClientRect();
                         const cardRect = cardRef.current.getBoundingClientRect();
@@ -508,18 +606,11 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                         ctx.fillStyle = "#03060b";
                         ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
 
-                        // 2. Draw Original Photo (Direct from DataURL - Bypasses Browser Cloning)
-                        const faceImg = new Image();
-                        faceImg.crossOrigin = "anonymous";
-                        faceImg.src = result.imageDataUrl;
-                        
-                        await new Promise((resolve, reject) => {
-                            faceImg.onload = resolve;
-                            faceImg.onerror = reject;
-                            setTimeout(resolve, 3000); // 3s timeout
-                        });
-
-                        ctx.drawImage(faceImg, x, y, w, h);
+                        // 2. Draw Original Photo (decoded manually to avoid iOS WebKit capture failures)
+                        const drewPhoto = await drawFaceImage(ctx, imgNode, result.imageDataUrl, x, y, w, h);
+                        if (!drewPhoto) {
+                            throw new Error("Face photo failed to decode");
+                        }
 
                         // 3. Draw Captured UI Overlay (the lines, text, and metrics)
                         ctx.drawImage(capturedCanvas, 0, 0);
@@ -542,6 +633,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             console.error("Capture failed", error);
             alert(t.failedSave);
         } finally {
+            if (restoreImageStyle) restoreImageStyle();
             setDownloading(false);
         }
     };
