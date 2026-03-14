@@ -361,6 +361,9 @@ export function buildExecutiveSummary(result: FaceShapeAnalysisResult, lang: str
                     : "Even with slight cheekbone emphasis, the base structure reads closer to a long oval than a diamond."
         : shapeCopy.summary;
 
+    if (borderlineLongOval && safeLang === "ko") {
+        return `${lengthLead} ${widthLead}\n${shapeSummary}`.trim();
+    }
     return `${lengthLead} ${widthLead} ${shapeSummary}`.trim();
 }
 

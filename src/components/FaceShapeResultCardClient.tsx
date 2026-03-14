@@ -435,49 +435,61 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
         if (!cardRef.current) return;
         setDownloading(true);
 
-        // 1. Prepare for capture: Create an image object to wait for decoding
-        // This ensures the photo is actually ready in memory for WebKit/iOS
-        const ensureImageLoaded = async () => {
+        // 1. Thoroughly ensure all images are ready for the canvas
+        const ensureImagesReady = async () => {
             const imgElements = cardRef.current?.querySelectorAll('img');
-            if (imgElements) {
-                const promises = Array.from(imgElements).map(async (img) => {
-                    if (img.complete) return;
-                    try {
-                        await img.decode();
-                    } catch (e) {
-                        console.warn("Image decode failed", e);
-                    }
-                });
-                await Promise.all(promises);
-            }
+            if (!imgElements) return;
+
+            const promises = Array.from(imgElements).map(async (img) => {
+                // Force load check
+                if (!img.complete) {
+                    await new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                    });
+                }
+                // WebKit specific: ensure bitmap is decoded and ready
+                try {
+                    await img.decode();
+                } catch (e) {
+                    console.warn("Decode failed, continuing anyway", e);
+                }
+            });
+            await Promise.all(promises);
         };
 
-        await ensureImageLoaded();
-        
-        // 2. Extra delay to ensure UI reflow is complete for the 1200px capture mode
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
         try {
+            // 2. Initial Wait for 1200px layout reflow (Safari needs time)
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            await ensureImagesReady();
+
             const htmlToImage = await import("html-to-image");
 
-            // 3. WARM-UP CAPTURE (Crucial for iOS/WebKit)
-            // We run a dummy capture once to "wake up" the rendering engine
-            try {
-                await htmlToImage.toPng(cardRef.current, { pixelRatio: 1 });
-            } catch (e) {
-                // Ignore warm-up errors
-            }
+            // 3. FIRST PASS (Warm-up)
+            // Priming the rendering engine at lower quality to ensure assets are cached
+            await htmlToImage.toPng(cardRef.current, { 
+                pixelRatio: 1,
+                skipFonts: false
+            });
             
-            // 4. Final Capture with short delay after warm-up
-            await new Promise((resolve) => setTimeout(resolve, 300));
+            // 4. Second Wait after warm-up
+            await new Promise((resolve) => setTimeout(resolve, 500));
             
+            // 5. FINAL PASS (The real capture)
+            // We use toPng but with higher reliability settings
             const dataUrl = await htmlToImage.toPng(cardRef.current, {
                 backgroundColor: "#03060b",
-                cacheBust: true,
                 pixelRatio: 2,
-                width: 1200, 
+                width: 1200,
+                // cacheBust is sometimes problematic on Safari with data URLs
+                cacheBust: false, 
+                style: {
+                    transform: 'scale(1)',
+                    transformOrigin: 'top left'
+                }
             });
 
+            // 6. Download
             const link = document.createElement("a");
             link.download = `findcore-face-${presentedShape}.png`;
             link.href = dataUrl;
@@ -599,20 +611,20 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                 {/* Clinical Dimension Lines (Technical Ticks) */}
                                 {guideItems.map((guide) => (
                                     <g key={`${guide.key}-tech`}>
-                                        {/* Background contrast line */}
+                                        {/* Horizontal scan line - Increased visibility dash */}
                                         <line
-                                            x1="0" y1={guide.y * 100}
-                                            x2="100" y2={guide.y * 100}
-                                            stroke="rgba(0,0,0,0.4)" strokeWidth="0.4"
+                                            x1="3" y1={guide.y * 100}
+                                            x2="97" y2={guide.y * 100}
+                                            stroke="rgba(255,255,255,0.4)" strokeWidth="0.25"
+                                            strokeDasharray="2 2"
                                         />
-                                        <line
-                                            x1="0" y1={guide.y * 100}
-                                            x2="100" y2={guide.y * 100}
-                                            stroke="rgba(255,255,255,0.3)" strokeWidth="0.15"
-                                        />
-                                        {/* Dimension Ticks on edges */}
-                                        <line x1="1" y1={guide.y * 100 - 1.2} x2="1" y2={guide.y * 100 + 1.2} stroke="rgba(255,255,255,0.6)" strokeWidth="0.3" />
-                                        <line x1="99" y1={guide.y * 100 - 1.2} x2="99" y2={guide.y * 100 + 1.2} stroke="rgba(255,255,255,0.6)" strokeWidth="0.3" />
+                                        {/* Neon Edge Ticks - High Contrast with Glow */}
+                                        <line x1="0" y1={guide.y * 100} x2="3" y2={guide.y * 100} stroke={guide.lineColor} strokeWidth="0.6" className="filter drop-shadow-[0_0_3px_rgba(255,255,255,0.5)]" />
+                                        <line x1="97" y1={guide.y * 100} x2="100" y2={guide.y * 100} stroke={guide.lineColor} strokeWidth="0.6" className="filter drop-shadow-[0_0_3px_rgba(255,255,255,0.5)]" />
+                                        
+                                        {/* Precision Crosshair Corners at edges */}
+                                        <line x1="1" y1={guide.y * 100 - 1.2} x2="1" y2={guide.y * 100 + 1.2} stroke="white" strokeWidth="0.3" opacity="0.8" />
+                                        <line x1="99" y1={guide.y * 100 - 1.2} x2="99" y2={guide.y * 100 + 1.2} stroke="white" strokeWidth="0.3" opacity="0.8" />
                                     </g>
                                 ))}
 
@@ -695,24 +707,18 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                         className="absolute"
                                         style={{
                                             top: `${guide.y * 100}%`,
-                                            left: '0',
+                                            left: '3%',
                                             transform: 'translateY(-100%)',
                                         }}
                                     >
-                                        <div className="flex flex-col items-start gap-1 border-l-2 border-white/60 pl-2.5 py-1.5 bg-black/40 backdrop-blur-md rounded-r-lg shadow-2xl">
-                                            <span className="text-[8px] font-mono leading-none tracking-widest text-sky-400/90 font-bold">
-                                                ID_SCAN_{idx.toString().padStart(2, '0')}
-                                            </span>
-                                            <span className="text-[12px] font-black leading-none tracking-tight text-white uppercase font-mono drop-shadow-sm">
+                                        <div className="flex flex-col items-start gap-0.5 border-l-[3px] border-white/80 pl-3 pr-3.5 py-1.5 bg-black/70 backdrop-blur-md rounded-sm ring-1 ring-white/20 shadow-2xl">
+                                            <span className="text-[11px] sm:text-[13px] font-black leading-tight tracking-tight text-white uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] whitespace-nowrap">
                                                 {guide.label}
                                             </span>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="text-[9px] font-mono leading-none text-emerald-400 font-black">
-                                                    COORD_Y {(guide.y * 100).toFixed(2)}
+                                            <div className="flex items-center gap-1.5 min-w-[30px]">
+                                                <span className={`text-[8px] sm:text-[9px] font-mono font-black italic tracking-tighter ${idx === 0 ? 'text-blue-400' : idx === 1 ? 'text-emerald-400' : idx === 2 ? 'text-amber-400' : 'text-rose-400'}`}>
+                                                    {(guide.y * 100).toFixed(1)}%
                                                 </span>
-                                                <div className="h-1 w-4 bg-white/10 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-emerald-400/50" style={{ width: `${guide.y * 100}%` }} />
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -724,9 +730,6 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                             {!downloading && (
                                 <div className="absolute inset-0 px-5 pt-6 pb-5 flex flex-col justify-end z-30 lg:hidden">
                                     <div className="flex flex-col items-start gap-1">
-                                        <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60 drop-shadow-md">
-                                            {t.headerTitle}
-                                        </p>
                                         <h1 className="text-3xl font-black leading-none tracking-tight text-transparent drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] sm:text-4xl bg-clip-text bg-linear-to-b from-white to-white/70 break-keep">
                                             {shapeCopy.name}
                                         </h1>
@@ -746,7 +749,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                     </div>
 
                     {/* ═══ RIGHT: Professional Report Dashboard ═══ */}
-                    <div className={`flex flex-col px-5 py-7 z-10 w-full text-left bg-black ${downloading ? "pl-8 pr-0 py-0" : "lg:bg-transparent lg:pl-8 lg:pr-0 lg:py-0"}`} style={{ gap: '1.5rem' }}>
+                    <div className={`flex flex-col px-0 py-7 lg:pl-8 lg:pr-0 lg:py-0 z-10 w-full text-left bg-black lg:bg-transparent ${downloading ? "pl-8 pr-0 py-0" : ""}`} style={{ gap: '1.5rem' }}>
 
                         {/* ▸ Desktop Title Block */}
                         <div className={`${downloading ? "flex" : "hidden lg:flex"} flex-col gap-5 pb-5 border-b border-white/8`}>
@@ -770,9 +773,9 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                             {/* Inline metrics row */}
                             <div className="grid grid-cols-3 gap-2">
                                 {metricCards.map((metric) => (
-                                    <div key={metric.label} className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/3 px-3.5 py-2.5">
+                                    <div key={metric.label} className="flex items-center gap-3 rounded-xl border border-white/12 bg-white/5 px-3.5 py-2.5">
                                         <div>
-                                            <p className="text-[8px] font-bold uppercase text-white/35 tracking-wider mb-0.5">{metric.label}</p>
+                                            <p className="text-[10px] font-extrabold uppercase text-white/80 tracking-widest mb-1 leading-none">{metric.label}</p>
                                             <p className="text-[16px] font-mono font-black tracking-tight text-white leading-none">{metric.value}</p>
                                         </div>
                                     </div>
@@ -784,33 +787,33 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                         {!downloading && (
                             <div className="grid grid-cols-3 gap-2 lg:hidden">
                                 {metricCards.map((metric) => (
-                                    <div key={metric.label} className="flex flex-col items-center justify-center rounded-xl border border-white/8 bg-white/3 p-3">
-                                        <p className="text-[8px] font-bold uppercase text-white/40 mb-1 text-center tracking-wider">{metric.label}</p>
-                                        <p className="text-[14px] font-mono font-bold tracking-tight text-white">{metric.value}</p>
+                                    <div key={metric.label} className="flex flex-col items-center justify-center rounded-xl border border-white/12 bg-white/5 p-3 shadow-sm">
+                                        <p className="text-[10px] font-extrabold uppercase text-white/90 mb-1.5 text-center tracking-widest">{metric.label}</p>
+                                        <p className="text-[16px] font-mono font-black tracking-tight text-white drop-shadow-sm">{metric.value}</p>
                                     </div>
                                 ))}
                             </div>
                         )}
 
                         {/* ▸ Executive Summary */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
-                                <div className="w-0.5 h-3.5 rounded-full bg-blue-400" />
-                                <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-400/90">{t.analysisSummary}</h3>
+                                <div className="w-1 h-4 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(78,128,255,0.4)]" />
+                                <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-blue-300">{t.analysisSummary}</h3>
                             </div>
-                            <p className={`text-[13px] ${downloading ? "text-[13.5px]" : "lg:text-[13.5px]"} text-white/85 leading-[1.8] tracking-wide pl-3 break-keep`}>
+                            <p className={`text-[15px] sm:text-[16px] ${downloading ? "text-[13.5px]" : "lg:text-[13.5px]"} text-white/90 leading-[1.7] tracking-tight break-keep whitespace-pre-line`}>
                                 {executiveSummary}
                             </p>
                         </div>
 
                         {/* ▸ Thirds */}
-                        <div className="rounded-xl border border-white/8 bg-white/3 p-5">
+                        <div className={`rounded-xl border-y border-white/8 lg:border-x lg:rounded-xl bg-white/3 py-5 px-0 ${downloading ? "px-5 border-x rounded-xl" : "lg:px-5"}`}>
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2">
                                     <div className="w-1 h-4 rounded-full bg-sky-400" />
                                     <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-sky-300">{t.thirds}</h3>
                                 </div>
-                                <span className="text-[9px] font-mono font-bold text-white/40 tracking-widest bg-white/5 px-2 py-1 rounded">{t.ideal}</span>
+                                <span className="text-[10px] font-mono font-black text-white tracking-widest bg-white/15 px-2.5 py-1 rounded-sm border border-white/10 shadow-sm">{t.ideal}</span>
                             </div>
                             <div className="space-y-3.5">
                                 {thirds.map((seg) => (
@@ -827,7 +830,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                         </div>
 
                         {/* ▸ Strengths */}
-                        <div className="rounded-xl border border-white/8 bg-white/3 p-5">
+                        <div className={`rounded-xl border-y border-white/8 lg:border-x lg:rounded-xl bg-white/3 py-5 px-0 ${downloading ? "px-5 border-x rounded-xl" : "lg:px-5"}`}>
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="w-1 h-4 rounded-full bg-emerald-400" />
                                 <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-emerald-300">{t.strengths}</h3>
@@ -854,12 +857,11 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                     </div>
                 </div>
 
-                {/* ═══ FULL-WIDTH: Style Prescriptions ═══ */}
-                <div className="w-full text-white mt-2">
+                <div className="w-full text-white mt-4 sm:mt-6">
                     <div className="mb-5 flex flex-wrap items-center gap-2">
                         <div className="w-1 h-4 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
                         <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-amber-300">{t.prescriptions}</h3>
-                        <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[10px] font-bold text-amber-100/90">
+                        <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[10px] font-bold text-amber-100/90 whitespace-nowrap">
                             {styleTargetCopy[styleTarget].badge}
                         </span>
                     </div>
@@ -869,7 +871,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                             return (
                                 <div 
                                     key={card.key} 
-                                    className={`rounded-2xl border border-white/15 bg-white/4 p-5 ${downloading ? "p-6" : "lg:p-6"} transition-all hover:bg-white/7 hover:border-white/25`}
+                                    className={`rounded-2xl border border-white/15 bg-white/4 p-5 sm:p-6 ${downloading ? "p-6" : "lg:p-6"} transition-all hover:bg-white/7 hover:border-white/25`}
                                 >
                                     <div className="flex items-center gap-3 mb-4">
                                         <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${card.iconClass}`}>

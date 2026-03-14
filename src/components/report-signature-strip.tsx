@@ -11,10 +11,10 @@ export function ReportSignatureStrip({
     homeHref = `/?lang=${lang}`,
 }: ReportSignatureStripProps) {
     return (
-        <div className="w-full bg-[#050505] py-4 px-6 flex items-center justify-between border-t border-white/5">
+        <div className="w-full bg-[#050505] py-5 px-6 flex flex-wrap items-center justify-between gap-y-4 border-t border-white/5">
             <Link
                 href={homeHref}
-                className="footer-domain font-cinzel text-white text-[10px] uppercase tracking-[0.2em] font-bold"
+                className="footer-domain font-cinzel text-white text-[10px] uppercase tracking-[0.3em] font-bold"
             >
                 FINDCORE.ME
             </Link>
@@ -22,12 +22,12 @@ export function ReportSignatureStrip({
                 href="https://t.me/todayshelp"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center gap-1.5 text-white transition-colors duration-300"
+                className="group flex items-center gap-2 text-white/70 hover:text-white transition-colors duration-300"
             >
-                <span className="footer-telegram-label font-cinzel text-xs tracking-wide transition-all">
+                <span className="footer-telegram-label font-cinzel text-[10px] tracking-widest uppercase font-bold">
                     Telegram
                 </span>
-                <span className="footer-telegram-id font-cinzel text-[10px] font-bold">@todayshelp</span>
+                <span className="footer-telegram-id font-cinzel text-[10px] font-bold text-white/90">@todayshelp</span>
             </a>
         </div>
     );
