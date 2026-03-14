@@ -17,9 +17,10 @@ interface MainHomeClientProps {
 export default function MainHomeClient({ lang }: MainHomeClientProps) {
     const isKorean = lang === "ko";
 
-    const t = {
+    const t: any = {
         ko: {
             title: "FINDCORE",
+            heroTagline: "FINDCORE",
             subtitle: "AI가 제안하는 당신만의\n독창적인 에스테틱과 스타일 가이드",
             categories: [
                 {
@@ -57,6 +58,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
         },
         en: {
             title: "FINDCORE",
+            heroTagline: "FINDCORE",
             subtitle: "Discover Your Unique Aesthetic\nwith Professional AI Analysis",
             categories: [
                 {
@@ -94,6 +96,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
         },
         zh: {
             title: "FINDCORE",
+            heroTagline: "FINDCORE",
             subtitle: "通过专业的 AI 分析\n探索您独特的美学与风格指南",
             categories: [
                 {
@@ -131,6 +134,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
         },
         ja: {
             title: "FINDCORE",
+            heroTagline: "FINDCORE",
             subtitle: "AIが提案するあなただけの\n独創的な感性とスタイルガイド",
             categories: [
                 {
@@ -173,23 +177,26 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
             <div className="relative z-10 w-full min-h-dvh flex flex-col overflow-x-hidden">
                 <SiteHeader lang={lang} position="fixed" />
 
-                <main className="flex-1 flex flex-col items-center px-0 sm:px-4 w-full pt-28 pb-20">
-                    {/* Hero Section */}
-                    <div className="max-w-4xl mx-auto text-center mb-16 lg:mb-32 px-4 overflow-visible">
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
+                <main className="flex-1 flex flex-col items-center px-0 sm:px-4 w-full pt-24 pb-20">
+                    {/* Hero Section - Brand Identity */}
+                    <div className="max-w-4xl mx-auto text-center px-4 mb-8 flex flex-col items-center">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8 }}
-                            className="text-6xl sm:text-7xl lg:text-9xl font-black tracking-[0.06em] text-white mb-6 lg:mb-8 font-cinzel uppercase"
+                            transition={{ duration: 1 }}
+                            className="flex flex-col items-center gap-2"
                         >
-                            FINDCORE
-                        </motion.h1>
+                            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-[0.1em] text-white/90 font-cinzel uppercase">
+                                {t.heroTagline}
+                            </h1>
+                            <div className="w-16 h-px bg-white/10 mt-4" />
+                        </motion.div>
                     </div>
 
                     {/* Services View - Horizontal Snap on Mobile, Grid on Desktop */}
                     <div className="w-full max-w-7xl mx-auto overflow-visible relative">
                         <div className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory px-6 sm:px-0 no-scrollbar pb-8 sm:pb-0">
-                            {t.categories.map((cat, idx) => (
+                            {t.categories.map((cat: any, idx: number) => (
                                 <motion.div
                                     key={cat.id}
                                     initial={{ opacity: 0, y: 30 }}
