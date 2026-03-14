@@ -536,11 +536,11 @@ export function FaceShapeFrameEditor({
                             </div>
                         </section>
 
-                        <div className="flex flex-wrap justify-center gap-2 sm:justify-start lg:ml-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 lg:ml-2">
                             {legendItems.map((item) => (
                                 <div
                                     key={item.text}
-                                    className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-[11px] font-semibold shadow-[0_8px_20px_rgba(0,0,0,0.18)] backdrop-blur-sm ${item.chipClass}`}
+                                    className={`flex items-center justify-center gap-2 rounded-full border px-2.5 py-2 sm:px-4 sm:py-3 text-[11px] sm:text-[12px] font-semibold shadow-[0_8px_20px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-all ${item.chipClass}`}
                                 >
                                     <span className={`h-2 w-2 shrink-0 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.12)] ${item.dotClass}`} />
                                     <span className="leading-none">{item.text}</span>
