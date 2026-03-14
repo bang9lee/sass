@@ -131,7 +131,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
         },
         ja: {
             title: "FINDCORE",
-            subtitle: "AI가 提案하는 당신만의\n独創적인 감성과 스타일 가이드",
+            subtitle: "AIが提案するあなただけの\n独創的な感性とスタイルガイド",
             categories: [
                 {
                     id: "aesthetic",
@@ -146,7 +146,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
                 {
                     id: "personal-color",
                     title: "パーソナルカラー",
-                    desc: "肌のトーンと調和する、\nあなただけのベストカラーを発見しましょう。",
+                    desc: "肌のトーンと調和する、\nあなただけのベストカラーを見つけましょう。",
                     href: "/color",
                     image: "/images/personal_color_hero_v8.webp",
                     icon: Palette,
@@ -156,7 +156,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
                 {
                     id: "face-shape",
                     title: "AI 顔型分析",
-                    desc: "顔立ちの比率를 精密하게 分析하여,\n最適なヘアとメガネスタイルを提案します。",
+                    desc: "顔立ちの比率を精密に分析し、\n最適なヘアとメガネスタイルを提案します。",
                     href: "/face-shape",
                     image: "/images/face_shape_hero_v7.webp",
                     icon: ScanFace,
@@ -184,14 +184,6 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
                         >
                             FINDCORE
                         </motion.h1>
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                            className={`text-base sm:text-xl lg:text-2xl text-white/60 leading-relaxed whitespace-pre-line ${isKorean ? "font-korean font-medium tracking-tight" : "font-serif italic"}`}
-                        >
-                            {t.subtitle}
-                        </motion.p>
                     </div>
 
                     {/* Services View - Horizontal Snap on Mobile, Grid on Desktop */}

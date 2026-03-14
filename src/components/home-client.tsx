@@ -21,22 +21,22 @@ export default function HomeClient({ lang }: HomeClientProps) {
         ko: {
             title1: "나의 감성은",
             title2: "어떤 무드일까?",
-            subtitle: "당신만의 특별한 분위기와\n딱 맞는 감성 타입(Aesthetic)을 찾아보세요.",
+            subtitle: "당신만의 특별한 분위기와\n딱 맞는 감성 타입을 찾아보세요.",
         },
         en: {
             title1: "Find Your",
             title2: "Aesthetic Soul",
-            subtitle: "Discover your unique vibe\nand the perfect Aesthetic type for you.",
+            subtitle: "Discover your unique vibe\nand the perfect aesthetic for you.",
         },
         zh: {
             title1: "寻找你的",
             title2: "专属美学氛围",
-            subtitle: "探索你独特的氛围，\n找到最适合你的美学类型 (Aesthetic)。",
+            subtitle: "探索你独特的氛围，\n找到最适合你的美学类型。",
         },
         ja: {
             title1: "私の感性は",
             title2: "どんなムード？",
-            subtitle: "あなただけの特別な雰囲気と\nぴったりの感性タイプ(Aesthetic)を見つけましょう。",
+            subtitle: "あなただけの特別な雰囲気と\nぴったりの感性タイプを見つけましょう。",
         },
     }[lang];
 
