@@ -175,12 +175,12 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
 
                 <main className="flex-1 flex flex-col items-center px-0 sm:px-4 w-full pt-28 pb-20">
                     {/* Hero Section */}
-                    <div className="max-w-4xl mx-auto text-center mb-12 lg:mb-24 px-4 overflow-visible">
+                    <div className="max-w-4xl mx-auto text-center mb-16 lg:mb-32 px-4 overflow-visible">
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
-                            className="text-6xl sm:text-7xl lg:text-9xl font-black tracking-tighter text-white mb-6 lg:mb-8 font-cinzel uppercase"
+                            className="text-6xl sm:text-7xl lg:text-9xl font-black tracking-[0.06em] text-white mb-6 lg:mb-8 font-cinzel uppercase"
                         >
                             FINDCORE
                         </motion.h1>
