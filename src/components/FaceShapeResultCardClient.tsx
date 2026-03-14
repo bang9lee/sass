@@ -127,6 +127,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [downloading, setDownloading] = useState(false);
+    const [includePhoto, setIncludePhoto] = useState(true);
     const isEnglish = lang === "en";
     const safeLang: SupportedLang = lang === "ko" || lang === "en" || lang === "zh" || lang === "ja" ? lang : "en";
     const presentedShape = resolvePresentedFaceShape(result);
@@ -184,6 +185,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             failedSave: "이미지 저장에 실패했습니다.",
             adPending: "광고대기중",
             contactLabel: "문의 @todayshelp",
+            includePhotoLabel: "결과 저장 시 얼굴 사진 포함하기",
         },
         en: {
             headerTitle: "Professional Face Shape Analysis",
@@ -221,6 +223,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             failedSave: "Failed to save image.",
             adPending: "Ad Pending",
             contactLabel: "Contact @todayshelp",
+            includePhotoLabel: "Include face photo in saved result",
         },
         zh: {
             headerTitle: "AI 专业脸型分析报告",
@@ -241,7 +244,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             eyewear: "眼镜建议",
             contour: "修容重点",
             hairline: "发际线",
-            browLine: "眉线",
+            browLine: "眉眼线",
             noseBase: "鼻底线",
             chinLine: "下巴线",
             share: "分享",
@@ -258,6 +261,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             failedSave: "图片保存失败。",
             adPending: "广告待处理",
             contactLabel: "联系 @todayshelp",
+            includePhotoLabel: "保存结果时包含脸部照片",
         },
         ja: {
             headerTitle: "AI 顔型分析レポート",
@@ -295,6 +299,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             failedSave: "画像の保存に失敗しました。",
             adPending: "広告待機中",
             contactLabel: "お問い合わせ @todayshelp",
+            includePhotoLabel: "結果保存時に顔写真を含める",
         },
     }[safeLang];
 
@@ -435,59 +440,53 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
         if (!cardRef.current) return;
         setDownloading(true);
 
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
         // 1. Thoroughly ensure all images are ready for the canvas
         const ensureImagesReady = async () => {
             const imgElements = cardRef.current?.querySelectorAll('img');
             if (!imgElements) return;
 
             const promises = Array.from(imgElements).map(async (img) => {
-                // Force load check
                 if (!img.complete) {
                     await new Promise((resolve) => {
                         img.onload = resolve;
                         img.onerror = resolve;
                     });
                 }
-                // WebKit specific: ensure bitmap is decoded and ready
-                try {
-                    await img.decode();
-                } catch (e) {
-                    console.warn("Decode failed, continuing anyway", e);
-                }
+                try { await img.decode(); } catch (e) {}
             });
             await Promise.all(promises);
         };
 
         try {
-            // 2. Initial Wait for 1200px layout reflow (Safari needs time)
-            await new Promise((resolve) => setTimeout(resolve, 800));
+            // 2. Extra long wait for Safari's layout engine (1200px shift)
+            await new Promise((resolve) => setTimeout(resolve, isIOS ? 1200 : 800));
             await ensureImagesReady();
 
             const htmlToImage = await import("html-to-image");
 
-            // 3. FIRST PASS (Warm-up)
-            // Priming the rendering engine at lower quality to ensure assets are cached
-            await htmlToImage.toPng(cardRef.current, { 
-                pixelRatio: 1,
-                skipFonts: false
-            });
-            
-            // 4. Second Wait after warm-up
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            
-            // 5. FINAL PASS (The real capture)
-            // We use toPng but with higher reliability settings
-            const dataUrl = await htmlToImage.toPng(cardRef.current, {
+            // 3. Optional First Pass (iOS only) to prime the memory
+            if (isIOS) {
+                await htmlToImage.toCanvas(cardRef.current, { pixelRatio: 1 });
+                await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+
+            // 4. Final Pass using toCanvas (more stable on Safari)
+            const canvas = await htmlToImage.toCanvas(cardRef.current, {
                 backgroundColor: "#03060b",
-                pixelRatio: 2,
+                // Safari memory limit safeguard: Use 1.5x on iOS, 2x elsewhere
+                pixelRatio: isIOS ? 1.5 : 2,
                 width: 1200,
-                // cacheBust is sometimes problematic on Safari with data URLs
-                cacheBust: false, 
+                cacheBust: false,
                 style: {
                     transform: 'scale(1)',
                     transformOrigin: 'top left'
                 }
             });
+
+            // 5. Convert Canvas -> DataURL
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
 
             // 6. Download
             const link = document.createElement("a");
@@ -580,10 +579,10 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                             <img
                                 src={result.imageDataUrl}
                                 alt="Analyzed Face"
-                                className="w-full h-auto block"
+                                className={`w-full h-auto block ${(downloading && !includePhoto) ? "opacity-0 invisible" : "opacity-100"}`}
                             />
                             {/* Overlay — soft on desktop, cinematic on mobile */}
-                            <div className={`absolute inset-0 bg-linear-to-b from-black/10 via-transparent to-black/80 ${downloading ? "to-black/20" : "lg:to-black/20"} z-10 pointer-events-none`} />
+                            <div className={`absolute inset-0 bg-linear-to-b from-black/10 via-transparent to-black/80 ${downloading ? "to-black/20" : "lg:to-black/20"} z-10 pointer-events-none ${(downloading && !includePhoto) ? "hidden" : ""}`} />
 
                             {/* Verified Badge */}
                             <div className={`absolute left-3 top-3 ${downloading ? "left-4 top-4" : "lg:left-4 lg:top-4"} z-30`}>
@@ -749,15 +748,15 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                     </div>
 
                     {/* ═══ RIGHT: Professional Report Dashboard ═══ */}
-                    <div className={`flex flex-col px-0 py-7 lg:pl-8 lg:pr-0 lg:py-0 z-10 w-full text-left bg-black lg:bg-transparent ${downloading ? "pl-8 pr-0 py-0" : ""}`} style={{ gap: '1.5rem' }}>
+                    <div className={`flex flex-col px-0 py-7 lg:pl-10 lg:pr-0 lg:py-0 z-10 w-full text-left bg-black lg:bg-transparent ${downloading ? "pl-10 pr-0 py-0" : ""}`} style={{ gap: '1.5rem' }}>
 
-                        {/* ▸ Desktop Title Block */}
-                        <div className={`${downloading ? "flex" : "hidden lg:flex"} flex-col gap-5 pb-5 border-b border-white/8`}>
+                        {/* ▸ Desktop Title & Metrics Block (Reverted to Right Panel) */}
+                        <div className={`${downloading ? "flex" : "hidden lg:flex"} flex-col gap-6 pb-6 border-b border-white/8`}>
                             <div className="flex flex-col items-start">
                                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400/60 mb-2">
                                     {t.resultLabel}
                                 </p>
-                                <h1 className="text-[32px] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/50 break-keep">
+                                <h1 className="text-[36px] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/50 break-keep">
                                     {shapeCopy.name}
                                 </h1>
                                 {keywords.length > 0 && (
@@ -770,14 +769,12 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                     </div>
                                 )}
                             </div>
-                            {/* Inline metrics row */}
-                            <div className="grid grid-cols-3 gap-2">
+
+                            <div className="grid grid-cols-3 gap-2 w-full">
                                 {metricCards.map((metric) => (
-                                    <div key={metric.label} className="flex items-center gap-3 rounded-xl border border-white/12 bg-white/5 px-3.5 py-2.5">
-                                        <div>
-                                            <p className="text-[10px] font-extrabold uppercase text-white/80 tracking-widest mb-1 leading-none">{metric.label}</p>
-                                            <p className="text-[16px] font-mono font-black tracking-tight text-white leading-none">{metric.value}</p>
-                                        </div>
+                                    <div key={metric.label} className="flex flex-col items-start gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                                        <p className="text-[9px] font-extrabold uppercase text-white/50 tracking-[0.2em] leading-none">{metric.label}</p>
+                                        <p className="text-[18px] font-mono font-black tracking-tighter text-white leading-none">{metric.value}</p>
                                     </div>
                                 ))}
                             </div>
@@ -897,7 +894,25 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             </div>
 
             {/* Action Buttons */}
-            <div className="mx-auto mt-2 lg:mt-3 grid w-full max-w-md lg:max-w-lg gap-3">
+            <div className="mx-auto mt-4 lg:mt-6 grid w-full max-w-md lg:max-w-lg gap-4">
+                {/* Privacy Toggle */}
+                {!downloading && (
+                    <div className="flex items-center justify-center gap-3 py-1 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <label className="relative inline-flex items-center cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={includePhoto}
+                                onChange={(e) => setIncludePhoto(e.target.checked)}
+                            />
+                            <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 group-hover:bg-white/15 transition-colors"></div>
+                            <span className="ms-3 text-[13px] font-bold text-white/70 group-hover:text-white transition-colors">
+                                {t.includePhotoLabel}
+                            </span>
+                        </label>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-3 w-full">
                     <button
                         onClick={handleShare}
