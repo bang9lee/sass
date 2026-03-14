@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { resolveSupportedLang } from '@/lib/site-content';
 import { AESTHETICS, type AestheticId } from '@/lib/data';
+import { useLanguage } from '@/components/language-provider';
 
 interface ColorResultCardClientProps {
     resultId: string;
@@ -33,8 +34,7 @@ export function ColorResultCardClient({
     isKo: propIsKo,
     lang: propLang,
 }: ColorResultCardClientProps) {
-    const searchParams = useSearchParams();
-    const lang = resolveSupportedLang(searchParams.get("lang") || propLang);
+    const { lang } = useLanguage();
     const isKo = lang === 'ko';
 
     const aestheticData = AESTHETICS[resultId as AestheticId];

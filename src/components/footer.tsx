@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { getFooterLabels, resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
 import { useSearchParams } from "next/navigation";
+import { useLanguage } from "@/components/language-provider";
 
 interface FooterProps {
     lang: SupportedLang;
@@ -10,8 +11,7 @@ interface FooterProps {
 }
 
 export function Footer({ lang: propLang, className = "" }: FooterProps) {
-    const searchParams = useSearchParams();
-    const lang = resolveSupportedLang(searchParams.get("lang") || propLang);
+    const { lang } = useLanguage();
     const footer = getFooterLabels(lang);
 
     return (

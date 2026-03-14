@@ -3,6 +3,7 @@ import { StaticContentShell } from "@/components/static-content-shell";
 import type { GuideArticleCopy } from "@/lib/guides-content";
 import { PUBLISHER_PROFILE } from "@/lib/publisher-profile";
 import type { SupportedLang } from "@/lib/site-content";
+import { useLanguage } from "@/components/language-provider";
 
 interface GuideArticleProps {
     lang: SupportedLang;
@@ -13,7 +14,8 @@ function getTextClass(lang: SupportedLang) {
     return lang === "ko" ? "font-korean break-keep" : "";
 }
 
-export function GuideArticle({ lang, copy }: GuideArticleProps) {
+export function GuideArticle({ lang: propLang, copy }: GuideArticleProps) {
+    const { lang } = useLanguage();
     const textClass = getTextClass(lang);
     const operatorLabel =
         lang === "ko"

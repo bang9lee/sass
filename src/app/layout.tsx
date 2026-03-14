@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display, Noto_Sans_KR, Cinzel } from "next/font/google";
 import { AppRuntime } from "@/components/app-runtime";
+import { LanguageProvider } from "@/components/language-provider";
+import { Suspense } from "react";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -58,7 +60,11 @@ export default function RootLayout({
         </div>
 
         <main className="relative z-10 min-h-screen flex flex-col">
-          {children}
+          <Suspense fallback={<div className="min-h-screen bg-black" />}>
+            <LanguageProvider initialLang="en">
+              {children}
+            </LanguageProvider>
+          </Suspense>
         </main>
       </body>
     </html>

@@ -2,6 +2,7 @@ import type { SupportedLang } from "@/lib/site-content";
 import { Footer } from "@/components/footer";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { SiteHeader } from "@/components/site-header";
+import { useLanguage } from "@/components/language-provider";
 
 interface StaticContentShellProps {
     lang: SupportedLang;
@@ -11,11 +12,12 @@ interface StaticContentShellProps {
 }
 
 export function StaticContentShell({
-    lang,
+    lang: propLang,
     title,
     intro,
     children,
 }: StaticContentShellProps) {
+    const { lang } = useLanguage();
     const textClassName = lang === "ko" ? "font-korean break-keep" : "";
 
     return (

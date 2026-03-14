@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
 import { getNavigationLabels, resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
+import { useLanguage } from "@/components/language-provider";
 
 type SiteSection = "home" | "aesthetic" | "color" | "face-shape" | null;
 
@@ -99,7 +100,10 @@ export function SiteHeader({
     const router = useRouter();
     const pathname = usePathname() ?? "/";
     const searchParams = useSearchParams();
-    const lang = resolveSupportedLang(searchParams.get("lang") || propLang);
+    
+    // Use global language context for instant feedback
+    const { lang, setLanguage } = useLanguage();
+    
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const labels = getNavigationLabels(lang);
 
@@ -131,10 +135,7 @@ export function SiteHeader({
     }, [router, navItems]);
 
     const handleLanguageChange = (nextLang: SupportedLang) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("lang", nextLang);
-        const nextQuery = params.toString();
-        router.push(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+        setLanguage(nextLang);
     };
 
     return (
