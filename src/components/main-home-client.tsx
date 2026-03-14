@@ -206,7 +206,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
                                     className="group relative min-w-[85%] sm:min-w-0 snap-center"
                                 >
                                     <Link href={`${cat.href}?lang=${lang}`} className="block h-full">
-                                        <div className="relative h-full overflow-hidden rounded-4xl border border-white/10 bg-black/40 backdrop-blur-xl transition-all duration-500 group-hover:border-white/20 group-hover:translate-y-[-8px] group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] flex flex-col">
+                                        <div className="relative h-full overflow-hidden rounded-4xl border border-white/10 bg-black/40 transition-all duration-500 group-hover:border-white/20 group-hover:translate-y-[-8px] group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] flex flex-col">
                                             
                                             {/* Image Area */}
                                             <div className="relative aspect-4/5 overflow-hidden">
@@ -217,12 +217,7 @@ export default function MainHomeClient({ lang }: MainHomeClientProps) {
                                                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                                                     sizes="(max-width: 768px) 100vw, 33vw"
                                                 />
-                                                <div className={`absolute inset-0 bg-linear-to-b ${cat.color} to-black/80`} />
-                                                
-                                                {/* Icon Overlay */}
-                                                <div className="absolute top-6 left-6 w-12 h-12 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center">
-                                                    <cat.icon className={`w-6 h-6 ${cat.accent}`} />
-                                                </div>
+                                                <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/80" />
                                             </div>
 
                                             {/* Content Area */}
