@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
-import { getNavigationLabels, type SupportedLang } from "@/lib/site-content";
+import { getNavigationLabels, resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
 
 type SiteSection = "home" | "aesthetic" | "color" | "face-shape" | null;
 
@@ -91,7 +91,7 @@ function getMobileLinkClass(section: Exclude<SiteSection, null>, activeSection: 
 }
 
 export function SiteHeader({
-    lang,
+    lang: propLang,
     position = "sticky",
     surfaceClassName = "bg-black/10 backdrop-blur-md",
     className = "",
@@ -99,6 +99,7 @@ export function SiteHeader({
     const router = useRouter();
     const pathname = usePathname() ?? "/";
     const searchParams = useSearchParams();
+    const lang = resolveSupportedLang(searchParams.get("lang") || propLang);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const labels = getNavigationLabels(lang);
 

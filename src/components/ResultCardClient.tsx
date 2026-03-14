@@ -6,6 +6,9 @@ import { Download, Check, Link2, RotateCcw, Share2, Home } from 'lucide-react';
 import type { SupportedLang } from "@/lib/site-content";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { AESTHETICS, type AestheticId } from '@/lib/data';
+import { resolveSupportedLang } from '@/lib/site-content';
 
 interface ResultCardClientProps {
     resultId: string;
@@ -21,15 +24,26 @@ interface ResultCardClientProps {
 
 export function ResultCardClient({
     resultId,
-    title,
-    archetype,
-    description,
+    title: propTitle,
+    archetype: propArchetype,
+    description: propDescription,
     image,
-    keywords,
+    keywords: propKeywords,
     colorPalette,
-    isKo,
-    lang,
+    isKo: propIsKo,
+    lang: propLang,
 }: ResultCardClientProps) {
+    const searchParams = useSearchParams();
+    const lang = resolveSupportedLang(searchParams.get("lang") || propLang);
+    const isKo = lang === 'ko';
+
+    const aestheticData = AESTHETICS[resultId as AestheticId];
+    
+    // Prefer lookup for reactivity in static builds, props as fallback
+    const title = propTitle;
+    const archetype = aestheticData ? ({ ko: aestheticData.archetype_ko, zh: aestheticData.archetype_zh, ja: aestheticData.archetype_ja, en: aestheticData.archetype }[lang] || aestheticData.archetype) : propArchetype;
+    const description = aestheticData ? ({ ko: aestheticData.description_ko, zh: aestheticData.description_zh, ja: aestheticData.description_ja, en: aestheticData.description }[lang] || aestheticData.description) : propDescription;
+    const keywords = aestheticData ? ({ ko: aestheticData.keywords_ko, zh: aestheticData.keywords_zh, ja: aestheticData.keywords_ja, en: aestheticData.keywords }[lang] || aestheticData.keywords) : propKeywords;
     const cardRef = useRef<HTMLDivElement>(null);
     const [showToast, setShowToast] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);

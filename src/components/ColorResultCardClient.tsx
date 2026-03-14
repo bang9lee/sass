@@ -6,6 +6,9 @@ import { Check, Download, Link2, RotateCcw, Share2, Home } from 'lucide-react';
 import type { SupportedLang } from "@/lib/site-content";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { resolveSupportedLang } from '@/lib/site-content';
+import { AESTHETICS, type AestheticId } from '@/lib/data';
 
 interface ColorResultCardClientProps {
     resultId: string;
@@ -21,15 +24,24 @@ interface ColorResultCardClientProps {
 
 export function ColorResultCardClient({
     resultId,
-    title,
-    description,
+    title: propTitle,
+    description: propDescription,
     image,
-    keywords,
+    keywords: propKeywords,
     bestColors,
     worstColors,
-    isKo,
-    lang,
+    isKo: propIsKo,
+    lang: propLang,
 }: ColorResultCardClientProps) {
+    const searchParams = useSearchParams();
+    const lang = resolveSupportedLang(searchParams.get("lang") || propLang);
+    const isKo = lang === 'ko';
+
+    const aestheticData = AESTHETICS[resultId as AestheticId];
+    
+    const title = aestheticData ? ({ ko: aestheticData.title_ko, zh: aestheticData.title_zh, ja: aestheticData.title_ja, en: aestheticData.title }[lang] || aestheticData.title) : propTitle;
+    const description = aestheticData ? ({ ko: aestheticData.description_ko, zh: aestheticData.description_zh, ja: aestheticData.description_ja, en: aestheticData.description }[lang] || aestheticData.description) : propDescription;
+    const keywords = aestheticData ? ({ ko: aestheticData.keywords_ko, zh: aestheticData.keywords_zh, ja: aestheticData.keywords_ja, en: aestheticData.keywords }[lang] || aestheticData.keywords) : propKeywords;
     const cardRef = useRef<HTMLDivElement>(null);
     const [showToast, setShowToast] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);

@@ -7,6 +7,8 @@ import { AuroraBackground } from "@/components/ui/aurora-background";
 import { Footer } from "./footer";
 import { SiteHeader } from "@/components/site-header";
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
+import { resolveSupportedLang } from "@/lib/site-content";
 
 type Language = "ko" | "en" | "zh" | "ja";
 
@@ -14,7 +16,9 @@ interface HomeClientProps {
     lang: Language;
 }
 
-export default function HomeClient({ lang }: HomeClientProps) {
+export default function HomeClient({ lang: propLang }: HomeClientProps) {
+    const searchParams = useSearchParams();
+    const lang = resolveSupportedLang(searchParams.get("lang") || propLang);
     const isKorean = lang === "ko";
 
     const t = {

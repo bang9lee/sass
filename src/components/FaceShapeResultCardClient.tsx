@@ -25,6 +25,8 @@ import {
 } from "@/lib/face-shape-style-content";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import type { SupportedLang } from "@/lib/site-content";
+import { resolveSupportedLang } from "@/lib/site-content";
+import { useSearchParams } from "next/navigation";
 import type {
     FacePoint,
     FaceShapeAnalysisResult,
@@ -122,7 +124,10 @@ interface Props {
     isKo: boolean;
 }
 
-export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
+export function FaceShapeResultCardClient({ result, lang: propLang, isKo: propIsKo }: Props) {
+    const searchParams = useSearchParams();
+    const lang = resolveSupportedLang(searchParams.get("lang") || propLang);
+    const isKo = lang === 'ko';
     const cardRef = useRef<HTMLDivElement>(null);
     const cardShellRef = useRef<HTMLDivElement>(null);
     const imagePanelRef = useRef<HTMLDivElement>(null);
