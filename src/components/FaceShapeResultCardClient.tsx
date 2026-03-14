@@ -435,17 +435,47 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
         if (!cardRef.current) return;
         setDownloading(true);
 
-        // Small delay to ensure the UI has updated to capture mode (2-column layout)
-        await new Promise((resolve) => setTimeout(resolve, 150));
+        // 1. Prepare for capture: Create an image object to wait for decoding
+        // This ensures the photo is actually ready in memory for WebKit/iOS
+        const ensureImageLoaded = async () => {
+            const imgElements = cardRef.current?.querySelectorAll('img');
+            if (imgElements) {
+                const promises = Array.from(imgElements).map(async (img) => {
+                    if (img.complete) return;
+                    try {
+                        await img.decode();
+                    } catch (e) {
+                        console.warn("Image decode failed", e);
+                    }
+                });
+                await Promise.all(promises);
+            }
+        };
+
+        await ensureImageLoaded();
+        
+        // 2. Extra delay to ensure UI reflow is complete for the 1200px capture mode
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
         try {
             const htmlToImage = await import("html-to-image");
+
+            // 3. WARM-UP CAPTURE (Crucial for iOS/WebKit)
+            // We run a dummy capture once to "wake up" the rendering engine
+            try {
+                await htmlToImage.toPng(cardRef.current, { pixelRatio: 1 });
+            } catch (e) {
+                // Ignore warm-up errors
+            }
+            
+            // 4. Final Capture with short delay after warm-up
+            await new Promise((resolve) => setTimeout(resolve, 300));
             
             const dataUrl = await htmlToImage.toPng(cardRef.current, {
                 backgroundColor: "#03060b",
                 cacheBust: true,
                 pixelRatio: 2,
-                width: 1200, // Force a consistent width for the professional card look
+                width: 1200, 
             });
 
             const link = document.createElement("a");
@@ -697,13 +727,13 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                         <p className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60 drop-shadow-md">
                                             {t.headerTitle}
                                         </p>
-                                        <h1 className="text-3xl font-black leading-none tracking-tight text-transparent drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] sm:text-4xl bg-clip-text bg-linear-to-b from-white to-white/70">
+                                        <h1 className="text-3xl font-black leading-none tracking-tight text-transparent drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] sm:text-4xl bg-clip-text bg-linear-to-b from-white to-white/70 break-keep">
                                             {shapeCopy.name}
                                         </h1>
                                         {keywords.length > 0 && (
-                                            <div className="flex flex-wrap gap-1.5 pt-2">
+                                            <div className="flex flex-wrap items-center gap-1.5 pt-2 max-w-full">
                                                 {keywords.map((keyword) => (
-                                                    <span key={keyword} className="px-2.5 py-1 rounded-full text-[10px] font-medium border backdrop-blur-md bg-zinc-900/60 border-white/20 text-white tracking-wide shadow-sm">
+                                                    <span key={keyword} className="px-2.5 py-1 rounded-full text-[10px] font-medium border backdrop-blur-md bg-zinc-900/60 border-white/20 text-white tracking-wide shadow-sm whitespace-nowrap">
                                                         #{keyword}
                                                     </span>
                                                 ))}
@@ -724,13 +754,13 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400/60 mb-2">
                                     {t.resultLabel}
                                 </p>
-                                <h1 className="text-[32px] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/50">
+                                <h1 className="text-[32px] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/50 break-keep">
                                     {shapeCopy.name}
                                 </h1>
                                 {keywords.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-4">
+                                    <div className="flex flex-wrap items-center gap-2 mt-4 max-w-full">
                                         {keywords.map((keyword) => (
-                                            <span key={keyword} className="px-3 py-1.5 rounded-full text-[10px] font-bold border bg-white/10 border-white/15 text-white tracking-wide shadow-xs">
+                                            <span key={keyword} className="px-3 py-1.5 rounded-full text-[10px] font-bold border bg-white/10 border-white/15 text-white tracking-wide shadow-xs whitespace-nowrap">
                                                 #{keyword}
                                             </span>
                                         ))}
@@ -768,7 +798,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                                 <div className="w-0.5 h-3.5 rounded-full bg-blue-400" />
                                 <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-400/90">{t.analysisSummary}</h3>
                             </div>
-                            <p className={`text-[13px] ${downloading ? "text-[13.5px]" : "lg:text-[13.5px]"} text-white/85 leading-[1.8] tracking-wide pl-3`}>
+                            <p className={`text-[13px] ${downloading ? "text-[13.5px]" : "lg:text-[13.5px]"} text-white/85 leading-[1.8] tracking-wide pl-3 break-keep`}>
                                 {executiveSummary}
                             </p>
                         </div>
