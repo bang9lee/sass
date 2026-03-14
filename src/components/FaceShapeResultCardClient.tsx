@@ -124,6 +124,8 @@ interface Props {
 
 export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
     const cardRef = useRef<HTMLDivElement>(null);
+    const cardShellRef = useRef<HTMLDivElement>(null);
+    const imagePanelRef = useRef<HTMLDivElement>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [downloading, setDownloading] = useState(false);
@@ -441,6 +443,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
         setDownloading(true);
 
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const restoreStyles: Array<() => void> = [];
 
         // 1. Thoroughly ensure all images are ready for the canvas
         const ensureImagesReady = async () => {
@@ -459,6 +462,119 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             await Promise.all(promises);
         };
 
+        const waitForImage = (img: HTMLImageElement, timeoutMs = 12000) =>
+            new Promise<void>((resolve, reject) => {
+                if (img.complete && img.naturalWidth > 0) {
+                    resolve();
+                    return;
+                }
+                let done = false;
+                const timer = window.setTimeout(() => {
+                    if (done) return;
+                    done = true;
+                    reject(new Error("Image load timeout"));
+                }, timeoutMs);
+                img.onload = () => {
+                    if (done) return;
+                    done = true;
+                    window.clearTimeout(timer);
+                    resolve();
+                };
+                img.onerror = () => {
+                    if (done) return;
+                    done = true;
+                    window.clearTimeout(timer);
+                    reject(new Error("Image load error"));
+                };
+            });
+
+        const drawFaceImage = async (
+            ctx: CanvasRenderingContext2D,
+            imgNode: HTMLImageElement | null,
+            src: string,
+            x: number,
+            y: number,
+            w: number,
+            h: number
+        ) => {
+            if (imgNode && imgNode.complete && imgNode.naturalWidth > 0) {
+                ctx.drawImage(imgNode, x, y, w, h);
+                return true;
+            }
+
+            if (typeof createImageBitmap === "function") {
+                try {
+                    const response = await fetch(src);
+                    const blob = await response.blob();
+                    const bitmap = await createImageBitmap(blob);
+                    ctx.drawImage(bitmap, x, y, w, h);
+                    if ("close" in bitmap) bitmap.close();
+                    return true;
+                } catch {
+                    // Fall through to HTMLImageElement loading.
+                }
+            }
+
+            try {
+                const faceImg = new Image();
+                faceImg.crossOrigin = "anonymous";
+                faceImg.src = src;
+                if ("decode" in faceImg) {
+                    try {
+                        await faceImg.decode();
+                    } catch {
+                        await waitForImage(faceImg);
+                    }
+                } else {
+                    await waitForImage(faceImg);
+                }
+                if (faceImg.naturalWidth > 0) {
+                    ctx.drawImage(faceImg, x, y, w, h);
+                    return true;
+                }
+            } catch {
+                return false;
+            }
+
+            return false;
+        };
+
+        const clipRoundedRect = (
+            ctx: CanvasRenderingContext2D,
+            x: number,
+            y: number,
+            w: number,
+            h: number,
+            r: number
+        ) => {
+            const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+            if (radius === 0) return;
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + w, y, x + w, y + h, radius);
+            ctx.arcTo(x + w, y + h, x, y + h, radius);
+            ctx.arcTo(x, y + h, x, y, radius);
+            ctx.arcTo(x, y, x + w, y, radius);
+            ctx.closePath();
+            ctx.clip();
+        };
+
+        const setTempStyle = (el: HTMLElement | null, styles: Partial<CSSStyleDeclaration>) => {
+            if (!el) return;
+            const prev: any = {};
+            const elStyle = el.style as any;
+            const styleChanges = styles as any;
+            Object.keys(styles).forEach((key) => {
+                prev[key] = elStyle[key];
+                elStyle[key] = styleChanges[key];
+            });
+            restoreStyles.push(() => {
+                Object.keys(prev).forEach((key) => {
+                    elStyle[key] = prev[key];
+                });
+            });
+        };
+
         try {
             // 2. Extra long wait for Safari's layout engine (1200px shift)
             await new Promise((resolve) => setTimeout(resolve, isIOS ? 1200 : 800));
@@ -474,8 +590,23 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 style: {
                     transform: 'scale(1)',
                     transformOrigin: 'top left'
-                }
+                },
+                filter: isIOS
+                    ? (node: Node) => {
+                        if (node instanceof HTMLImageElement && node.alt === "Analyzed Face") {
+                            return false;
+                        }
+                        return true;
+                    }
+                    : undefined
             };
+
+            const imgNode = cardRef.current.querySelector('img[alt="Analyzed Face"]') as HTMLImageElement | null;
+
+            if (isIOS) {
+                setTempStyle(cardShellRef.current, { backgroundColor: "transparent", backgroundImage: "none" });
+                setTempStyle(imagePanelRef.current, { backgroundColor: "transparent", backgroundImage: "none" });
+            }
 
             // Capture the UI (with or without photo)
             const capturedCanvas = await htmlToImage.toCanvas(cardRef.current, captureOptions);
@@ -491,7 +622,6 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 const ctx = compositeCanvas.getContext('2d');
 
                 if (ctx) {
-                    const imgNode = cardRef.current.querySelector('img[alt="Analyzed Face"]') as HTMLImageElement;
                     if (imgNode) {
                         const imgRect = imgNode.getBoundingClientRect();
                         const cardRect = cardRef.current.getBoundingClientRect();
@@ -508,18 +638,29 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                         ctx.fillStyle = "#03060b";
                         ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
 
-                        // 2. Draw Original Photo (Direct from DataURL - Bypasses Browser Cloning)
-                        const faceImg = new Image();
-                        faceImg.crossOrigin = "anonymous";
-                        faceImg.src = result.imageDataUrl;
-                        
-                        await new Promise((resolve, reject) => {
-                            faceImg.onload = resolve;
-                            faceImg.onerror = reject;
-                            setTimeout(resolve, 3000); // 3s timeout
-                        });
+                        let cornerRadius = 0;
+                        if (imagePanelRef.current) {
+                            const radiusValue = window.getComputedStyle(imagePanelRef.current).borderRadius;
+                            const parsedRadius = parseFloat(radiusValue);
+                            if (!Number.isNaN(parsedRadius)) {
+                                cornerRadius = parsedRadius * scaleX;
+                            }
+                        }
 
-                        ctx.drawImage(faceImg, x, y, w, h);
+                        if (cornerRadius > 0) {
+                            ctx.save();
+                            clipRoundedRect(ctx, x, y, w, h, cornerRadius);
+                        }
+
+                        // 2. Draw Original Photo (decoded manually to avoid iOS WebKit capture failures)
+                        const drewPhoto = await drawFaceImage(ctx, imgNode, result.imageDataUrl, x, y, w, h);
+                        if (!drewPhoto) {
+                            throw new Error("Face photo failed to decode");
+                        }
+
+                        if (cornerRadius > 0) {
+                            ctx.restore();
+                        }
 
                         // 3. Draw Captured UI Overlay (the lines, text, and metrics)
                         ctx.drawImage(capturedCanvas, 0, 0);
@@ -542,6 +683,7 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
             console.error("Capture failed", error);
             alert(t.failedSave);
         } finally {
+            restoreStyles.forEach((restore) => restore());
             setDownloading(false);
         }
     };
@@ -614,10 +756,14 @@ export function FaceShapeResultCardClient({ result, lang, isKo }: Props) {
                 className={`w-full flex flex-col gap-4 overflow-hidden ${downloading ? "p-10" : ""}`}
             >
                 <div
+                    ref={cardShellRef}
                     className={`relative w-full flex flex-col ${downloading ? "grid grid-cols-[1fr_1.1fr] gap-10" : "lg:grid lg:grid-cols-[1fr_1fr] lg:gap-10"} bg-[#050505] lg:bg-transparent text-white rounded-[32px] sm:rounded-4xl lg:rounded-none overflow-hidden lg:overflow-visible`}
                 >
                     {/* ═══ LEFT: Image Panel ═══ */}
-                    <div className={`w-full shrink-0 bg-black relative ${downloading ? "rounded-[24px] overflow-hidden" : "lg:rounded-[24px] lg:overflow-hidden lg:shadow-[0_8px_60px_-12px_rgba(0,0,0,0.8)]"}`}>
+                    <div
+                        ref={imagePanelRef}
+                        className={`w-full shrink-0 bg-black relative ${downloading ? "rounded-[24px] overflow-hidden" : "lg:rounded-[24px] lg:overflow-hidden lg:shadow-[0_8px_60px_-12px_rgba(0,0,0,0.8)]"}`}
+                    >
                         <div className="relative w-full overflow-hidden">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
