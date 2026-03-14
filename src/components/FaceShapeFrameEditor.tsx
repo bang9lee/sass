@@ -552,29 +552,6 @@ export function FaceShapeFrameEditor({
                     {/* Right Panel: Structured Dashboard Controls */}
                     <aside className="flex flex-col gap-4">
                         
-                        {/* Upper Controls Row */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                onClick={onReloadDraft}
-                                disabled={isLoading || isAnalyzing}
-                                className={`flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/3 px-4 py-4 text-[13px] font-bold transition-all ${
-                                    isLoading || isAnalyzing ? "cursor-not-allowed opacity-40" : "text-white/80 hover:bg-white/10 hover:text-white"
-                                }`}
-                            >
-                                <Wand2 className="h-4 w-4" />
-                                {labels.draft}
-                            </button>
-                            <button
-                                onClick={onRestoreDraft}
-                                disabled={isLoading || isAnalyzing}
-                                className={`flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/3 px-4 py-4 text-[13px] font-bold transition-all ${
-                                    isLoading || isAnalyzing ? "cursor-not-allowed opacity-40" : "text-white/80 hover:bg-white/10 hover:text-white"
-                                }`}
-                            >
-                                <RotateCcw className="h-4 w-4" />
-                                {labels.restore}
-                            </button>
-                        </div>
 
                         <section className="rounded-[28px] border border-white/10 bg-[#070b12] p-5 shadow-xl">
                             <div className="mb-4">
@@ -663,27 +640,55 @@ export function FaceShapeFrameEditor({
                             </section>
                         )}
 
-                        <div className="mt-auto grid grid-cols-[auto_1fr] gap-3">
-                            <button
-                                onClick={onReset}
-                                disabled={isLoading || isAnalyzing || isPreviewing}
-                                className={`flex items-center justify-center rounded-2xl border border-white/10 bg-transparent px-6 py-4 text-[13px] font-bold transition-colors hover:bg-white/5 ${
-                                    (isLoading || isAnalyzing || isPreviewing) ? "cursor-not-allowed opacity-40" : "text-white/70 hover:text-white"
-                                }`}
-                            >
-                                {labels.changePhoto}
-                            </button>
+                        {/* Action Control Group */}
+                        <div className="mt-auto flex flex-col gap-3">
+                            {/* Secondary Actions (Draft Controls) */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={onReloadDraft}
+                                    disabled={isLoading || isAnalyzing}
+                                    className={`flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/3 px-4 py-4 text-[13px] font-bold transition-all ${
+                                        isLoading || isAnalyzing ? "cursor-not-allowed opacity-40" : "text-white/80 hover:bg-white/10 hover:text-white"
+                                    }`}
+                                >
+                                    <Wand2 className="h-4 w-4" />
+                                    {labels.draft}
+                                </button>
+                                <button
+                                    onClick={onRestoreDraft}
+                                    disabled={isLoading || isAnalyzing}
+                                    className={`flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/3 px-4 py-4 text-[13px] font-bold transition-all ${
+                                        isLoading || isAnalyzing ? "cursor-not-allowed opacity-40" : "text-white/80 hover:bg-white/10 hover:text-white"
+                                    }`}
+                                >
+                                    <RotateCcw className="h-4 w-4" />
+                                    {labels.restore}
+                                </button>
+                            </div>
 
-                            <button
-                                onClick={onAnalyze}
-                                disabled={analyzeDisabled}
-                                className={`flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(90deg,#4e80ff,#2d5cf9)] px-6 py-4 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(78,128,255,0.25)] transition-transform ${
-                                    analyzeDisabled ? "cursor-not-allowed opacity-50 shadow-none" : "hover:scale-[1.02] active:scale-[0.98]"
-                                }`}
-                            >
-                                {isAnalyzing || isPreviewing ? <Sparkles className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                                {labels.analyze}
-                            </button>
+                            {/* Primary Actions (Final Controls) */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={onReset}
+                                    disabled={isLoading || isAnalyzing || isPreviewing}
+                                    className={`flex items-center justify-center rounded-2xl border border-white/10 bg-transparent px-6 py-4 text-[13px] font-bold transition-colors hover:bg-white/5 ${
+                                        (isLoading || isAnalyzing || isPreviewing) ? "cursor-not-allowed opacity-40" : "text-white/70 hover:text-white"
+                                    }`}
+                                >
+                                    {labels.changePhoto}
+                                </button>
+
+                                <button
+                                    onClick={onAnalyze}
+                                    disabled={analyzeDisabled}
+                                    className={`flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(90deg,#4e80ff,#2d5cf9)] px-6 py-4 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(78,128,255,0.25)] transition-transform ${
+                                        analyzeDisabled ? "cursor-not-allowed opacity-50 shadow-none" : "hover:scale-[1.02] active:scale-[0.98]"
+                                    }`}
+                                >
+                                    {isAnalyzing || isPreviewing ? <Sparkles className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
+                                    {labels.analyze}
+                                </button>
+                            </div>
                         </div>
                     </aside>
 
