@@ -38,6 +38,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const description = descMap[currentLang] || descMap.en;
 
     const baseUrl = 'https://findcore.me';
+    const ogImageUrl = result.image.startsWith('http')
+        ? result.image
+        : `${baseUrl}${result.image.startsWith('/') ? '' : '/'}${result.image}`;
     const currentPath = `/color/result/${id}`;
 
     return {
@@ -52,6 +55,23 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
                 'zh': `${baseUrl}${currentPath}?lang=zh`,
                 'ja': `${baseUrl}${currentPath}?lang=ja`,
             },
+        },
+        openGraph: {
+            title,
+            description,
+            images: [
+                {
+                    url: ogImageUrl,
+                    width: 800,
+                    height: 1000,
+                },
+            ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: [ogImageUrl],
         },
     };
 }

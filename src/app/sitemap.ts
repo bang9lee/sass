@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { AESTHETICS } from '@/lib/data';
+import { COLOR_RESULTS } from '@/lib/color-data';
 
 const BASE_URL = 'https://findcore.me';
 const LANGUAGES = ['ko', 'en', 'zh', 'ja'];
@@ -57,6 +58,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
             alternates: {
                 languages: Object.fromEntries(
                     LANGUAGES.map((lang) => [lang, `${BASE_URL}/result/${id}?lang=${lang}`])
+                ),
+            },
+        });
+    });
+
+    // 3. Personal Color Result Pages (Dynamic)
+    Object.keys(COLOR_RESULTS).forEach((id) => {
+        routes.push({
+            url: `${BASE_URL}/color/result/${id}`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+            alternates: {
+                languages: Object.fromEntries(
+                    LANGUAGES.map((lang) => [lang, `${BASE_URL}/color/result/${id}?lang=${lang}`])
                 ),
             },
         });

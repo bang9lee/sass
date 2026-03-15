@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ChevronLeft } from "lucide-react";
 import { QUESTIONS, calculateResult } from "@/lib/data";
 import { Footer } from "@/components/footer";
 import { SiteHeader } from "@/components/site-header";
 import { AuroraBackground } from "@/components/ui/aurora-background";
-import { resolveSupportedLang } from "@/lib/site-content";
+import { useLanguage } from "@/components/language-provider";
 
 const createDeterministicShuffleSeed = (seed: string): number => {
     let hash = 2166136261;
@@ -38,8 +38,7 @@ const shuffleOptions = <T,>(options: T[], seed: string): T[] => {
 
 function TestContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const lang = resolveSupportedLang(searchParams.get("lang") || "en");
+    const { lang } = useLanguage();
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<string[]>([]);

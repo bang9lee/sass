@@ -1,52 +1,66 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from "next/server";
 
-const SUPPORTED_LOCALES = ['ko', 'en', 'zh', 'ja'] as const;
-const supportedLocales = new Set<string>(SUPPORTED_LOCALES);
-const DEFAULT_LOCALE = 'en';
+const SUPPORTED_LANGS = ["ko", "en", "zh", "ja"] as const;
+type SupportedLang = (typeof SUPPORTED_LANGS)[number];
+const DEFAULT_LANG: SupportedLang = "en";
+const SUPPORTED_LANG_SET = new Set<string>(SUPPORTED_LANGS);
+
+function normalizeLang(value: string | null | undefined): SupportedLang | null {
+  if (!value) return null;
+  const base = value.toLowerCase().split("-")[0];
+  return SUPPORTED_LANG_SET.has(base) ? (base as SupportedLang) : null;
+}
+
+function detectLangFromHeader(acceptLanguage: string | null): SupportedLang | null {
+  if (!acceptLanguage) return null;
+  const tokens = acceptLanguage
+    .split(",")
+    .map((part) => part.trim().split(";")[0])
+    .filter(Boolean);
+
+  for (const token of tokens) {
+    const normalized = normalizeLang(token);
+    if (normalized) return normalized;
+  }
+  return null;
+}
+
+function setLangCookie(response: NextResponse, lang: SupportedLang) {
+  response.cookies.set("lang", lang, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+  return response;
+}
 
 export default function proxy(request: NextRequest) {
-    const { pathname, searchParams } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
 
-    // 1. Skip if already has lang param or is a static asset/API
-    if (
-        searchParams.has('lang') ||
-        pathname.startsWith('/_next') ||
-        pathname.includes('.') || // images, files
-        pathname.startsWith('/api')
-    ) {
-        return NextResponse.next();
-    }
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
 
-    // 2. Detect Language from Headers
-    const acceptLanguage = request.headers.get('accept-language') || '';
-    let detectedLang = DEFAULT_LOCALE;
+  const queryLang = normalizeLang(searchParams.get("lang"));
+  if (queryLang) {
+    return setLangCookie(NextResponse.next(), queryLang);
+  }
 
-    // Simple priority check
-    if (acceptLanguage.includes('ko')) detectedLang = 'ko';
-    else if (acceptLanguage.includes('zh')) detectedLang = 'zh';
-    else if (acceptLanguage.includes('ja')) detectedLang = 'ja';
-    if (!supportedLocales.has(detectedLang)) {
-        detectedLang = DEFAULT_LOCALE;
-    }
-    // English is default
+  const cookieLang = normalizeLang(request.cookies.get("lang")?.value);
+  const headerLang = detectLangFromHeader(request.headers.get("accept-language"));
+  const detectedLang = cookieLang ?? headerLang ?? DEFAULT_LANG;
 
-    // 3. Redirect with lang parameter
-    const url = request.nextUrl.clone();
-    url.searchParams.set('lang', detectedLang);
-
-    return NextResponse.redirect(url);
+  const url = request.nextUrl.clone();
+  url.searchParams.set("lang", detectedLang);
+  return setLangCookie(NextResponse.redirect(url), detectedLang);
 }
 
 export const config = {
-    matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - api (API routes)
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
-    ],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+  ],
 };

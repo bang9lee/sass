@@ -23,6 +23,7 @@ import {
 } from "@/lib/face-shape-analysis-official";
 import { motion } from "framer-motion";
 import { FaceShapeFrameEditor } from "@/components/FaceShapeFrameEditor";
+import { useLanguage } from "@/components/language-provider";
 
 // =============================================
 // Color swatches per season
@@ -60,7 +61,7 @@ const SEASON_SWATCHES: Record<SeasonId, string[]> = {
 type Lang = 'ko' | 'en' | 'zh' | 'ja';
 const UI_TEXT: Record<Lang, Record<string, string>> = {
     ko: {
-        title: "퍼스널 컬러 테스트",
+        title: "퍼스널 컬러",
         subtitle: "셀카를 업로드하고 나에게 맞는\n퍼스널 컬러를 찾아보세요.",
         upload: "사진 업로드",
         uploadHint: "JPG, PNG — 자연광 권장",
@@ -95,7 +96,7 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeSyncSuccess: "동기화 완료",
     },
     en: {
-        title: "Personal Color Test",
+        title: "Personal Color",
         subtitle: "Upload a selfie and discover\nyour personal color.",
         upload: "Upload Photo",
         uploadHint: "JPG, PNG — Natural lighting recommended",
@@ -165,7 +166,7 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeSyncSuccess: "同步完成",
     },
     ja: {
-        title: "パーソナルカラーテスト",
+        title: "パーソナルカラー",
         subtitle: "セルフィーをアップロードして\nパーソナルカラーを見つけましょう。",
         upload: "写真をアップロード",
         uploadHint: "JPG, PNG — 自然光推奨",
@@ -206,11 +207,11 @@ type Step = 'upload' | 'crop' | 'shape-adjust' | 'compare' | 'analyzing';
 function ColorTestContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const lang = (['ko', 'en', 'zh', 'ja'].includes(searchParams.get('lang') || '') ? searchParams.get('lang') : 'en') as Lang;
+    const { lang } = useLanguage();
     const mode = searchParams.get('mode') || 'color';
     const isKorean = lang === 'ko';
     const isEnglish = lang === 'en';
-    const t = UI_TEXT[lang];
+    const t = UI_TEXT[lang as Lang];
 
     const pageTitle =
         mode === 'shape'
@@ -221,8 +222,8 @@ function ColorTestContent() {
                 ja: 'AI 顔型分析アップロード | FINDCORE',
             }[lang]
             : {
-                ko: '퍼스널 컬러 테스트 | FINDCORE',
-                en: 'Personal Color Test | FINDCORE',
+                ko: '퍼스널 컬러 | FINDCORE',
+                en: 'Personal Color | FINDCORE',
                 zh: '个人色彩测试 | FINDCORE',
                 ja: 'パーソナルカラーテスト | FINDCORE',
             }[lang];

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import FaceShapeHomeClient from "@/components/face-shape-home-client";
-import { resolveSupportedLang } from "@/lib/site-content";
+import { buildPageMetadata, resolveSupportedLang } from "@/lib/site-content";
 
 interface Props {
     searchParams: Promise<{ lang?: string }>;
@@ -29,9 +29,19 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
         },
     }[currentLang];
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://findcore.me";
+    const base = buildPageMetadata(currentLang, content, "/face-shape");
+
     return {
-        title: content.title,
-        description: content.description,
+        ...base,
+        openGraph: {
+            ...base.openGraph,
+            images: [`${baseUrl}/images/face_shape_hero_v7.png`],
+        },
+        twitter: {
+            ...base.twitter,
+            images: [`${baseUrl}/images/face_shape_hero_v7.png`],
+        },
     };
 }
 

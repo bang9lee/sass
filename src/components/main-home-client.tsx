@@ -7,8 +7,6 @@ import { AuroraBackground } from "@/components/ui/aurora-background";
 import { Footer } from "./footer";
 import { SiteHeader } from "@/components/site-header";
 import { motion } from "framer-motion";
-import { useSearchParams } from "next/navigation";
-import { resolveSupportedLang } from "@/lib/site-content";
 import { useLanguage } from "@/components/language-provider";
 
 type Language = "ko" | "en" | "zh" | "ja";
@@ -17,11 +15,11 @@ interface MainHomeClientProps {
     lang: Language;
 }
 
-export default function MainHomeClient({ lang: propLang }: MainHomeClientProps) {
+export default function MainHomeClient({}: MainHomeClientProps) {
     const { lang } = useLanguage();
     const isKorean = lang === "ko";
 
-    const t: any = {
+    const contentByLang = {
         ko: {
             title: "FINDCORE",
             heroTagline: "FINDCORE",
@@ -174,7 +172,9 @@ export default function MainHomeClient({ lang: propLang }: MainHomeClientProps) 
             ],
             explore: "はじめる",
         },
-    }[lang];
+    };
+    
+    const t = contentByLang[lang];
 
     return (
         <AuroraBackground className="justify-start">
@@ -200,7 +200,7 @@ export default function MainHomeClient({ lang: propLang }: MainHomeClientProps) 
                     {/* Services View - Horizontal Snap on Mobile, Grid on Desktop */}
                     <div className="w-full max-w-7xl mx-auto overflow-visible relative">
                         <div className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory px-6 sm:px-0 no-scrollbar pb-8 sm:pb-0">
-                            {t.categories.map((cat: any, idx: number) => (
+                            {t.categories.map((cat: { id: string; href: string; image: string; title: string; desc: string }, idx: number) => (
                                 <motion.div
                                     key={cat.id}
                                     initial={{ opacity: 0, y: 30 }}

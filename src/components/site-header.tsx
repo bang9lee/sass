@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
-import { getNavigationLabels, resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
+import { getNavigationLabels, type SupportedLang } from "@/lib/site-content";
 import { useLanguage } from "@/components/language-provider";
 
 type SiteSection = "home" | "aesthetic" | "color" | "face-shape" | null;
@@ -92,7 +92,6 @@ function getMobileLinkClass(section: Exclude<SiteSection, null>, activeSection: 
 }
 
 export function SiteHeader({
-    lang: propLang,
     position = "sticky",
     surfaceClassName = "bg-black/10 backdrop-blur-md",
     className = "",

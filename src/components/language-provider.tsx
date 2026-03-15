@@ -30,9 +30,8 @@ export function LanguageProvider({
     // Sync with URL changes (e.g. browser back/forward)
     useEffect(() => {
         const urlLang = resolveSupportedLang(searchParams.get("lang") || "");
-        if (urlLang !== lang) {
-            setLang(urlLang);
-        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- sync URL-driven language changes (back/forward)
+        setLang((prev) => (prev === urlLang ? prev : urlLang));
     }, [searchParams]);
 
     const setLanguage = (nextLang: SupportedLang) => {

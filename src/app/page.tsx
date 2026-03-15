@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import MainHomeClient from '@/components/main-home-client';
-import { resolveSupportedLang } from '@/lib/site-content';
+import { buildPageMetadata, resolveSupportedLang } from '@/lib/site-content';
 
 type Props = {
   searchParams: Promise<{ lang?: string }>;
@@ -25,16 +25,16 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     },
     ja: {
       title: 'FINDCORE | AI 感性＆スタイル分析プラットフォーム',
-      description: 'AIが提案するあなただけの独創的な感성、顔型、パーソナルカラー 분석を体験してください。',
+      description: 'AIが提案する、あなただけの感性・顔型・パーソナルカラー分析を体験してください。',
     }
   };
 
   const meta = metadataMap[currentLang] || metadataMap.en;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://findcore.me';
+  const base = buildPageMetadata(currentLang, meta, "/");
 
   return {
-    title: meta.title,
-    description: meta.description,
+    ...base,
     keywords: [
       "FINDCORE", "Aesthetic Test", "Face Shape Analysis", "Personal Color", "AI Style",
       "에스테틱 테스트", "얼굴형 분석", "퍼스널 컬러", "AI 분석", "감성 분석"
@@ -44,10 +44,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       follow: true,
     },
     openGraph: {
-      title: meta.title,
-      description: meta.description,
-      url: `${baseUrl}/?lang=${currentLang}`,
-      siteName: 'FINDCORE',
+      ...base.openGraph,
       images: [
         {
           url: `${baseUrl}/images/hero.webp`,
@@ -56,13 +53,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
           alt: 'FINDCORE',
         },
       ],
-      locale: currentLang,
-      type: 'website',
     },
     twitter: {
-      card: 'summary_large_image',
-      title: meta.title,
-      description: meta.description,
+      ...base.twitter,
       images: [`${baseUrl}/images/hero.webp`],
     },
   };

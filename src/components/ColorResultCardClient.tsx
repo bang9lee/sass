@@ -6,8 +6,6 @@ import { Check, Download, Link2, RotateCcw, Share2, Home } from 'lucide-react';
 import type { SupportedLang } from "@/lib/site-content";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { resolveSupportedLang } from '@/lib/site-content';
 import { AESTHETICS, type AestheticId } from '@/lib/data';
 import { useLanguage } from '@/components/language-provider';
 
@@ -31,8 +29,6 @@ export function ColorResultCardClient({
     keywords: propKeywords,
     bestColors,
     worstColors,
-    isKo: propIsKo,
-    lang: propLang,
 }: ColorResultCardClientProps) {
     const { lang } = useLanguage();
     const isKo = lang === 'ko';
@@ -173,18 +169,18 @@ export function ColorResultCardClient({
         setDownloading(true);
         const restoreStyles: (() => void)[] = [];
 
-        const setTempStyle = (el: HTMLElement | null, styles: Partial<CSSStyleDeclaration>) => {
+        const setTempStyle = (el: HTMLElement | null, styles: Partial<Record<string, string>>) => {
             if (!el) return;
-            const prev: any = {};
-            const elStyle = el.style as any;
-            const styleChanges = styles as any;
-            Object.keys(styles).forEach((key) => {
-                prev[key] = elStyle[key];
-                elStyle[key] = styleChanges[key];
+            const prev: Record<string, string> = {};
+            const style = el.style as unknown as Record<string, string>;
+            (Object.entries(styles) as [string, string | undefined][]).forEach(([key, value]) => {
+                const current = style[key];
+                prev[key] = typeof current === "string" ? current : "";
+                style[key] = value ?? "";
             });
             restoreStyles.push(() => {
-                Object.keys(prev).forEach((key) => {
-                    elStyle[key] = prev[key];
+                (Object.entries(prev) as [string, string | undefined][]).forEach(([key, value]) => {
+                    style[key] = value ?? "";
                 });
             });
         };

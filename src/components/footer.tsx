@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { getFooterLabels, resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
-import { useSearchParams } from "next/navigation";
+import { getFooterLabels, type SupportedLang } from "@/lib/site-content";
 import { useLanguage } from "@/components/language-provider";
 
 interface FooterProps {
@@ -11,7 +10,8 @@ interface FooterProps {
 }
 
 export function Footer({ lang: propLang, className = "" }: FooterProps) {
-    const { lang } = useLanguage();
+    const { lang: ctxLang } = useLanguage();
+    const lang = ctxLang ?? propLang;
     const footer = getFooterLabels(lang);
 
     return (

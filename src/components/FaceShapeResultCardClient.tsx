@@ -25,8 +25,6 @@ import {
 } from "@/lib/face-shape-style-content";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import type { SupportedLang } from "@/lib/site-content";
-import { resolveSupportedLang } from "@/lib/site-content";
-import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/language-provider";
 import type {
     FacePoint,
@@ -125,7 +123,7 @@ interface Props {
     isKo: boolean;
 }
 
-export function FaceShapeResultCardClient({ result, lang: propLang, isKo: propIsKo }: Props) {
+export function FaceShapeResultCardClient({ result }: Props) {
     const { lang } = useLanguage();
     const isKo = lang === 'ko';
     const cardRef = useRef<HTMLDivElement>(null);
@@ -462,7 +460,7 @@ export function FaceShapeResultCardClient({ result, lang: propLang, isKo: propIs
                         img.onerror = resolve;
                     });
                 }
-                try { await img.decode(); } catch (e) {}
+                try { await img.decode(); } catch {}
             });
             await Promise.all(promises);
         };
@@ -564,18 +562,18 @@ export function FaceShapeResultCardClient({ result, lang: propLang, isKo: propIs
             ctx.clip();
         };
 
-        const setTempStyle = (el: HTMLElement | null, styles: Partial<CSSStyleDeclaration>) => {
+        const setTempStyle = (el: HTMLElement | null, styles: Partial<Record<string, string>>) => {
             if (!el) return;
-            const prev: any = {};
-            const elStyle = el.style as any;
-            const styleChanges = styles as any;
-            Object.keys(styles).forEach((key) => {
-                prev[key] = elStyle[key];
-                elStyle[key] = styleChanges[key];
+            const prev: Record<string, string> = {};
+            const style = el.style as unknown as Record<string, string>;
+            (Object.entries(styles) as [string, string | undefined][]).forEach(([key, value]) => {
+                const current = style[key];
+                prev[key] = typeof current === "string" ? current : "";
+                style[key] = value ?? "";
             });
             restoreStyles.push(() => {
-                Object.keys(prev).forEach((key) => {
-                    elStyle[key] = prev[key];
+                (Object.entries(prev) as [string, string | undefined][]).forEach(([key, value]) => {
+                    style[key] = value ?? "";
                 });
             });
         };

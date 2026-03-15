@@ -3,6 +3,8 @@ import { Inter, Playfair_Display, Noto_Sans_KR, Cinzel } from "next/font/google"
 import { AppRuntime } from "@/components/app-runtime";
 import { LanguageProvider } from "@/components/language-provider";
 import { Suspense } from "react";
+import { cookies } from "next/headers";
+import { resolveSupportedLang } from "@/lib/site-content";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -36,13 +38,16 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const initialLang = resolveSupportedLang(cookieStore.get("lang")?.value);
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={initialLang} suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} ${notoSansKR.variable} ${cinzel.variable} font-sans antialiased min-h-screen bg-black text-white overflow-x-hidden selection:bg-pink-500/30`}>
         <AppRuntime />
         {/* Cinematic Background - Hidden on mobile to prevent double-rendering and GPU overload */}
@@ -61,7 +66,7 @@ export default function RootLayout({
 
         <main className="relative z-10 min-h-screen flex flex-col">
           <Suspense fallback={<div className="min-h-screen bg-black" />}>
-            <LanguageProvider initialLang="en">
+            <LanguageProvider initialLang={initialLang}>
               {children}
             </LanguageProvider>
           </Suspense>

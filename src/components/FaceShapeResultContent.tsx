@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FaceShapeResultCardClient } from "./FaceShapeResultCardClient";
 import {
@@ -11,11 +10,11 @@ import {
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { SiteHeader } from "@/components/site-header";
 import { Footer } from "./footer";
-import { resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
+import type { SupportedLang } from "@/lib/site-content";
+import { useLanguage } from "@/components/language-provider";
 
 function InnerContent() {
-    const searchParams = useSearchParams();
-    const lang = resolveSupportedLang(searchParams.get("lang") || "en");
+    const { lang } = useLanguage();
     const isKorean = lang === "ko";
 
     const [result, setResult] = useState<FaceShapeAnalysisResult | null>(null);

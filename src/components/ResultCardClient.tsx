@@ -6,9 +6,7 @@ import { Download, Check, Link2, RotateCcw, Share2, Home } from 'lucide-react';
 import type { SupportedLang } from "@/lib/site-content";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { AESTHETICS, type AestheticId } from '@/lib/data';
-import { resolveSupportedLang } from '@/lib/site-content';
 import { useLanguage } from '@/components/language-provider';
 
 interface ResultCardClientProps {
@@ -31,8 +29,6 @@ export function ResultCardClient({
     image,
     keywords: propKeywords,
     colorPalette,
-    isKo: propIsKo,
-    lang: propLang,
 }: ResultCardClientProps) {
     const { lang } = useLanguage();
     const isKo = lang === 'ko';

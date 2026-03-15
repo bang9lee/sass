@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import HomeClient from '@/components/home-client';
-import { resolveSupportedLang } from '@/lib/site-content';
+import { buildPageMetadata, resolveSupportedLang } from '@/lib/site-content';
 
 type Props = {
   searchParams: Promise<{ lang?: string }>;
@@ -25,15 +25,24 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     },
     ja: {
       title: '感性タイプ診断 | FINDCORE',
-      description: 'あなただけの視覚的な雰囲기를 발견하세요.',
+      description: 'あなただけの視覚的な雰囲気を見つけましょう。',
     }
   };
 
   const meta = metadataMap[currentLang] || metadataMap.en;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://findcore.me';
+  const base = buildPageMetadata(currentLang, meta, "/aesthetic");
 
   return {
-    title: meta.title,
-    description: meta.description,
+    ...base,
+    openGraph: {
+      ...base.openGraph,
+      images: [`${baseUrl}/images/hero.webp`],
+    },
+    twitter: {
+      ...base.twitter,
+      images: [`${baseUrl}/images/hero.webp`],
+    },
   };
 }
 
