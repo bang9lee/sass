@@ -6,7 +6,10 @@ export const runtime = 'nodejs';
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
-        const title = searchParams.get('title') || 'My Aesthetic Core';
+        const rawTitle = searchParams.get('title') || 'My Aesthetic Core';
+        const normalizedTitle = rawTitle.replace(/\s+/g, " ").trim();
+        const title =
+            normalizedTitle.length > 120 ? normalizedTitle.slice(0, 120) : normalizedTitle || "My Aesthetic Core";
 
         // In a real app, we would load the custom font here
         // const fontData = await fetch(new URL('../../assets/fonts/Inter-Bold.ttf', import.meta.url)).then((res) => res.arrayBuffer());
@@ -80,6 +83,9 @@ export async function GET(request: NextRequest) {
             {
                 width: 1200,
                 height: 630,
+                headers: {
+                    "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+                },
             },
         );
     } catch (error: unknown) {
