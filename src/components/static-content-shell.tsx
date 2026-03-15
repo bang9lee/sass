@@ -62,7 +62,7 @@ export function StaticContentShell({
                                 </div>
                             )}
                             
-                            <h1 className={`text-4xl md:text-5xl lg:text-6xl tracking-tight text-white font-medium drop-shadow-sm leading-[1.15] ${textClassName}`}>
+                            <h1 className={`text-4xl md:text-5xl lg:text-6xl tracking-tight text-white font-medium drop-shadow-sm leading-[1.15] ${textClassName} ${(/^[A-Za-z0-9\s!@#$%^&*()_+=-]+$/.test(title) || title.includes("FINDCORE")) ? "font-cinzel" : ""}`}>
                                 {title}
                             </h1>
                             

@@ -84,18 +84,18 @@ export default async function GuidesPage({ searchParams }: Props) {
                                     <div className={`flex h-12 w-12 items-center justify-center rounded-xl border ${tagConf.color} backdrop-blur-sm shadow-inner group-hover:scale-110 transition-transform duration-500`}>
                                         <Icon className="w-5 h-5" />
                                     </div>
-                                    <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest font-semibold backdrop-blur-md ${tagConf.color}`}>
+                                    <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest font-semibold backdrop-blur-md ${tagConf.color} ${/^[A-Za-z0-9\s]+$/.test(card.tag) ? "font-cinzel" : ""}`}>
                                         {card.tag}
                                     </span>
                                 </div>
-                                <h2 className={`text-lg font-bold tracking-tight text-white mb-3 group-hover:text-cyan-50 transition-colors ${textClass}`}>
+                                <h2 className={`text-lg font-bold tracking-tight text-white mb-3 group-hover:text-cyan-50 transition-colors ${textClass} ${/^[A-Za-z0-9\s]+$/.test(card.title) ? "font-cinzel" : ""}`}>
                                     {card.title}
                                 </h2>
                                 <p className={`flex-1 text-[15px] leading-relaxed text-white/50 group-hover:text-white/70 transition-colors ${textClass}`}>
                                     {card.summary}
                                 </p>
                                 <div className="mt-6 flex items-center gap-2 text-sm font-medium text-white/40 group-hover:text-cyan-400 transition-colors">
-                                    <span className="tracking-wide">READ GUIDE</span>
+                                    <span className="tracking-wide font-cinzel">READ GUIDE</span>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-1"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                                 </div>
                             </div>
