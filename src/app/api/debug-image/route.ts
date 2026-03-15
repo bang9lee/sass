@@ -9,6 +9,10 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 export async function GET(request: Request) {
+    if (process.env.NODE_ENV === "production") {
+        return new Response("Not found.", { status: 404 });
+    }
+
     const { searchParams } = new URL(request.url);
     const name = searchParams.get("name") ?? "4.jpg";
 

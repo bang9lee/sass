@@ -11,7 +11,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // 1. Root Page
     routes.push({
         url: BASE_URL,
-        lastModified: new Date(),
         changeFrequency: 'daily',
         priority: 1,
         alternates: {
@@ -36,7 +35,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ].forEach((route) => {
         routes.push({
             url: `${BASE_URL}${route.path}`,
-            lastModified: new Date(),
             changeFrequency: route.changeFrequency,
             priority: route.priority,
             alternates: {
@@ -52,7 +50,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     Object.keys(AESTHETICS).forEach((id) => {
         routes.push({
             url: `${BASE_URL}/result/${id}`,
-            lastModified: new Date(),
             changeFrequency: 'weekly',
             priority: 0.8,
             alternates: {
@@ -67,7 +64,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     Object.keys(COLOR_RESULTS).forEach((id) => {
         routes.push({
             url: `${BASE_URL}/color/result/${id}`,
-            lastModified: new Date(),
             changeFrequency: 'weekly',
             priority: 0.8,
             alternates: {

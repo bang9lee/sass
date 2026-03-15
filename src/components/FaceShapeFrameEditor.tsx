@@ -110,9 +110,10 @@ export function FaceShapeFrameEditor({
                     loading: "AI 초안 생성 중...",
                     ready: "현재 파란 윤곽선과 가이드선이 실제 분석 기준입니다.",
                     previewing: "실측값 재계산 중...",
-                    draft: "AI 초안 다시 잡기",
+                    draft: "초안 다시 잡기",
                     restore: "초안으로 되돌리기",
                     analyze: "이 프레임으로 분석",
+                    analyzeShort: "프레임 분석",
                     statusReady: "분석 가능",
                     statusBlocked: "보정 필요",
                     legendContour: "윤곽",
@@ -150,6 +151,7 @@ export function FaceShapeFrameEditor({
                     draft: "Reload AI Draft",
                     restore: "Restore Draft",
                     analyze: "Analyze With This Frame",
+                    analyzeShort: "Analyze Frame",
                     statusReady: "Ready",
                     statusBlocked: "Needs Refinement",
                     legendContour: "Contour",
@@ -187,6 +189,7 @@ export function FaceShapeFrameEditor({
                     draft: "重新生成 AI 草稿",
                     restore: "恢复为草稿",
                     analyze: "按当前框线分析",
+                    analyzeShort: "框线分析",
                     statusReady: "可分析",
                     statusBlocked: "仍需调整",
                     legendContour: "轮廓",
@@ -224,6 +227,7 @@ export function FaceShapeFrameEditor({
                     draft: "AI 下書きを再生成",
                     restore: "下書きに戻す",
                     analyze: "このフレームで分析",
+                    analyzeShort: "フレーム分析",
                     statusReady: "分析可能",
                     statusBlocked: "再調整が必要",
                     legendContour: "輪郭",
@@ -681,12 +685,13 @@ export function FaceShapeFrameEditor({
                                 <button
                                     onClick={onAnalyze}
                                     disabled={analyzeDisabled}
-                                    className={`flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(90deg,#4e80ff,#2d5cf9)] px-6 py-4 text-[15px] font-bold text-white shadow-[0_10px_30px_rgba(78,128,255,0.25)] transition-transform ${
+                                    className={`flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(90deg,#4e80ff,#2d5cf9)] px-6 py-4 text-[14px] font-bold text-white shadow-[0_10px_30px_rgba(78,128,255,0.25)] transition-transform sm:text-[15px] ${
                                         analyzeDisabled ? "cursor-not-allowed opacity-50 shadow-none" : "hover:scale-[1.02] active:scale-[0.98]"
                                     }`}
                                 >
                                     {isAnalyzing || isPreviewing ? <Sparkles className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                                    {labels.analyze}
+                                    <span className="hidden whitespace-nowrap sm:inline">{labels.analyze}</span>
+                                    <span className="whitespace-nowrap sm:hidden">{labels.analyzeShort}</span>
                                 </button>
                             </div>
                         </div>
