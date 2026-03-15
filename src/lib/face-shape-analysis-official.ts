@@ -481,6 +481,73 @@ function buildOpenCurveFromPoints(points: FacePoint[], samplesPerSegment = EDITO
     return curve;
 }
 
+function smoothControlPoints(points: FacePoint[], iterations = 1, closed = true): FacePoint[] {
+    if (points.length < 3) return points;
+    let result = [...points];
+    for (let iter = 0; iter < iterations; iter++) {
+        const next: FacePoint[] = [];
+        for (let i = 0; i < result.length; i++) {
+            if (!closed && (i === 0 || i === result.length - 1)) {
+                next.push(result[i]);
+                continue;
+            }
+            const prev = result[(i - 1 + result.length) % result.length];
+            const curr = result[i];
+            const succ = result[(i + 1) % result.length];
+            next.push({
+                x: prev.x * 0.25 + curr.x * 0.5 + succ.x * 0.25,
+                y: prev.y * 0.25 + curr.y * 0.5 + succ.y * 0.25,
+            });
+        }
+        result = next;
+    }
+    return result;
+}
+
+/**
+ * Builds a smooth contour from a list of points using Catmull-Rom interpolation.
+ */
+function buildSmoothContourFromPoints(points: FacePoint[], samplesPerSegment = 24, closed = true): FacePoint[] {
+    if (points.length < 3) return points;
+
+    // 1. Deduplicate points to prevent Catmull-Rom artifacts
+    let uniquePoints: FacePoint[] = [];
+    for (const p of points) {
+        if (uniquePoints.length === 0) {
+            uniquePoints.push(p);
+        } else {
+            const last = uniquePoints[uniquePoints.length - 1];
+            if (Math.hypot(p.x - last.x, p.y - last.y) > 0.0001) {
+                uniquePoints.push(p);
+            }
+        }
+    }
+    if (uniquePoints.length < 3) return uniquePoints;
+
+    // 2. Pre-smooth the control points to remove landmark noise/angularity
+    // Two iterations provide a very smooth base for the spline without losing too much volume.
+    const smoothedControlPoints = smoothControlPoints(uniquePoints, 2, closed);
+
+    const result: FacePoint[] = [];
+    const n = smoothedControlPoints.length;
+
+    for (let i = 0; i < n; i++) {
+        if (!closed && i === n - 1) break;
+
+        const p0 = smoothedControlPoints[(i - 1 + n) % n];
+        const p1 = smoothedControlPoints[i];
+        const p2 = smoothedControlPoints[(i + 1) % n];
+        const p3 = smoothedControlPoints[(i + 2) % n];
+
+        for (let j = 0; j < samplesPerSegment; j++) {
+            result.push(catmullRomPoint(p0, p1, p2, p3, j / samplesPerSegment));
+        }
+    }
+
+    if (!closed) result.push(smoothedControlPoints[n - 1]);
+    return result;
+}
+
 function getEditorHandleLayout() {
     return {
         rightJaw: 7,
@@ -1423,7 +1490,7 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
     ]);
 
     const scores: Record<FaceShapeId, number> = {
-        oval: closeness(length, 1.42, 0.22) * 3.4 + closeness(foreheadJaw, 1.02, 0.18) * 2.1 + softness * 1.5,
+        oval: closeness(length, 1.34, 0.22) * 3.6 + closeness(foreheadJaw, 1.02, 0.18) * 2.2 + softness * 1.6,
         round: closeness(length, 1.16, 0.16) * 3.2 + closeness(cheekJaw, 1.02, 0.12) * 1.5 + softness * 2.4,
         square: closeness(length, 1.22, 0.18) * 2.8 + closeness(foreheadJaw, 1, 0.12) * 2.4 + angularity * 2.7,
         heart: normalizedScore(foreheadJaw, 1.1, 1.24) * 2.8 + normalizedScore(0.78 - chinJaw, 0, 0.18) * 2.4 + softness * 0.9,
@@ -1435,17 +1502,17 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
     // Prevent vertically stretched, narrow-chin faces from collapsing into the round bucket.
     scores.round = Math.max(0, scores.round + balancedThirds * 0.55 + chinFullness * 0.45 - longFaceSignal * 1.85 - chinNarrowness * 0.55);
     scores.oval +=
-        balancedThirds * 0.28 +
-        longFaceSignal * 0.34 -
-        cheekProminence * 1 -
-        foreheadNarrowness * 0.75 -
-        chinNarrowness * 1.05;
+        balancedThirds * 0.55 +
+        longFaceSignal * 0.45 -
+        cheekProminence * 0.35 -
+        foreheadNarrowness * 0.3 -
+        chinNarrowness * 0.4;
     scores.oblong += normalizedScore(length, 1.24, 1.42) * 2.4 + longFaceSignal * 1.65;
     scores.diamond +=
-        cheekProminence * 0.85 +
-        foreheadNarrowness * 0.65 +
-        chinNarrowness * 0.75 +
-        normalizedScore(length, 1.2, 1.4) * 0.3;
+        cheekProminence * 0.55 +
+        foreheadNarrowness * 0.35 +
+        chinNarrowness * 0.45 +
+        normalizedScore(length, 1.2, 1.4) * 0.15;
 
     if (length >= 1.22 && middleDominance >= 0.62) {
         scores.oblong += 1.35;
@@ -1466,22 +1533,28 @@ function scoreFaceShape(metrics: FaceShapeMetrics): Record<FaceShapeId, number> 
     return scores;
 }
 
+
 function buildOverlay(
     landmarks: NormalizedLandmark[],
     geometry: FaceGeometry,
-    detectedHairline?: HairlineRefinement
-) {
+    referenceHairline: HairlineRefinement
+): FaceShapeOverlay {
+    // Only apply smoothing to raw landmark-based contours.
+    // Manual contours from the editor already handled by handles.
+    const isManual = geometry.frameSource === "manual";
+    const finalContour = isManual
+        ? geometry.contour
+        : buildSmoothContourFromPoints(geometry.contour, 24, true);
+
     const noseBase = getPhiltrumBase(landmarks);
     const upperThirdGuide =
-        getPerpendicularGuide(geometry.contour, geometry.bounds.top, geometry.bounds.bottom, geometry.thirds.eyebrow) ??
-        getGuideAtY(geometry.contour, geometry.thirds.eyebrow.y, geometry.foreheadGuide);
+        getPerpendicularGuide(finalContour, geometry.bounds.top, geometry.bounds.bottom, geometry.thirds.eyebrow) ??
+        getGuideAtY(finalContour, geometry.thirds.eyebrow.y, geometry.foreheadGuide);
     const middleThirdGuide =
-        getPerpendicularGuide(geometry.contour, geometry.bounds.top, geometry.bounds.bottom, geometry.thirds.philtrumBase) ??
-        getGuideAtY(geometry.contour, geometry.thirds.philtrumBase.y, geometry.cheekGuide);
-    const referenceHairline = detectedHairline ?? geometry.hairline;
+        getGuideAtY(finalContour, geometry.thirds.philtrumBase.y, geometry.cheekGuide);
 
     return {
-        contour: geometry.contour,
+        contour: finalContour,
         meshPoints: landmarks.map((point) => ({ x: point.x, y: point.y })),
         faceHeight: [geometry.bounds.top, geometry.bounds.bottom] as [FacePoint, FacePoint],
         foreheadWidth: geometry.foreheadGuide,
