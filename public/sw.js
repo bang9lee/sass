@@ -68,7 +68,10 @@ self.addEventListener("fetch", (event) => {
         url.pathname.startsWith("/_next/static/") ||
         url.pathname.endsWith(".css") ||
         url.pathname.endsWith(".js") ||
-        url.pathname.endsWith(".woff2")
+        url.pathname.endsWith(".woff2") ||
+        url.pathname.endsWith(".wasm") ||
+        url.pathname.endsWith(".task") ||
+        url.pathname.endsWith(".tflite")
     ) {
         event.respondWith(
             caches.match(event.request).then((cached) => {
