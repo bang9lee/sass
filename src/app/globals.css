@@ -148,6 +148,13 @@
   }
 }
 
+/* Magazine Section - Lean Blog Layout */
+.magazine-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;

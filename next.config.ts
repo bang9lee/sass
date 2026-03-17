@@ -26,6 +26,14 @@ const nextConfig: NextConfig = {
     "@tensorflow/tfjs-backend-webgl",
     "@mediapipe/face_mesh",
   ],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
   async headers() {
     if (process.env.NODE_ENV !== "production") {
       return [];

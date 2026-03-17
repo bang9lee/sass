@@ -511,7 +511,7 @@ function buildSmoothContourFromPoints(points: FacePoint[], samplesPerSegment = 2
     if (points.length < 3) return points;
 
     // 1. Deduplicate points to prevent Catmull-Rom artifacts
-    let uniquePoints: FacePoint[] = [];
+    const uniquePoints: FacePoint[] = [];
     for (const p of points) {
         if (uniquePoints.length === 0) {
             uniquePoints.push(p);

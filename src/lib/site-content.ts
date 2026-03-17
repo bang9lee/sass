@@ -34,6 +34,14 @@ type ContentSection = {
     body: string;
 };
 
+export type CookieConsentLabels = {
+    title: string;
+    description: string;
+    accept: string;
+    decline: string;
+    privacy: string;
+};
+
 type PageCopy = {
     title: string;
     description: string;
@@ -390,4 +398,39 @@ export function getPrivacyCopy(lang: SupportedLang) {
 
 export function getTermsCopy(lang: SupportedLang) {
     return TERMS_COPY[lang];
+}
+
+const COOKIE_CONSENT_LABELS: Record<SupportedLang, CookieConsentLabels> = {
+    ko: {
+        title: "쿠키 및 프라이버시 안내",
+        description: "FINDCORE는 맞춤형 광고(Google AdSense)를 제공하기 위해 쿠키를 사용합니다. 당신의 선택에 따라 서비스의 일부 기능이 제한될 수 있습니다.",
+        accept: "모두 허용",
+        decline: "필수 항목만",
+        privacy: "자세히 보기",
+    },
+    en: {
+        title: "Cookie & Privacy Notice",
+        description: "FINDCORE uses cookies to deliver personalized advertisements (Google AdSense). Your choice may limit certain site functionalities.",
+        accept: "Accept All",
+        decline: "Essential Only",
+        privacy: "Learn More",
+    },
+    zh: {
+        title: "Cookie 与隐私提示",
+        description: "FINDCORE 使用 Cookie 以提供个性化广告 (Google AdSense)。您的选择可能会限制某些网站功能。",
+        accept: "全部接受",
+        decline: "仅限必要",
+        privacy: "查看详情",
+    },
+    ja: {
+        title: "Cookieとプライバシーの通知",
+        description: "FINDCOREでは、パーソナライズされた広告（Google AdSense）を提供するためにCookieを使用しています。選択により一部の機能が制限される場合があります。",
+        accept: "すべて許可",
+        decline: "必須のみ",
+        privacy: "詳細を見る",
+    },
+};
+
+export function getCookieConsentLabels(lang: SupportedLang): CookieConsentLabels {
+    return COOKIE_CONSENT_LABELS[lang];
 }

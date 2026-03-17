@@ -959,8 +959,8 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                             )}
                         </div>
                         
-                        {/* ▸ Celebrity Match (Moved below photo for Desktop) */}
-                        {celebrities && celebrities.length > 0 && !downloading && (
+                        {/* ▸ Celebrity Match (Standard position for Desktop & Saved Image) */}
+                        {celebrities && celebrities.length > 0 && (
                             <div className="hidden lg:flex flex-col gap-3 mt-6 animate-in fade-in slide-in-from-bottom-3 duration-700">
                                 <div className="flex items-center gap-2">
                                     <div className="w-1 h-4 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]" />
@@ -983,7 +983,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                     {/* ═══ RIGHT: Professional Report Dashboard ═══ */}
                     <div className={`flex flex-col px-0 py-7 lg:pl-10 lg:pr-0 lg:py-0 z-10 w-full text-left bg-black lg:bg-transparent ${downloading ? "pl-10 pr-0 py-0" : ""}`} style={{ gap: '1.5rem' }}>
 
-                        {/* ▸ Celebrity Match (Mobile only here, hidden on Desktop since moved to left) */}
+                        {/* ▸ Celebrity Match (Mobile only during preview, hidden on large export) */}
                         {celebrities && celebrities.length > 0 && (
                             <div className="flex lg:hidden flex-col gap-3">
                                 <div className="flex items-center gap-2">

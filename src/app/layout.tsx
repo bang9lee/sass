@@ -5,6 +5,8 @@ import { LanguageProvider } from "@/components/language-provider";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { resolveSupportedLang } from "@/lib/site-content";
+import { CookieConsent } from "@/components/cookie-consent";
+import { GoogleAdSense } from "@/components/google-adsense";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -68,6 +70,8 @@ export default async function RootLayout({
           <Suspense fallback={<div className="min-h-screen bg-black" />}>
             <LanguageProvider initialLang={initialLang}>
               {children}
+              <CookieConsent />
+              <GoogleAdSense />
             </LanguageProvider>
           </Suspense>
         </main>

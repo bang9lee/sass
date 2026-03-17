@@ -247,7 +247,7 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                         </div>
                     </div>
                     {/* Magazine Section */}
-                    <MagazineSection lang={lang} />
+                    <MagazineSection />
                 </main>
 
                 <Footer lang={lang} />

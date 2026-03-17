@@ -99,10 +99,10 @@ export function SiteHeader({
     const router = useRouter();
     const pathname = usePathname() ?? "/";
     const searchParams = useSearchParams();
-    
+
     // Use global language context for instant feedback
     const { lang, setLanguage } = useLanguage();
-    
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const labels = getNavigationLabels(lang);
 
@@ -157,7 +157,7 @@ export function SiteHeader({
                                     key={item.section}
                                     href={item.href}
                                     prefetch
-                                    className={getDesktopLinkClass(item.section, activeSection)}
+                                    className={`${getDesktopLinkClass(item.section, activeSection)} text-[11px]! font-bold! tracking-[0.25em] font-cinzel`}
                                 >
                                     {item.label}
                                 </Link>
