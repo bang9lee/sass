@@ -94,6 +94,10 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeCoreActive: "AI 코어 활성",
         shapeProbability: "확률",
         shapeSyncSuccess: "동기화 완료",
+        genderTitle: "성별 선택",
+        genderSubtitle: "분석 결과의 연예인 예시를\n성별에 맞춰 보여드려요.",
+        male: "남성",
+        female: "여성",
     },
     en: {
         title: "Personal Color",
@@ -129,6 +133,10 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeCoreActive: "AI_CORE_ACTIVE",
         shapeProbability: "PROBABILITY",
         shapeSyncSuccess: "SYNC_SUCCESS",
+        genderTitle: "Select Gender",
+        genderSubtitle: "We'll show celebrity references\nmatched to your gender.",
+        male: "Male",
+        female: "Female",
     },
     zh: {
         title: "个人色彩测试",
@@ -164,6 +172,10 @@ const UI_TEXT: Record<Lang, Record<string, string>> = {
         shapeCoreActive: "AI 核心已激活",
         shapeProbability: "概率",
         shapeSyncSuccess: "同步完成",
+        genderTitle: "选择性别",
+        genderSubtitle: "我们将根据您的性别\n展示相应的艺人参考。",
+        male: "男性",
+        female: "女性",
     },
     ja: {
         title: "パーソナルカラー",
@@ -229,6 +241,7 @@ function ColorTestContent() {
             }[lang];
 
     const [step, setStep] = useState<Step>('upload');
+    const [selectedGender, setSelectedGender] = useState<'male' | 'female'>('female');
     const [scanningStatus, setScanningStatus] = useState(0);
     const [isAutoDetecting, setIsAutoDetecting] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -238,7 +251,7 @@ function ColorTestContent() {
     const [activeSeason, setActiveSeason] = useState<SeasonId | null>(null);
     const [shapeFrameHandles, setShapeFrameHandles] = useState<FacePoint[]>([]);
     const [shapeFrameDraft, setShapeFrameDraft] = useState<FacePoint[]>([]);
-    const [shapeStyleTarget, setShapeStyleTarget] = useState<FaceStyleTarget>("neutral");
+    const [shapeStyleTarget, setShapeStyleTarget] = useState<FaceStyleTarget>("feminine");
     const [isShapeFrameLoading, setIsShapeFrameLoading] = useState(false);
     const [shapeFrameNotice, setShapeFrameNotice] = useState<string | null>(null);
     const [shapeFramePreview, setShapeFramePreview] = useState<FaceShapePreviewResult | null>(null);
@@ -339,7 +352,7 @@ function ColorTestContent() {
         setPoints([]);
         setShapeFrameHandles([]);
         setShapeFrameDraft([]);
-        setShapeStyleTarget("neutral");
+        setShapeStyleTarget("feminine");
         setShapeFrameNotice(null);
         setShapeFramePreview(null);
         setIsShapeFramePreviewing(false);
@@ -494,112 +507,7 @@ function ColorTestContent() {
     // =============================================
     // Apply crop → go to compare step
     // =============================================
-    const applyCrop = () => {
-        const img = sourceImgRef.current;
-        const canvas = cropCanvasRef.current;
-        if (!img || !canvas || points.length < 3) return;
 
-        const rect = canvas.getBoundingClientRect();
-        const w = rect.width;
-        const h = rect.height;
-
-        const resultCanvas = document.createElement('canvas');
-        resultCanvas.width = img.naturalWidth;
-        resultCanvas.height = img.naturalHeight;
-        const ctx = resultCanvas.getContext('2d');
-        if (!ctx) return;
-
-        const imgAspect = img.naturalWidth / img.naturalHeight;
-        const canvasAspect = w / h;
-
-        let baseScale;
-        if (imgAspect > canvasAspect) {
-            baseScale = h / img.naturalHeight;
-        } else {
-            baseScale = w / img.naturalWidth;
-        }
-
-        const currentScale = baseScale * imgScale;
-        const drawW = img.naturalWidth * currentScale;
-        const drawH = img.naturalHeight * currentScale;
-        const drawX = (w - drawW) / 2 + imgOffset.x;
-        const drawY = (h - drawH) / 2 + imgOffset.y;
-        const sourcePoints = points.map((point) => ({
-            x: Math.min(img.naturalWidth, Math.max(0, (point.x - drawX) / currentScale)),
-            y: Math.min(img.naturalHeight, Math.max(0, (point.y - drawY) / currentScale)),
-        }));
-
-        ctx.beginPath();
-        ctx.moveTo(sourcePoints[0].x, sourcePoints[0].y);
-        for (let i = 1; i < sourcePoints.length; i++) ctx.lineTo(sourcePoints[i].x, sourcePoints[i].y);
-        ctx.closePath();
-        ctx.clip();
-        ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
-
-        const croppedDataUrl = resultCanvas.toDataURL('image/png');
-        setCroppedSrc(croppedDataUrl);
-
-        if (mode === 'shape') {
-            const croppedImage = new window.Image();
-            croppedImage.onload = () => {
-                sourceImgRef.current = croppedImage;
-                void openShapeFrameAdjuster(croppedImage);
-            };
-            croppedImage.src = croppedDataUrl;
-        } else {
-            const croppedImage = new window.Image();
-            croppedImage.onload = () => { sourceImgRef.current = croppedImage; };
-            croppedImage.src = croppedDataUrl;
-            setStep('compare');
-        }
-    };
-
-    const handleAutoDetect = async () => {
-        const img = sourceImgRef.current;
-        if (!img || isAutoDetecting) return;
-
-        setIsAutoDetecting(true);
-        try {
-            const contour = mode === 'shape' ? await getFaceShapeContour(img) : await getFaceContour(img);
-            if (!contour) {
-                alert(t.shapeDetectAlert);
-                return;
-            }
-
-            const canvas = cropCanvasRef.current;
-            if (!canvas) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const w = rect.width;
-            const h = rect.height;
-
-            const imgAspect = img.naturalWidth / img.naturalHeight;
-            const canvasAspect = w / h;
-
-            let baseScale;
-            if (imgAspect > canvasAspect) {
-                baseScale = h / img.naturalHeight;
-            } else {
-                baseScale = w / img.naturalWidth;
-            }
-
-            const currentScale = baseScale * imgScale;
-            const drawX = (w - img.naturalWidth * currentScale) / 2 + imgOffset.x;
-            const drawY = (h - img.naturalHeight * currentScale) / 2 + imgOffset.y;
-
-            // Map image-space landmarks to canvas-space points
-            const canvasPoints = contour.map(p => ({
-                x: drawX + p.x * currentScale,
-                y: drawY + p.y * currentScale
-            }));
-
-            setPoints(canvasPoints);
-        } catch (e) {
-            console.error("Auto detect failed", e);
-        } finally {
-            setIsAutoDetecting(false);
-        }
-    };
 
     const openShapeFrameAdjuster = useCallback(async (img: HTMLImageElement) => {
         setStep('shape-adjust');
@@ -662,16 +570,6 @@ function ColorTestContent() {
         };
     }, [mode, shapeFrameHandles, step, t.shapeGateBlocked]);
 
-    const skipCrop = () => {
-        setCroppedSrc(imageSrc);
-        if (mode === 'shape') {
-            if (sourceImgRef.current) {
-                void openShapeFrameAdjuster(sourceImgRef.current);
-            }
-        } else {
-            setStep('compare');
-        }
-    };
 
     const handleReset = () => {
         if (imageSrc) URL.revokeObjectURL(imageSrc);
@@ -691,6 +589,9 @@ function ColorTestContent() {
     };
 
     const performAnalysis = async (img: HTMLImageElement, manualFrameHandles?: FacePoint[]) => {
+        const finalGender = mode === 'shape' 
+            ? (shapeStyleTarget === 'masculine' ? 'male' : 'female')
+            : selectedGender;
         if (isAnalyzing) return;
         setIsAnalyzing(true);
 
@@ -736,13 +637,13 @@ function ColorTestContent() {
                         styleTarget: shapeStyleTarget,
                     })
                 );
-                router.push(`/face-shape/result?lang=${lang}`);
+                router.push(`/face-shape/result?lang=${lang}&gender=${finalGender}`);
             } else {
                 if (!colorResult || !('season' in colorResult)) {
                     throw new Error('Color analysis result is missing or invalid.');
                 }
                 sessionStorage.setItem('lastAnalysis', JSON.stringify(colorResult));
-                router.push(`/color/result/${colorResult.season}?lang=${lang}`);
+                router.push(`/color/result/${colorResult.season}?lang=${lang}&gender=${finalGender}`);
             }
         } catch (e) {
             clearInterval(statusInterval);
@@ -771,8 +672,125 @@ function ColorTestContent() {
             return;
         }
         setShapeFrameNotice(null);
+        void performAnalysis(img, shapeFrameHandles);
         setStep('analyzing');
-        await performAnalysis(img, shapeFrameHandles);
+    };
+
+    const handleAutoDetect = async () => {
+        if (!sourceImgRef.current || isAutoDetecting) return;
+        setIsAutoDetecting(true);
+
+        try {
+            if (mode === 'shape') {
+                const result = await getFaceShapeEditorDraft(sourceImgRef.current);
+                if (result && result.handles) {
+                    setShapeFrameHandles(result.handles);
+                    setPoints([]);
+                    setStep('shape-adjust');
+                } else {
+                    alert(t.shapeDetectAlert);
+                }
+            } else {
+                // Restore original Personal Color face detection (getFaceContour)
+                const contour = await getFaceContour(sourceImgRef.current);
+                if (!contour) {
+                    alert(t.shapeDetectAlert);
+                    return;
+                }
+
+                const canvas = cropCanvasRef.current;
+                if (!canvas) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const w = rect.width;
+                const h = rect.height;
+                const img = sourceImgRef.current;
+
+                const imgAspect = img.naturalWidth / img.naturalHeight;
+                const canvasAspect = w / h;
+
+                let baseScale;
+                if (imgAspect > canvasAspect) {
+                    baseScale = h / img.naturalHeight;
+                } else {
+                    baseScale = w / img.naturalWidth;
+                }
+
+                const currentScale = baseScale * imgScale;
+                const drawX = (w - img.naturalWidth * currentScale) / 2 + imgOffset.x;
+                const drawY = (h - img.naturalHeight * currentScale) / 2 + imgOffset.y;
+
+                // Map image-space landmarks (pixels) to canvas-space points
+                const canvasPoints = contour.map(p => ({
+                    x: drawX + p.x * currentScale,
+                    y: drawY + p.y * currentScale
+                }));
+
+                setPoints(canvasPoints);
+            }
+        } catch (error) {
+            console.error("Auto detect failed", error);
+            alert(t.shapeAnalyzeAlert);
+        } finally {
+            setIsAutoDetecting(false);
+        }
+    };
+
+    const applyCrop = () => {
+        if (!sourceImgRef.current) return;
+        
+        // Convert canvas pixel points to normalized coordinates (0-1) of the image
+        const canvas = cropCanvasRef.current;
+        if (!canvas) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+        const img = sourceImgRef.current;
+        const imgAspect = img.naturalWidth / img.naturalHeight;
+        const canvasAspect = w / h;
+
+        let baseScale;
+        if (imgAspect > canvasAspect) {
+            baseScale = h / img.naturalHeight;
+        } else {
+            baseScale = w / img.naturalWidth;
+        }
+
+        const currentScale = baseScale * imgScale;
+        const drawW = img.naturalWidth * currentScale;
+        const drawH = img.naturalHeight * currentScale;
+        const drawX = (w - drawW) / 2 + imgOffset.x;
+        const drawY = (h - drawH) / 2 + imgOffset.y;
+
+        const normalizedPoints = points.map(p => ({
+            x: (p.x - drawX) / drawW,
+            y: (p.y - drawY) / drawH
+        }));
+
+        const cropped = getCroppedImage(sourceImgRef.current, normalizedPoints);
+        if (cropped) {
+            setCroppedSrc(cropped);
+            if (mode === 'shape') {
+                const img = new (window.Image)();
+                img.onload = () => {
+                    void openShapeFrameAdjuster(img);
+                };
+                img.src = cropped;
+                setStep('shape-adjust');
+            } else {
+                setStep('compare');
+            }
+        }
+    };
+
+    const skipCrop = () => {
+        if (mode === 'shape' && sourceImgRef.current) {
+            void openShapeFrameAdjuster(sourceImgRef.current);
+            setStep('shape-adjust');
+        } else {
+            setStep('compare');
+        }
     };
 
     // =============================================
@@ -827,6 +845,8 @@ function ColorTestContent() {
         // =============================================
         // STEP 2: Freeform Crop
         // =============================================
+
+
         if (step === 'crop') {
             return (
                 <div className="flex-1 w-full bg-zinc-950 flex flex-col relative overflow-hidden">
@@ -840,7 +860,7 @@ function ColorTestContent() {
                         {mode === 'shape' ? t.shapeCropHint : t.cropHint}
                     </p>
                     <div className="flex-1 w-full max-w-2xl mx-auto px-4 flex items-center justify-center min-h-0">
-                        <div className="w-full relative overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl bg-zinc-900/40">
+                        <div className="w-full relative overflow-hidden rounded-4xl border border-white/10 shadow-2xl bg-zinc-900/40">
                             <canvas
                                 ref={cropCanvasRef}
                                 className="w-full h-full block touch-none cursor-crosshair opacity-100"
@@ -916,7 +936,34 @@ function ColorTestContent() {
                             )}
                         </div>
 
-                        <div className="flex gap-3">
+                        {mode !== 'shape' && (
+                            <div className="bg-white/5 border border-white/10 rounded-4xl p-4 flex flex-col gap-3">
+                                <div className="flex items-center justify-between px-2">
+                                    <span className={`text-white/60 text-xs font-bold ${isKorean ? 'font-korean' : ''}`}>{t.genderTitle}</span>
+                                    <span className={`text-[10px] text-white/30 uppercase tracking-[0.2em] font-medium`}>{t.genderSubtitle.split('\n')[0]}</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        onClick={() => setSelectedGender('male')}
+                                        className={`py-3 rounded-2xl flex items-center justify-center gap-2 transition-all border ${selectedGender === 'male' ? 'bg-blue-500/20 border-blue-500/50 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-white/5 border-white/5 text-white/40 hover:bg-white/10'}`}
+                                    >
+                                        <svg className={`w-4 h-4 ${selectedGender === 'male' ? 'text-blue-400' : 'text-zinc-600'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M9 9c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V16h14v-1.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                                        <span className={`text-xs font-bold ${isKorean ? 'font-korean' : ''}`}>{t.male}</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedGender('female')}
+                                        className={`py-3 rounded-2xl flex items-center justify-center gap-2 transition-all border ${selectedGender === 'female' ? 'bg-pink-500/20 border-pink-500/50 text-white shadow-[0_0_15px_rgba(236,72,153,0.3)]' : 'bg-white/5 border-white/5 text-white/40 hover:bg-white/10'}`}
+                                    >
+                                        <svg className={`w-4 h-4 ${selectedGender === 'female' ? 'text-pink-400' : 'text-zinc-600'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg>
+                                        <span className={`text-xs font-bold ${isKorean ? 'font-korean' : ''}`}>{t.female}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+
+
+                        <div className="flex gap-3 mt-1">
                             <button onClick={() => { setPoints([]); requestAnimationFrame(drawCropCanvas); }}
                                 className={`flex-1 py-4 rounded-full border border-white/10 bg-white/5 text-white font-semibold text-[15px] flex items-center justify-center gap-2 active:scale-95 transition-all focus:outline-hidden ${isKorean ? 'font-korean' : ''}`}>
                                 <Undo2 className="w-4 h-4" />{t.cropUndo}
@@ -1283,6 +1330,30 @@ function ColorTestContent() {
             <Footer lang={lang} />
         </div>
     );
+}
+
+/**
+ * Helper to crop an image based on a path of points.
+ */
+function getCroppedImage(img: HTMLImageElement, points: { x: number; y: number }[]): string {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return img.src;
+
+    ctx.beginPath();
+    points.forEach((p, i) => {
+        const x = p.x * canvas.width;
+        const y = p.y * canvas.height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(img, 0, 0);
+
+    return canvas.toDataURL('image/png');
 }
 
 export default function ColorTestPage() {

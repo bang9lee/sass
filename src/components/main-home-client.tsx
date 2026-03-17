@@ -8,6 +8,7 @@ import { Footer } from "./footer";
 import { SiteHeader } from "@/components/site-header";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/language-provider";
+import { MagazineSection } from "./MagazineSection";
 
 type Language = "ko" | "en" | "zh" | "ja";
 
@@ -245,6 +246,8 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                             ))}
                         </div>
                     </div>
+                    {/* Magazine Section */}
+                    <MagazineSection lang={lang} />
                 </main>
 
                 <Footer lang={lang} />

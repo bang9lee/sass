@@ -121,9 +121,10 @@ interface Props {
     result: FaceShapeAnalysisResult;
     lang: SupportedLang;
     isKo: boolean;
+    gender?: 'male' | 'female';
 }
 
-export function FaceShapeResultCardClient({ result }: Props) {
+export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) {
     const { lang } = useLanguage();
     const isKo = lang === 'ko';
     const cardRef = useRef<HTMLDivElement>(null);
@@ -141,6 +142,7 @@ export function FaceShapeResultCardClient({ result }: Props) {
     const styleRecommendations = getFaceStyleRecommendations(presentedShape, safeLang, styleTarget);
 
     const shapeCopy = getFaceShapeCopy(presentedShape, safeLang);
+    const celebrities = gender === 'male' ? shapeCopy.celebrities_male : shapeCopy.celebrities_female;
     const executiveSummary = buildExecutiveSummary(result, lang);
     const keywords = getKeywords(presentedShape, safeLang).slice(0, 3);
     const masculineContourTitle =
@@ -191,12 +193,14 @@ export function FaceShapeResultCardClient({ result }: Props) {
             adPending: "광고대기중",
             contactLabel: "문의 @todayshelp",
             includePhotoLabel: "결과 저장 시 얼굴 사진 포함하기",
+            celebrityMatch: "대표 연예인",
         },
         en: {
             headerTitle: "Professional Face Shape Analysis",
             resultLabel: "ANALYSIS RESULT",
             verified: "AI Verified",
             analysisSummary: "Summary",
+            celebrityMatch: "Celebrity Match",
             ratio: "Length Ratio",
             widthRatio: "Width Ratio",
             jawAngle: "Jaw Angle",
@@ -235,6 +239,7 @@ export function FaceShapeResultCardClient({ result }: Props) {
             resultLabel: "分析结果",
             verified: "AI 已校验",
             analysisSummary: "分析摘要",
+            celebrityMatch: "代表艺人",
             ratio: "长宽比例",
             widthRatio: "上下宽度比",
             jawAngle: "下颌角",
@@ -273,6 +278,7 @@ export function FaceShapeResultCardClient({ result }: Props) {
             resultLabel: "分析結果",
             verified: "AI 検証済み",
             analysisSummary: "分析要約",
+            celebrityMatch: "代表的な有名人",
             ratio: "縦横比",
             widthRatio: "上下幅の比率",
             jawAngle: "下顎角",
@@ -952,10 +958,50 @@ export function FaceShapeResultCardClient({ result }: Props) {
                                 </div>
                             )}
                         </div>
+                        
+                        {/* ▸ Celebrity Match (Moved below photo for Desktop) */}
+                        {celebrities && celebrities.length > 0 && !downloading && (
+                            <div className="hidden lg:flex flex-col gap-3 mt-6 animate-in fade-in slide-in-from-bottom-3 duration-700">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1 h-4 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]" />
+                                    <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-amber-300">{t.celebrityMatch}</h3>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {celebrities.map((celeb, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="px-4 py-2 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold text-[13px] shadow-sm transition-colors hover:bg-white/15"
+                                        >
+                                            {celeb}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* ═══ RIGHT: Professional Report Dashboard ═══ */}
                     <div className={`flex flex-col px-0 py-7 lg:pl-10 lg:pr-0 lg:py-0 z-10 w-full text-left bg-black lg:bg-transparent ${downloading ? "pl-10 pr-0 py-0" : ""}`} style={{ gap: '1.5rem' }}>
+
+                        {/* ▸ Celebrity Match (Mobile only here, hidden on Desktop since moved to left) */}
+                        {celebrities && celebrities.length > 0 && (
+                            <div className="flex lg:hidden flex-col gap-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1 h-4 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]" />
+                                    <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-yellow-300">{t.celebrityMatch}</h3>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {celebrities.map((celeb, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="px-4 py-2 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold text-[13px] shadow-sm"
+                                        >
+                                            {celeb}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* ▸ Desktop Title & Metrics Block (Reverted to Right Panel) */}
                         <div className={`${downloading ? "flex" : "hidden lg:flex"} flex-col gap-6 pb-6 border-b border-white/8`}>
@@ -1043,7 +1089,7 @@ export function FaceShapeResultCardClient({ result }: Props) {
                                 {highlightPoints.map((pt) => (
                                     <div key={pt} className="flex items-start gap-2.5">
                                         <div className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-                                        <p className="text-[13px] leading-[1.7] text-white">{pt}</p>
+                                        <p className="text-[13px] leading-[1.7] text-white break-keep">{pt}</p>
                                     </div>
                                 ))}
                             </div>

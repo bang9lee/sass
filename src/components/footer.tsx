@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { getFooterLabels, type SupportedLang } from "@/lib/site-content";
 import { useLanguage } from "@/components/language-provider";
+import { PUBLISHER_PROFILE } from "@/lib/publisher-profile";
 
 interface FooterProps {
     lang: SupportedLang;
@@ -31,14 +32,20 @@ export function Footer({ lang: propLang, className = "" }: FooterProps) {
                     <Link href={`/privacy?lang=${lang}`} className="hover:text-cyan-200 transition-colors">{footer.privacy}</Link>
                     <Link href={`/terms?lang=${lang}`} className="hover:text-cyan-200 transition-colors">{footer.terms}</Link>
                 </div>
-                <div className="text-center md:text-right">
+                <div className="flex flex-col items-center md:items-end gap-1">
                     <a 
-                        href="https://t.me/todayshelp" 
+                        href={PUBLISHER_PROFILE.telegramUrl} 
                         target="_blank" 
                         rel="noopener noreferrer" 
                         className="inline-flex items-center gap-2 text-[11px] text-white font-bold transition-colors hover:text-cyan-200"
                     >
-                        <span className="font-cinzel">Telegram @todayshelp</span>
+                        <span className="font-cinzel tracking-wider">TELEGRAM {PUBLISHER_PROFILE.telegramHandle}</span>
+                    </a>
+                    <a 
+                        href={`mailto:${PUBLISHER_PROFILE.email}`}
+                        className="inline-flex items-center gap-2 text-[11px] text-white/50 transition-colors hover:text-cyan-200 font-medium"
+                    >
+                        {PUBLISHER_PROFILE.email}
                     </a>
                 </div>
             </div>

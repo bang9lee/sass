@@ -262,7 +262,7 @@ export function FaceShapeFrameEditor({
     const styleTargetCopy = useMemo(() => getFaceStyleTargetCopy(lang), [lang]);
     const styleOptions = useMemo(
         () =>
-            (["feminine", "masculine", "neutral"] as FaceStyleTarget[]).map((target) => ({
+            (["feminine", "masculine"] as FaceStyleTarget[]).map((target) => ({
                 target,
                 ...styleTargetCopy[target],
             })),
@@ -587,6 +587,8 @@ export function FaceShapeFrameEditor({
                                 })}
                             </div>
                         </section>
+
+
 
                         {preview && (
                             <div className="flex flex-col gap-4 rounded-[32px] border border-white/10 bg-[#070b12] p-5 lg:p-6 shadow-xl">

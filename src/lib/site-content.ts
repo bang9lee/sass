@@ -78,7 +78,7 @@ const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
             },
             {
                 title: "운영 및 문의 안내",
-                body: `${PUBLISHER_PROFILE.operatorName} 운영 · 공식 사이트: https://findcore.me · 텔레그램: ${PUBLISHER_PROFILE.telegramHandle}`,
+                body: `${PUBLISHER_PROFILE.operatorName} 운영 · 공식 사이트: https://findcore.me · 텔레그램: ${PUBLISHER_PROFILE.telegramHandle} · 이메일: ${PUBLISHER_PROFILE.email}`,
             },
         ],
     },
@@ -102,7 +102,7 @@ const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
             },
             {
                 title: "Operations & Contact",
-                body: "Website: https://findcore.me · Telegram: @todayshelp",
+                body: `Website: https://findcore.me · Telegram: ${PUBLISHER_PROFILE.telegramHandle} · Email: ${PUBLISHER_PROFILE.email}`,
             },
         ],
     },
@@ -126,7 +126,7 @@ const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
             },
             {
                 title: "运营与服务支持",
-                body: "官方网站: https://findcore.me · 官方 Telegram: @todayshelp",
+                body: `官方网站: https://findcore.me · 官方 Telegram: ${PUBLISHER_PROFILE.telegramHandle} · 电子邮件: ${PUBLISHER_PROFILE.email}`,
             },
         ],
     },
@@ -150,7 +150,7 @@ const ABOUT_COPY: Record<SupportedLang, PageCopy> = {
             },
             {
                 title: "運営およびお問い合わせ",
-                body: "公式サイト: https://findcore.me · 公式Telegram: @todayshelp",
+                body: `公式サイト: https://findcore.me · 公式Telegram: ${PUBLISHER_PROFILE.telegramHandle} · メール: ${PUBLISHER_PROFILE.email}`,
             },
         ],
     },

@@ -12,9 +12,12 @@ import { SiteHeader } from "@/components/site-header";
 import { Footer } from "./footer";
 import type { SupportedLang } from "@/lib/site-content";
 import { useLanguage } from "@/components/language-provider";
+import { useSearchParams } from "next/navigation";
 
 function InnerContent() {
     const { lang } = useLanguage();
+    const searchParams = useSearchParams();
+    const gender = (searchParams.get("gender") as "male" | "female") || "female";
     const isKorean = lang === "ko";
 
     const [result, setResult] = useState<FaceShapeAnalysisResult | null>(null);
@@ -97,7 +100,7 @@ function InnerContent() {
                 <SiteHeader lang={lang} position="sticky" surfaceClassName="bg-black/20 backdrop-blur-xl" />
 
                 <main className="flex-1 w-full flex items-start justify-center p-4 pt-6 pb-16 md:p-10 lg:p-14">
-                    <FaceShapeResultCardClient result={result} lang={lang} isKo={isKorean} />
+                    <FaceShapeResultCardClient result={result} lang={lang} isKo={isKorean} gender={gender} />
                 </main>
 
                 <Footer lang={lang} />

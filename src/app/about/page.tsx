@@ -18,22 +18,22 @@ const OPERATOR_COPY: Record<SupportedLang, { badge: string; heading: string; bod
     ko: {
         badge: `${PUBLISHER_PROFILE.operatorName} 운영`,
         heading: "프리미엄 스타일 분석 플랫폼",
-        body: `FINDCORE는 ${PUBLISHER_PROFILE.operatorName}가 운영하며, 당신만의 고유한 미학을 깊이 있게 완성할 수 있도록 돕습니다. 제휴 및 서비스 문의는 공식 텔레그램(${PUBLISHER_PROFILE.telegramHandle})을 통해 지원합니다.`,
+        body: `FINDCORE는 ${PUBLISHER_PROFILE.operatorName}가 운영하며, 당신만의 고유한 미학을 깊이 있게 완성할 수 있도록 돕습니다. 제휴 및 서비스 문의는 공식 이메일(${PUBLISHER_PROFILE.email}) 또는 텔레그램(${PUBLISHER_PROFILE.telegramHandle})을 통해 지원합니다.`,
     },
     en: {
         badge: `Operated by ${PUBLISHER_PROFILE.operatorName}`,
         heading: "Premium Style Analysis Platform",
-        body: `FINDCORE is operated by ${PUBLISHER_PROFILE.operatorName}, dedicated to helping you deeply understand and perfect your unique aesthetic. For partnerships and inquiries, reach out via our official Telegram (${PUBLISHER_PROFILE.telegramHandle}).`,
+        body: `FINDCORE is operated by ${PUBLISHER_PROFILE.operatorName}, dedicated to helping you deeply understand and perfect your unique aesthetic. For partnerships and inquiries, reach out via our official email (${PUBLISHER_PROFILE.email}) or Telegram (${PUBLISHER_PROFILE.telegramHandle}).`,
     },
     zh: {
         badge: `${PUBLISHER_PROFILE.operatorName} 运营`,
         heading: "高级风格分析平台",
-        body: `FINDCORE 由 ${PUBLISHER_PROFILE.operatorName} 运营，致力于帮助您深度理解并完善独特的美学风格。关于合作与咨询，请通过官方 Telegram (${PUBLISHER_PROFILE.telegramHandle}) 联系我们。`,
+        body: `FINDCORE 由 ${PUBLISHER_PROFILE.operatorName} 运营，致力于帮助您深度理解并完善独特的美学风格。关于合作与咨询，请通过官方电子邮箱 (${PUBLISHER_PROFILE.email}) 或 Telegram (${PUBLISHER_PROFILE.telegramHandle}) 联系我们。`,
     },
     ja: {
         badge: `${PUBLISHER_PROFILE.operatorName} 運営`,
         heading: "プレミアムスタイル分析プラットフォーム",
-        body: `FINDCOREは${PUBLISHER_PROFILE.operatorName}が運営しており、皆様がご自身の独自の美学を深く理解し、完成させるお手伝いをしています。提携やサービスに関するお問い合わせは、公式Telegram（${PUBLISHER_PROFILE.telegramHandle}）にて承ります。`,
+        body: `FINDCOREは${PUBLISHER_PROFILE.operatorName}が運営しており、皆様がご自身の独自の美学を深く理解し、完成させるお手伝いをしています。提携やサービスに関するお問い合わせは、公式メール（${PUBLISHER_PROFILE.email}）または公式Telegram（${PUBLISHER_PROFILE.telegramHandle}）にて承ります。`,
     },
 };
 

@@ -8,6 +8,7 @@ import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import Link from 'next/link';
 import { AESTHETICS, type AestheticId } from '@/lib/data';
 import { useLanguage } from '@/components/language-provider';
+import { COLOR_RESULTS, SubSeasonId } from '@/lib/color-data';
 
 interface ColorResultCardClientProps {
     resultId: string;
@@ -19,6 +20,7 @@ interface ColorResultCardClientProps {
     worstColors: string[];
     isKo: boolean;
     lang: SupportedLang;
+    gender?: 'male' | 'female';
 }
 
 export function ColorResultCardClient({
@@ -29,6 +31,7 @@ export function ColorResultCardClient({
     keywords: propKeywords,
     bestColors,
     worstColors,
+    gender = 'female',
 }: ColorResultCardClientProps) {
     const { lang } = useLanguage();
     const isKo = lang === 'ko';
@@ -38,6 +41,15 @@ export function ColorResultCardClient({
     const title = aestheticData ? ({ ko: aestheticData.title_ko, zh: aestheticData.title_zh, ja: aestheticData.title_ja, en: aestheticData.title }[lang] || aestheticData.title) : propTitle;
     const description = aestheticData ? ({ ko: aestheticData.description_ko, zh: aestheticData.description_zh, ja: aestheticData.description_ja, en: aestheticData.description }[lang] || aestheticData.description) : propDescription;
     const keywords = aestheticData ? ({ ko: aestheticData.keywords_ko, zh: aestheticData.keywords_zh, ja: aestheticData.keywords_ja, en: aestheticData.keywords }[lang] || aestheticData.keywords) : propKeywords;
+
+    // Personal Color Celebrity Reference
+    const colorResultsData = COLOR_RESULTS[resultId as SubSeasonId];
+    const celebrities = colorResultsData
+        ? (gender === 'male' 
+            ? (colorResultsData.celebrities_male[lang as keyof typeof colorResultsData.celebrities_male] || colorResultsData.celebrities_male.en)
+            : (colorResultsData.celebrities_female[lang as keyof typeof colorResultsData.celebrities_female] || colorResultsData.celebrities_female.en))
+        : [];
+
     const cardRef = useRef<HTMLDivElement>(null);
     const [showToast, setShowToast] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
@@ -47,7 +59,7 @@ export function ColorResultCardClient({
         ? `${window.location.origin}/color/result/${resultId}?lang=${lang}`
         : '';
 
-    const uiText = {
+    const uiData = {
         ko: {
             shareTitle: `나의 퍼스널컬러: ${title} 🎨`,
             shareText: `저의 찰떡 컬러는 "${title}"이에요! ✨\n\n당신만의 컬러도 찾아보세요 👇\nhttps://findcore.me/color`,
@@ -60,7 +72,8 @@ export function ColorResultCardClient({
             adStatus: '광고대기중',
             resultLabel: '퍼스널 컬러',
             best: '베스트 컬러',
-            worst: '워스트 컬러'
+            worst: '워스트 컬러',
+            celebrityTitle: '대표 연예인'
         },
         en: {
             shareTitle: `My Personal Color: ${title}`,
@@ -74,7 +87,8 @@ export function ColorResultCardClient({
             adStatus: 'Ad Pending',
             resultLabel: 'Personal Color',
             best: 'Best Colors',
-            worst: 'Colors to Avoid'
+            worst: 'Colors to Avoid',
+            celebrityTitle: 'Celebrity Match'
         },
         zh: {
             shareTitle: `我的专属色彩: ${title}`,
@@ -88,7 +102,8 @@ export function ColorResultCardClient({
             adStatus: '广告待处理',
             resultLabel: 'Personal Color',
             best: '最佳颜色',
-            worst: '避雷颜色'
+            worst: '避雷颜色',
+            celebrityTitle: '代表艺人'
         },
         ja: {
             shareTitle: `私のパーソナルカラー: ${title}`,
@@ -102,11 +117,12 @@ export function ColorResultCardClient({
             adStatus: '広告待機中',
             resultLabel: 'Personal Color',
             best: 'ベストカラー',
-            worst: 'NGカラー'
+            worst: 'NGカラー',
+            celebrityTitle: '代表的な有名人'
         }
     };
 
-    const t = uiText[lang as keyof typeof uiText] || uiText.en;
+    const t = uiData[lang as keyof typeof uiData] || uiData.en;
 
     const handleShare = async () => {
         const shareData = { url: shareUrl };
@@ -322,6 +338,28 @@ export function ColorResultCardClient({
 
                     {/* Content Section: Best/Worst & Description */}
                     <div className="flex flex-col px-6 py-6 z-10 bg-black w-full text-left gap-10" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
+
+                        {/* Celebrities Section (NEW - Positioned at 1st priority) */}
+                        {celebrities.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center gap-2 mb-1 section-header-wrapper">
+                                    <div className="w-1 h-4 bg-linear-to-b from-yellow-400 to-orange-500 rounded-full section-color-bar" />
+                                    <h3 className="text-yellow-200 font-bold text-sm tracking-wide uppercase">
+                                        {t.celebrityTitle}
+                                    </h3>
+                                </div>
+                                <div className="flex flex-wrap gap-2 text-wrap">
+                                    {celebrities.map((celeb, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="px-4 py-2 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold text-sm shadow-sm"
+                                        >
+                                            {celeb}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Best Palette Section */}
                         <div className="flex flex-col gap-4">

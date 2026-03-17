@@ -7,13 +7,14 @@ import { LayoutShell } from '@/components/layout-shell';
 
 interface Props {
     params: Promise<{ id: string }>;
-    searchParams: Promise<{ lang?: string; shape?: string }>;
+    searchParams: Promise<{ lang?: string; shape?: string; gender?: string }>;
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { id } = await params;
-    const { lang } = await searchParams;
+    const { lang, gender } = await searchParams;
     const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
+    const selectedGender = (gender === 'male' || gender === 'female') ? gender : 'female';
 
     const result = COLOR_RESULTS[id as SubSeasonId];
 
@@ -78,8 +79,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function ColorResultPage({ params, searchParams }: Props) {
     const { id } = await params;
-    const { lang } = await searchParams;
+    const { lang, gender } = await searchParams;
     const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
+    const selectedGender = (gender === 'male' || gender === 'female' ? gender : 'female') as 'male' | 'female';
     const isKo = currentLang === 'ko';
 
     const resultData = COLOR_RESULTS[id as SubSeasonId];
@@ -109,6 +111,7 @@ export default async function ColorResultPage({ params, searchParams }: Props) {
                         worstColors={resultData.worstColors}
                         isKo={isKo}
                         lang={currentLang}
+                        gender={selectedGender}
                     />
                 </div>
             </LayoutShell>
