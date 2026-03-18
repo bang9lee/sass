@@ -55,7 +55,9 @@ type MakeupCategory = keyof MakeupSettings;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Landmarks = any[];
 
-const PRESET_PALETTES: Record<string, Record<MakeupCategory, { color: string; style: string }>> = {
+type PresetData = { [K in MakeupCategory]: { color: string; style: string } };
+
+const PRESET_PALETTES: Record<string, PresetData> = {
     natural: { 
         foundation: { color: "#F5E6DA", style: "default" }, 
         lip: { color: "#C4776E", style: "matte" }, 
@@ -126,7 +128,38 @@ const PRESET_PALETTES: Record<string, Record<MakeupCategory, { color: string; st
         eyebrow: { color: "#5A3E2B", style: "straight" }, 
         lens: { color: "#B5D4A0", style: "natural" } 
     },
+    mauve: { 
+        foundation: { color: "#F2EBEB", style: "default" }, 
+        lip: { color: "#9E7676", style: "matte" }, 
+        blush: { color: "#B19090", style: "cheekbone" }, 
+        contour: { color: "#8B7272", style: "default" }, 
+        eyeshadow: { color: "#8B7272", style: "shimmer" }, 
+        eyeliner: { color: "#2D2424", style: "natural" }, 
+        eyebrow: { color: "#4A3B3B", style: "natural" }, 
+        lens: { color: "#9090A0", style: "natural" } 
+    },
+    sunset: { 
+        foundation: { color: "#F5ECD5", style: "default" }, 
+        lip: { color: "#D45D31", style: "glossy" }, 
+        blush: { color: "#E88D67", style: "apple" }, 
+        contour: { color: "#9E6F4B", style: "default" }, 
+        eyeshadow: { color: "#D49B6A", style: "winged" }, 
+        eyeliner: { color: "#3E2723", style: "cat-eye" }, 
+        eyebrow: { color: "#5D4037", style: "arched" }, 
+        lens: { color: "#B1A78C", style: "natural" } 
+    },
+    nude: { 
+        foundation: { color: "#F2E4D8", style: "default" }, 
+        lip: { color: "#A67C5B", style: "matte" }, 
+        blush: { color: "#C09378", style: "cheekbone" }, 
+        contour: { color: "#8D6E63", style: "default" }, 
+        eyeshadow: { color: "#D7B59A", style: "base" }, 
+        eyeliner: { color: "#211A11", style: "natural" }, 
+        eyebrow: { color: "#3E2723", style: "straight" }, 
+        lens: { color: "#968E85", style: "natural" },
+    },
 };
+
 
 const STYLE_OPTIONS: Record<string, { id: string; name: { [key: string]: string } }[]> = {
     lip: [
@@ -195,7 +228,7 @@ export function MakeupClient({ lang }: MakeupClientProps) {
     const t = {
         ko: {
             title: "AI 메이크업 시뮬레이터",
-            subtitle: "전문가용 고정밀 가상 메이크업 엔진",
+            subtitle: "AI와 함께 나만의 완벽한 스타일을 발견해보세요",
             upload: "사진 업로드",
             dragDrop: "사진을 드래그하거나 클릭하여 업로드하세요",
             analyzing: "얼굴형 분석 중...",
@@ -213,7 +246,7 @@ export function MakeupClient({ lang }: MakeupClientProps) {
         },
         en: {
             title: "AI Makeup Simulator",
-            subtitle: "Professional Grade Virtual Makeup Engine",
+            subtitle: "Find your own perfect style with AI technology",
             upload: "Upload Photo",
             dragDrop: "Drag & drop or click to upload",
             analyzing: "Analyzing Face...",
@@ -226,11 +259,11 @@ export function MakeupClient({ lang }: MakeupClientProps) {
             apple: "Apple", cheekbone: "Cheekbone", "under-eye": "Under-eye",
             base: "Base", shimmer: "Shimmer", winged: "Winged",
             "cat-eye": "Cat-eye", bold: "Bold", puppy: "Puppy",
-            arched: "Arched", curved: "Curved", straight: "Straight"
+            arched: "Arched", curved: "Curved", straight: "Straight",
         },
         zh: {
             title: "AI 智能化妆模拟器",
-            subtitle: "专业级高精度虚拟化妆引擎",
+            subtitle: "利用AI技术打造属于您的完美风格",
             upload: "上传照片",
             dragDrop: "拖拽或点击上传照片",
             analyzing: "正在精密分析面部...",
@@ -243,11 +276,11 @@ export function MakeupClient({ lang }: MakeupClientProps) {
             apple: "苹果肌", cheekbone: "颧骨", "under-eye": "眼下",
             base: "基础", shimmer: "珠光", winged: "翼状",
             "cat-eye": "猫眼", bold: "强力", puppy: "下至",
-            arched: "挑眉", curved: "弯眉", straight: "一字眉"
+            arched: "挑眉", curved: "弯眉", straight: "一字眉",
         },
         ja: {
             title: "AI メイクシミュレーター",
-            subtitle: "プロフェッショナル向け高精度バーチャルメイクエンジン",
+            subtitle: "AIで自分だけのスタイルを完成させましょう",
             upload: "写真をアップロード",
             dragDrop: "ドラッグ＆ドロップまたはタップ",
             analyzing: "顔を精密に分析中...",
@@ -267,6 +300,13 @@ export function MakeupClient({ lang }: MakeupClientProps) {
             enabled: "適用",
             natural: "ナチュラル", coral: "コーラル", rose: "ロゼ", berry: "ベリー", brick: "ブリック", plum: "プラム",
             peach: "ピーチ", mauve: "モーヴ", sunset: "サンセット", nude: "ヌード",
+            arched: "アーチ", curved: "アーチ眉", straight: "平行眉",
+            reshape: "整形", beauty: "美肌",
+            vLine: "Vライン", chinLength: "顎の長さ", chinWidth: "顎の幅", forehead: "おでこ", cheekbones: "頬骨",
+            eyeSize: "デカ目", eyeDistance: "目の間隔", eyeAngle: "タレ目/ツリ目",
+            noseBridge: "鼻筋", noseAlar: "小鼻", noseLength: "鼻の長さ",
+            mouthSize: "口の大きさ", smile: "口角",
+            smooth: "美肌", toneUp: "トーンアップ", laughLines: "ほうれい線",
             noFace: "顔が検出されませんでした。明るい場所で正面を向いた写真をアップロードしてください。"
         }
     }[lang === "ko" ? "ko" : lang === "zh" ? "zh" : lang === "ja" ? "ja" : "en"];
@@ -300,17 +340,12 @@ export function MakeupClient({ lang }: MakeupClientProps) {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(origCanvas, 0, 0);
-
-        if (compareMode) return; 
-
         const landmarks = landmarksRef.current;
         const w = canvas.width;
         const h = canvas.height;
 
-        const getPoint = (idx: number) => {
-            const lm = landmarks[idx];
+        const getBasePoint = (idx: number) => {
+            const lm = landmarksRef.current?.[idx];
             if (!lm) return { x: 0, y: 0 };
             const isNorm = lm.x <= 1 && lm.y <= 1 && w > 1;
             return { x: isNorm ? lm.x * w : lm.x, y: isNorm ? lm.y * h : lm.y };
@@ -357,6 +392,13 @@ export function MakeupClient({ lang }: MakeupClientProps) {
             ctx.stroke();
             ctx.restore();
         };
+
+        const getPoint = getBasePoint;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(origCanvas, 0, 0);
+
+        if (compareMode) return; 
+
 
         // Foundation
         if (settings.foundation.enabled) {
@@ -467,26 +509,52 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                 ctx.save();
                 ctx.globalAlpha = settings.lip.opacity / 100;
                 ctx.globalCompositeOperation = "multiply";
-                const center = getPoint(14); // Inner bottom lip center
-                const gradL = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, w * 0.08);
+                const center = getPoint(14); 
+                const gradL = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, w * 0.1);
                 gradL.addColorStop(0, settings.lip.color);
                 gradL.addColorStop(1, "transparent");
                 ctx.fillStyle = gradL;
-                drawSplineFromPoints(outer, true); drawSplineFromPoints(inner, true); ctx.fill("evenodd");
+                
+                ctx.beginPath();
+                ctx.moveTo(outer[0].x, outer[0].y);
+                outer.forEach(p => ctx.lineTo(p.x, p.y));
+                ctx.closePath();
+                
+                ctx.moveTo(inner[0].x, inner[0].y);
+                inner.forEach(p => ctx.lineTo(p.x, p.y));
+                ctx.closePath();
+                
+                ctx.fill("evenodd");
                 ctx.restore();
             } else {
                 ctx.save();
                 ctx.globalAlpha = settings.lip.opacity / 100;
                 ctx.globalCompositeOperation = "multiply";
                 ctx.fillStyle = settings.lip.color;
-                drawSplineFromPoints(outer, true); drawSplineFromPoints(inner, true); ctx.fill("evenodd");
+                
+                ctx.beginPath();
+                ctx.moveTo(outer[0].x, outer[0].y);
+                outer.forEach(p => ctx.lineTo(p.x, p.y));
+                ctx.closePath();
+                
+                ctx.moveTo(inner[0].x, inner[0].y);
+                inner.forEach(p => ctx.lineTo(p.x, p.y));
+                ctx.closePath();
+                
+                ctx.fill("evenodd");
                 ctx.restore();
                 
                 if (settings.lip.style === "glossy") {
                     ctx.save();
-                    ctx.globalAlpha = 0.5; ctx.globalCompositeOperation = "overlay"; ctx.filter = "blur(4px)";
+                    ctx.globalAlpha = 0.4; 
+                    ctx.globalCompositeOperation = "overlay"; 
+                    ctx.filter = "blur(4px)";
                     ctx.fillStyle = "#FFFFFF";
-                    ctx.beginPath(); drawSplineFromPoints([getPoint(317), getPoint(402), getPoint(318), getPoint(14)], true); ctx.fill();
+                    ctx.beginPath();
+                    const highlightPts = [getPoint(312), getPoint(311), getPoint(310), getPoint(13), getPoint(80), getPoint(81), getPoint(82)];
+                    ctx.moveTo(highlightPts[0].x, highlightPts[0].y);
+                    highlightPts.forEach(p => ctx.lineTo(p.x, p.y));
+                    ctx.fill();
                     ctx.restore();
                 }
             }
@@ -610,14 +678,14 @@ export function MakeupClient({ lang }: MakeupClientProps) {
         const palette = PRESET_PALETTES[name];
         if (!palette) return;
         setSettings({
-            foundation: { color: palette.foundation.color, opacity: 20, enabled: true, style: palette.foundation.style ?? "default" },
-            lip: { color: palette.lip.color, opacity: 60, enabled: true, style: palette.lip.style ?? "matte" },
-            blush: { color: palette.blush.color, opacity: 45, enabled: true, style: palette.blush.style ?? "apple" },
-            eyeshadow: { color: palette.eyeshadow.color, opacity: 30, enabled: true, style: palette.eyeshadow.style ?? "base" },
-            eyeliner: { color: palette.eyeliner.color, opacity: 60, enabled: true, style: palette.eyeliner.style ?? "natural" },
-            contour: { color: palette.contour.color, opacity: 25, enabled: true, style: palette.contour.style ?? "default" },
-            eyebrow: { color: palette.eyebrow.color, opacity: 50, enabled: true, style: palette.eyebrow.style ?? "natural" },
-            lens: { color: palette.lens.color, opacity: 40, enabled: true, style: palette.lens.style ?? "natural" },
+            foundation: { color: palette.foundation.color, opacity: 15, enabled: true, style: palette.foundation.style ?? "default" },
+            lip: { color: palette.lip.color, opacity: 20, enabled: true, style: palette.lip.style ?? "matte" },
+            blush: { color: palette.blush.color, opacity: 25, enabled: true, style: palette.blush.style ?? "apple" },
+            eyeshadow: { color: palette.eyeshadow.color, opacity: 15, enabled: true, style: palette.eyeshadow.style ?? "base" },
+            eyeliner: { color: palette.eyeliner.color, opacity: 40, enabled: true, style: palette.eyeliner.style ?? "natural" },
+            contour: { color: palette.contour.color, opacity: 20, enabled: true, style: palette.contour.style ?? "default" },
+            eyebrow: { color: palette.eyebrow.color, opacity: 15, enabled: true, style: palette.eyebrow.style ?? "natural" },
+            lens: { color: palette.lens.color, opacity: 35, enabled: true, style: palette.lens.style ?? "natural" },
         });
     };
 
@@ -674,8 +742,8 @@ export function MakeupClient({ lang }: MakeupClientProps) {
 
                     <div className="relative z-10 max-w-5xl mx-auto space-y-8">
                         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
-                            <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-white to-white/70 font-cinzel tracking-tight drop-shadow-sm py-2 leading-relaxed">{t.title}</h1>
-                            <p className="text-white/50 text-sm tracking-wide">{t.subtitle}</p>
+                            <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-white to-white/70 font-sans tracking-tight drop-shadow-sm py-2 leading-relaxed">{t.title}</h1>
+                            <p className="text-white/50 text-sm tracking-wide font-medium">{t.subtitle}</p>
                         </motion.div>
 
                         <div className="flex flex-col lg:flex-row gap-8">
@@ -799,76 +867,78 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                                                     }`}
                                                 >
                                                     <Icon className={`w-5 h-5 ${activeTab === cat ? 'drop-shadow-[0_0_5px_rgba(236,72,153,0.5)]' : ''}`} strokeWidth={activeTab === cat ? 2.5 : 1.5} />
-                                                    <span className="text-[10px] font-medium tracking-tight whitespace-nowrap scale-90 sm:scale-100">{t[cat as keyof typeof t]}</span>
+                                                    <span className="text-[10px] font-medium tracking-tight whitespace-nowrap scale-90 sm:scale-100">{(t as any)[cat] || cat}</span>
                                                 </button>
                                             )})}
                                         </div>
 
                                         <div className="space-y-5 pt-2 border-t border-white/5">
-                                            <label className="flex items-center justify-between cursor-pointer group">
-                                                <span className="text-white/80 text-sm font-medium tracking-wide group-hover:text-white transition-colors">{t[activeTab as keyof typeof t]} {t.enabled}</span>
-                                                <div
-                                                    onClick={() => updateSetting(activeTab, "enabled", !settings[activeTab].enabled)}
-                                                    className={`w-11 h-6 rounded-full transition-all duration-300 cursor-pointer flex items-center p-1 border ${settings[activeTab].enabled ? "bg-linear-to-r from-pink-500 to-purple-500 shadow-[0_0_15px_rgba(236,72,153,0.4)] border-pink-400/50" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
-                                                >
-                                                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${settings[activeTab].enabled ? "translate-x-5" : "translate-x-0"}`} />
-                                                </div>
-                                            </label>
+                                                <>
+                                                    <label className="flex items-center justify-between cursor-pointer group">
+                                                        <span className="text-white/80 text-sm font-medium tracking-wide group-hover:text-white transition-colors">{t[activeTab as keyof typeof t]} {t.enabled}</span>
+                                                        <div
+                                                            onClick={() => updateSetting(activeTab, "enabled", !settings[activeTab].enabled)}
+                                                            className={`w-11 h-6 rounded-full transition-all duration-300 cursor-pointer flex items-center p-1 border ${settings[activeTab].enabled ? "bg-linear-to-r from-pink-500 to-purple-500 shadow-[0_0_15px_rgba(236,72,153,0.4)] border-pink-400/50" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
+                                                        >
+                                                            <div className={`w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${settings[activeTab].enabled ? "translate-x-5" : "translate-x-0"}`} />
+                                                        </div>
+                                                    </label>
 
-                                            {STYLE_OPTIONS[activeTab] && (
-                                                <div className="space-y-3 p-4 rounded-2xl bg-white/5 border border-white/10 shadow-inner group">
-                                                    <span className="text-white/50 text-[11px] font-semibold tracking-widest uppercase group-hover:text-white/70 transition-colors">{t.style}</span>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-                                                        {STYLE_OPTIONS[activeTab].map(opt => (
-                                                            <button
-                                                                key={opt.id}
-                                                                onClick={() => updateSetting(activeTab, "style", opt.id)}
-                                                                className={`py-2 px-1 rounded-xl text-[10px] font-medium border transition-all ${
-                                                                    settings[activeTab].style === opt.id
-                                                                        ? "bg-pink-500/20 border-pink-500/50 text-pink-200"
-                                                                        : "bg-white/5 border-transparent text-white/40 hover:bg-white/10"
-                                                                }`}
-                                                            >
-                                                                {opt.name[lang] || opt.name.en}
-                                                            </button>
-                                                        ))}
+                                                    {STYLE_OPTIONS[activeTab] && (
+                                                        <div className="space-y-3 p-4 rounded-2xl bg-white/5 border border-white/10 shadow-inner group">
+                                                            <span className="text-white/50 text-[11px] font-semibold tracking-widest uppercase group-hover:text-white/70 transition-colors">{t.style}</span>
+                                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                                                                {STYLE_OPTIONS[activeTab].map(opt => (
+                                                                    <button
+                                                                        key={opt.id}
+                                                                        onClick={() => updateSetting(activeTab, "style", opt.id)}
+                                                                        className={`py-2 px-1 rounded-xl text-[10px] font-medium border transition-all ${
+                                                                            settings[activeTab].style === opt.id
+                                                                                ? "bg-pink-500/20 border-pink-500/50 text-pink-200"
+                                                                                : "bg-white/5 border-transparent text-white/40 hover:bg-white/10"
+                                                                        }`}
+                                                                    >
+                                                                        {opt.name[lang] || opt.name.en}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/10 shadow-inner group">
+                                                        <span className="text-white/50 text-[11px] font-semibold uppercase tracking-widest group-hover:text-white/70 transition-colors">Color</span>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-white/40 text-[11px] font-mono tracking-widest">{settings[activeTab].color}</span>
+                                                            <div className="relative w-8 h-8 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.5)] border border-white/20 ring-2 ring-zinc-900 group-hover:ring-pink-500/50 transition-all overflow-hidden shrink-0">
+                                                                <input
+                                                                    type="color"
+                                                                    value={settings[activeTab].color}
+                                                                    onChange={(e) => updateSetting(activeTab, "color", e.target.value)}
+                                                                    className="absolute -top-4 -left-4 w-16 h-16 cursor-pointer opacity-0"
+                                                                />
+                                                                <div className="w-full h-full pointer-events-none" style={{ backgroundColor: settings[activeTab].color }} />
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
 
-                                            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/10 shadow-inner group">
-                                                <span className="text-white/50 text-[11px] font-semibold uppercase tracking-widest group-hover:text-white/70 transition-colors">Color</span>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-white/40 text-[11px] font-mono tracking-widest">{settings[activeTab].color}</span>
-                                                    <div className="relative w-8 h-8 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.5)] border border-white/20 ring-2 ring-zinc-900 group-hover:ring-pink-500/50 transition-all overflow-hidden shrink-0">
-                                                        <input
-                                                            type="color"
-                                                            value={settings[activeTab].color}
-                                                            onChange={(e) => updateSetting(activeTab, "color", e.target.value)}
-                                                            className="absolute -top-4 -left-4 w-16 h-16 cursor-pointer opacity-0"
-                                                        />
-                                                        <div className="w-full h-full pointer-events-none" style={{ backgroundColor: settings[activeTab].color }} />
+                                                    <div className="space-y-3 p-4 rounded-2xl bg-white/5 border border-white/10 shadow-inner group">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-white/50 text-[11px] font-semibold tracking-widest uppercase group-hover:text-white/70 transition-colors">{t.opacity}</span>
+                                                            <span className="text-pink-300 text-[12px] font-mono font-bold tracking-wider">{settings[activeTab].opacity}%</span>
+                                                        </div>
+                                                        <div className="relative pt-1 pb-2 flex items-center">
+                                                            <input
+                                                                type="range" min="0" max="100"
+                                                                value={settings[activeTab].opacity}
+                                                                onChange={(e) => updateSetting(activeTab, "opacity", Number(e.target.value))}
+                                                                className="w-full h-1.5 rounded-full appearance-none cursor-pointer outline-none transition-all custom-range-slider"
+                                                                style={{
+                                                                    background: `linear-gradient(to right, rgb(236,72,153) ${settings[activeTab].opacity}%, rgba(255,255,255,0.05) ${settings[activeTab].opacity}%)`
+                                                                }}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-3 p-4 rounded-2xl bg-white/5 border border-white/10 shadow-inner group">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-white/50 text-[11px] font-semibold tracking-widest uppercase group-hover:text-white/70 transition-colors">{t.opacity}</span>
-                                                    <span className="text-pink-300 text-[12px] font-mono font-bold tracking-wider">{settings[activeTab].opacity}%</span>
-                                                </div>
-                                                <div className="relative pt-1 pb-2 flex items-center">
-                                                    <input
-                                                        type="range" min="0" max="100"
-                                                        value={settings[activeTab].opacity}
-                                                        onChange={(e) => updateSetting(activeTab, "opacity", Number(e.target.value))}
-                                                        className="w-full h-1.5 rounded-full appearance-none cursor-pointer outline-none transition-all custom-range-slider"
-                                                        style={{
-                                                            background: `linear-gradient(to right, rgb(236,72,153) ${settings[activeTab].opacity}%, rgba(255,255,255,0.05) ${settings[activeTab].opacity}%)`
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
+                                                </>
                                         </div>
 
                                         <button onClick={resetSettings}
