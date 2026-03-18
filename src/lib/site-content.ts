@@ -7,7 +7,6 @@ export type NavigationLabels = {
     aesthetic: string;
     color: string;
     faceShape: string;
-    faceShape3D: string;
 };
 
 const SUPPORTED_LANGS: SupportedLang[] = ["ko", "en", "zh", "ja"];
@@ -60,10 +59,10 @@ const FOOTER_LABELS: Record<SupportedLang, FooterLabels> = {
 };
 
 const NAVIGATION_LABELS: Record<SupportedLang, NavigationLabels> = {
-    ko: { home: "홈", aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석", faceShape3D: "3D 입체 분석 (Beta)" },
-    en: { home: "Home", aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis", faceShape3D: "3D Face Analysis (Beta)" },
-    zh: { home: "首页", aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析", faceShape3D: "3D 脸型分析 (Beta)" },
-    ja: { home: "ホーム", aesthetic: "感性テスト", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석", faceShape3D: "3D 얼굴형 분석 (Beta)" },
+    ko: { home: "홈", aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석" },
+    en: { home: "Home", aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis" },
+    zh: { home: "首页", aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析" },
+    ja: { home: "ホーム", aesthetic: "感性テスト", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석" },
 };
 
 const ABOUT_COPY: Record<SupportedLang, PageCopy> = {

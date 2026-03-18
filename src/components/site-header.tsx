@@ -127,7 +127,6 @@ export function SiteHeader({
             { href: `/aesthetic?lang=${lang}`, label: labels.aesthetic, section: "aesthetic" as const },
             { href: `/color?lang=${lang}`, label: labels.color, section: "color" as const },
             { href: `/face-shape?lang=${lang}`, label: labels.faceShape, section: "face-shape" as const },
-            { href: `/face-shape-3d?lang=${lang}`, label: labels.faceShape3D, section: "face-shape" as const }, // Reusing section for highlighting
         ],
         [lang, labels]
     );
