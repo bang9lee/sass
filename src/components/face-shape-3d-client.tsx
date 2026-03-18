@@ -124,9 +124,6 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
                 video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
             });
             setStream(mediaStream);
-            if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-            }
             setStep("loading-model");
         } catch (err) {
             console.error("Camera error:", err);
@@ -254,6 +251,14 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
         };
     }, [stream, step, isDemo, mounted, detect]);
 
+    // Attach stream to video element after render
+    useEffect(() => {
+        if (stream && videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(() => { /* autoplay blocked */ });
+        }
+    }, [stream]);
+
     // Initialize camera on mount
     useEffect(() => {
         if (mounted) startCamera();
@@ -349,14 +354,14 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
                 <div className="relative w-full aspect-square max-w-[400px]">
                     <div className="absolute inset-0 rounded-full border border-white/10 p-3">
                         <div className="relative w-full h-full rounded-full overflow-hidden bg-zinc-950/50 backdrop-blur-sm border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.15)]">
-                            {/* Video */}
-                            {stream ? (
-                                <video 
-                                    ref={videoRef} autoPlay playsInline muted 
-                                    className={`w-full h-full object-cover scale-x-[-1] transition-opacity duration-500 ${step === 'init' ? 'opacity-0' : 'opacity-100'}`}
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-linear-to-b from-zinc-900 to-black flex items-center justify-center">
+                            {/* Video — always mounted so ref is available */}
+                            <video 
+                                ref={videoRef} autoPlay playsInline muted 
+                                className={`absolute inset-0 w-full h-full object-cover scale-x-[-1] transition-opacity duration-500 ${stream ? 'opacity-100' : 'opacity-0'}`}
+                            />
+                            {/* Placeholder when no stream */}
+                            {!stream && (
+                                <div className="absolute inset-0 bg-linear-to-b from-zinc-900 to-black flex items-center justify-center">
                                     <Camera className="w-12 h-12 text-cyan-500/20" />
                                 </div>
                             )}
