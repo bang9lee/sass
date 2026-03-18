@@ -7,6 +7,7 @@ export type NavigationLabels = {
     aesthetic: string;
     color: string;
     faceShape: string;
+    makeup: string;
 };
 
 const SUPPORTED_LANGS: SupportedLang[] = ["ko", "en", "zh", "ja"];
@@ -59,10 +60,10 @@ const FOOTER_LABELS: Record<SupportedLang, FooterLabels> = {
 };
 
 const NAVIGATION_LABELS: Record<SupportedLang, NavigationLabels> = {
-    ko: { home: "홈", aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석" },
-    en: { home: "Home", aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis" },
-    zh: { home: "首页", aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析" },
-    ja: { home: "ホーム", aesthetic: "感性テスト", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석" },
+    ko: { home: "홈", aesthetic: "감성 테스트", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석", makeup: "AI 메이크업" },
+    en: { home: "Home", aesthetic: "Aesthetic Test", color: "Personal Color", faceShape: "AI Face Shape Analysis", makeup: "AI Makeup" },
+    zh: { home: "首页", aesthetic: "美学测试", color: "个人色彩", faceShape: "AI 脸型分析", makeup: "AI 化妆" },
+    ja: { home: "ホーム", aesthetic: "感性テスト", color: "퍼스널 컬러", faceShape: "AI 얼굴형 분석", makeup: "AI メイク" },
 };
 
 const ABOUT_COPY: Record<SupportedLang, PageCopy> = {

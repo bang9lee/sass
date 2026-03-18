@@ -9,7 +9,7 @@ import { LanguageSelector } from "@/components/language-selector";
 import { getNavigationLabels, type SupportedLang } from "@/lib/site-content";
 import { useLanguage } from "@/components/language-provider";
 
-type SiteSection = "home" | "aesthetic" | "color" | "face-shape" | null;
+type SiteSection = "home" | "aesthetic" | "color" | "face-shape" | "makeup" | null;
 
 export type SiteHeaderProps = {
     lang: SupportedLang;
@@ -39,8 +39,12 @@ function resolveActiveSection(pathname: string, mode: string | null): SiteSectio
         return "face-shape";
     }
 
-    if (pathname === "/test/face-shape-harness" || pathname === "/test/face-shape-report" || pathname === "/face-shape-3d") {
-        return "face-shape"; // Or a new section if needed, but for now let's map it to face-shape for color highlighting
+    if (pathname === "/makeup") {
+        return "makeup";
+    }
+
+    if (pathname === "/test/face-shape-harness" || pathname === "/test/face-shape-report") {
+        return "face-shape";
     }
 
     if (
@@ -127,6 +131,7 @@ export function SiteHeader({
             { href: `/aesthetic?lang=${lang}`, label: labels.aesthetic, section: "aesthetic" as const },
             { href: `/color?lang=${lang}`, label: labels.color, section: "color" as const },
             { href: `/face-shape?lang=${lang}`, label: labels.faceShape, section: "face-shape" as const },
+            { href: `/makeup?lang=${lang}`, label: labels.makeup, section: "makeup" as const },
         ],
         [lang, labels]
     );

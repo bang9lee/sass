@@ -56,6 +56,16 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                     color: "from-cyan-500/20 to-blue-500/20",
                     accent: "text-cyan-400",
                 },
+                {
+                    id: "makeup",
+                    title: "AI 메이크업",
+                    desc: "업로드한 사진 위에 다양한\n가상 메이크업을 즉시 체험해보세요.",
+                    href: "/makeup",
+                    image: "/images/makeup_hero.png",
+                    icon: Palette,
+                    color: "from-amber-400/20 to-orange-500/20",
+                    accent: "text-amber-400",
+                },
             ],
             explore: "시작하기",
         },
@@ -93,6 +103,16 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                     icon: ScanFace,
                     color: "from-cyan-500/20 to-blue-500/20",
                     accent: "text-cyan-400",
+                },
+                {
+                    id: "makeup",
+                    title: "AI Makeup Simulator",
+                    desc: "Apply various virtual makeup styles\ninstantly with AI-powered precision.",
+                    href: "/makeup",
+                    image: "/images/makeup_hero.png",
+                    icon: Palette,
+                    color: "from-amber-400/20 to-orange-500/20",
+                    accent: "text-amber-400",
                 },
             ],
             explore: "Explore",
@@ -132,6 +152,16 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                     color: "from-cyan-500/20 to-blue-500/20",
                     accent: "text-cyan-400",
                 },
+                {
+                    id: "makeup",
+                    title: "AI 智能化妆",
+                    desc: "在您的照片上，\n立即体验多种高精度的虚拟化妆功能。",
+                    href: "/makeup",
+                    image: "/images/makeup_hero.png",
+                    icon: Palette,
+                    color: "from-amber-400/20 to-orange-500/20",
+                    accent: "text-amber-400",
+                },
             ],
             explore: "开始探索",
         },
@@ -170,6 +200,16 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                     color: "from-cyan-500/20 to-blue-500/20",
                     accent: "text-cyan-400",
                 },
+                {
+                    id: "makeup",
+                    title: "AI メ이크",
+                    desc: "写真に、多彩なバーチャルメイクを\n瞬時にシミュレーションできます。",
+                    href: "/makeup",
+                    image: "/images/makeup_hero.png",
+                    icon: Palette,
+                    color: "from-amber-400/20 to-orange-500/20",
+                    accent: "text-amber-400",
+                },
             ],
             explore: "はじめる",
         },
@@ -200,7 +240,7 @@ export default function MainHomeClient({}: MainHomeClientProps) {
 
                     {/* Services View - Horizontal Snap on Mobile, Grid on Desktop */}
                     <div className="w-full max-w-7xl mx-auto overflow-visible relative">
-                        <div className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory px-6 sm:px-0 no-scrollbar pb-8 sm:pb-0">
+                        <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory px-6 sm:px-0 no-scrollbar pb-8 sm:pb-0">
                             {t.categories.map((cat: { id: string; href: string; image: string; title: string; desc: string }, idx: number) => (
                                 <motion.div
                                     key={cat.id}

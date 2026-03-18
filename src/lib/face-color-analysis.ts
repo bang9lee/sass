@@ -211,7 +211,7 @@ function filterOutliers(pixels: { r: number; g: number; b: number }[]): { r: num
 }
 
 // =============================================
-// Season Scoring
+// Season Scoring — Rebalanced for East-Asian skin tones
 // =============================================
 function calculateSeasonScores(
     skinLab: { L: number; a: number; b: number },
@@ -219,100 +219,167 @@ function calculateSeasonScores(
     hairBrightness: number,
     contrast: number
 ): Record<SeasonId, number> {
-    // Undertone warmth: positive b* = warm (yellow), negative b* = cool (blue)
-    // Also a* > 0 = reddish, a* < 0 = greenish
-    const warmth = skinLab.b * 0.6 + skinLab.a * 0.4; // combined warmth score
+    /*
+     * Rewritten scoring algorithm calibrated for East-Asian skin tones.
+     *
+     * East-Asian skin typically clusters at Lab(L*=58-78, a*=5-18, b*=10-25).
+     * The old code treated any b*>5 as decidedly "warm" and any L*>65 as "light",
+     * which made Spring dominate in virtually every case.
+     *
+     * New approach:
+     *  - Use the a* (red-green) axis more heavily — it is the primary differentiator
+     *    between warm-cool undertones for yellow-base skins where b* is always high.
+     *  - Tighten all thresholds to the realistic East-Asian distribution.
+     *  - Cap per-axis contribution so no single axis can run away with the total.
+     *  - Introduce HSL hue as a secondary warm/cool signal (orange-yellow hue = warm,
+     *    pink-rose hue = cool).
+     *  - Start all seasons at 50 (equal) so that small differences determine the winner.
+     */
 
-    // Brightness from Lab L* (0-100)
+    // ---- derived metrics ----
+    const warmthA = skinLab.a;          // red-green axis (primary differentiator for Asian skin)
+    const warmthB = skinLab.b;          // yellow-blue axis (has little variance in Asian skin)
+    // Weight a* more heavily because b* has little variance
+    const warmth = warmthA * 0.7 + (warmthB - 15) * 0.3;  // centre b* around 15
+
     const brightness = skinLab.L;
-
-    // Clarity/Chroma — higher saturation = clearer
     const chroma = Math.sqrt(skinLab.a * skinLab.a + skinLab.b * skinLab.b);
 
-    // Season scoring
+    // HSL hue: 0-30 orange/red = warm, 330-360 pink = cool, 30-50 yellow = warm
+    const hue = skinHsl.h;
+    const hueCoolBias = (hue > 320 || (hue > 0 && hue < 15)) ? 1 : 0;
+    const hueWarmBias = (hue >= 15 && hue <= 50) ? 1 : 0;
+
+    // ---- initialise scores at equal baseline ----
     const scores: Record<SeasonId, number> = {
-        spring: 0,
-        summer: 0,
-        autumn: 0,
-        winter: 0,
+        spring: 50,
+        summer: 50,
+        autumn: 50,
+        winter: 50,
     };
 
-    // === WARMTH AXIS ===
-    // Warm seasons: spring, autumn
-    // Cool seasons: summer, winter
-    if (warmth > 5) {
-        // Warm
-        scores.spring += 25 + Math.min(warmth * 0.8, 20);
-        scores.autumn += 25 + Math.min(warmth * 0.8, 20);
-        scores.summer += Math.max(0, 10 - warmth * 0.5);
-        scores.winter += Math.max(0, 10 - warmth * 0.5);
-    } else if (warmth < -5) {
-        // Cool
-        scores.summer += 25 + Math.min(Math.abs(warmth) * 0.8, 20);
-        scores.winter += 25 + Math.min(Math.abs(warmth) * 0.8, 20);
-        scores.spring += Math.max(0, 10 - Math.abs(warmth) * 0.5);
-        scores.autumn += Math.max(0, 10 - Math.abs(warmth) * 0.5);
-    } else {
-        // Neutral — slight advantage to all
-        scores.spring += 15;
-        scores.summer += 15;
-        scores.autumn += 15;
-        scores.winter += 15;
+    // === WARMTH AXIS (max +/-20 per season) ===
+    // Warm → spring, autumn    Cool → summer, winter
+    const warmClamp = Math.max(-20, Math.min(20, warmth));
+    if (warmClamp > 2) {
+        const w = Math.min((warmClamp - 2) * 1.2, 20);
+        scores.spring += w;
+        scores.autumn += w;
+        scores.summer -= w * 0.5;
+        scores.winter -= w * 0.5;
+    } else if (warmClamp < -2) {
+        const c = Math.min((Math.abs(warmClamp) - 2) * 1.2, 20);
+        scores.summer += c;
+        scores.winter += c;
+        scores.spring -= c * 0.5;
+        scores.autumn -= c * 0.5;
     }
+    // Neutral zone (-2..+2): no change
 
-    // === BRIGHTNESS AXIS ===
-    // Light seasons: spring, summer
-    // Deep seasons: autumn, winter
-    if (brightness > 65) {
-        scores.spring += 20 + (brightness - 65) * 0.5;
-        scores.summer += 20 + (brightness - 65) * 0.5;
-        scores.autumn += Math.max(0, 10 - (brightness - 65) * 0.3);
-        scores.winter += Math.max(0, 10 - (brightness - 65) * 0.3);
-    } else if (brightness < 50) {
-        scores.autumn += 20 + (50 - brightness) * 0.5;
-        scores.winter += 20 + (50 - brightness) * 0.5;
-        scores.spring += Math.max(0, 10 - (50 - brightness) * 0.3);
-        scores.summer += Math.max(0, 10 - (50 - brightness) * 0.3);
-    } else {
-        scores.spring += 12;
-        scores.summer += 12;
-        scores.autumn += 12;
-        scores.winter += 12;
-    }
-
-    // === CLARITY AXIS ===
-    // Clear: spring, winter
-    // Muted: summer, autumn
-    if (chroma > 20) {
-        scores.spring += 15 + Math.min((chroma - 20) * 0.5, 10);
-        scores.winter += 15 + Math.min((chroma - 20) * 0.5, 10);
-        scores.summer += Math.max(0, 8 - (chroma - 20) * 0.3);
-        scores.autumn += Math.max(0, 8 - (chroma - 20) * 0.3);
-    } else {
-        scores.summer += 15 + Math.min((20 - chroma) * 0.5, 10);
-        scores.autumn += 15 + Math.min((20 - chroma) * 0.5, 10);
-        scores.spring += Math.max(0, 8 - (20 - chroma) * 0.3);
-        scores.winter += Math.max(0, 8 - (20 - chroma) * 0.3);
-    }
-
-    // === CONTRAST BONUS ===
-    // High contrast → winter, Low contrast → summer/spring
-    if (contrast > 50) {
-        scores.winter += 10;
-        scores.autumn += 3;
-    } else if (contrast < 25) {
-        scores.summer += 8;
-        scores.spring += 8;
-    }
-
-    // === HAIR BRIGHTNESS ===
-    // Very dark hair → winter/autumn, Light hair → spring/summer
-    if (hairBrightness < 60) {
-        scores.winter += 5;
-        scores.autumn += 5;
-    } else if (hairBrightness > 140) {
+    // HSL hue nudge (max +/-5)
+    if (hueWarmBias) {
         scores.spring += 5;
+        scores.autumn += 5;
+    }
+    if (hueCoolBias) {
         scores.summer += 5;
+        scores.winter += 5;
+    }
+
+    // === BRIGHTNESS AXIS (max +/-15 per season) ===
+    // Light → spring, summer    Deep → autumn, winter
+    // East-Asian L* clusters around 62-72, so use 67 as the centre
+    if (brightness > 70) {
+        const b = Math.min((brightness - 70) * 1.0, 15);
+        scores.spring += b;
+        scores.summer += b;
+        scores.autumn -= b * 0.6;
+        scores.winter -= b * 0.6;
+    } else if (brightness < 58) {
+        const b = Math.min((58 - brightness) * 1.0, 15);
+        scores.autumn += b;
+        scores.winter += b;
+        scores.spring -= b * 0.6;
+        scores.summer -= b * 0.6;
+    } else {
+        // Middle band (58-70): differentiate by relative position
+        const mid = (brightness - 58) / 12; // 0..1 (0=deep side, 1=light side)
+        scores.spring += (mid - 0.5) * 6;
+        scores.summer += (mid - 0.5) * 6;
+        scores.autumn -= (mid - 0.5) * 6;
+        scores.winter -= (mid - 0.5) * 6;
+    }
+
+    // === CLARITY / CHROMA AXIS (max +/-15 per season) ===
+    // Clear/vivid → spring, winter    Muted/soft → summer, autumn
+    const chromaCentre = 18;  // typical Asian skin chroma
+    if (chroma > chromaCentre + 5) {
+        const cl = Math.min((chroma - chromaCentre - 5) * 0.8, 15);
+        scores.spring += cl;
+        scores.winter += cl;
+        scores.summer -= cl * 0.5;
+        scores.autumn -= cl * 0.5;
+    } else if (chroma < chromaCentre - 5) {
+        const mu = Math.min((chromaCentre - 5 - chroma) * 0.8, 15);
+        scores.summer += mu;
+        scores.autumn += mu;
+        scores.spring -= mu * 0.5;
+        scores.winter -= mu * 0.5;
+    }
+
+    // === CONTRAST (skin vs hair L* difference) – max +/-10 ===
+    if (contrast > 45) {
+        const cb = Math.min((contrast - 45) * 0.5, 10);
+        scores.winter += cb;
+        scores.autumn += cb * 0.3;
+    } else if (contrast < 20) {
+        const lb = Math.min((20 - contrast) * 0.5, 10);
+        scores.summer += lb;
+        scores.spring += lb;
+    }
+
+    // === HAIR BRIGHTNESS – max +/-8 ===
+    if (hairBrightness < 55) {
+        scores.winter += 8;
+        scores.autumn += 4;
+    } else if (hairBrightness > 130) {
+        scores.spring += 6;
+        scores.summer += 6;
+    }
+
+    // === CROSS-AXIS CORRELATION BONUSES ===
+    // Warm + Light → favour spring over autumn
+    if (warmth > 2 && brightness > 67) {
+        scores.spring += 5;
+        scores.autumn -= 3;
+    }
+    // Warm + Deep → favour autumn over spring
+    if (warmth > 2 && brightness < 58) {
+        scores.autumn += 5;
+        scores.spring -= 3;
+    }
+    // Cool + Light → favour summer over winter
+    if (warmth < -2 && brightness > 67) {
+        scores.summer += 5;
+        scores.winter -= 3;
+    }
+    // Cool + Deep → favour winter over summer
+    if (warmth < -2 && brightness < 58) {
+        scores.winter += 5;
+        scores.summer -= 3;
+    }
+    // High chroma + Cool → winter
+    if (chroma > 23 && warmth < 0) {
+        scores.winter += 5;
+    }
+    // Low chroma + Warm → autumn soft
+    if (chroma < 15 && warmth > 0) {
+        scores.autumn += 5;
+    }
+
+    // Clamp to prevent any score going negative
+    for (const key of Object.keys(scores) as SeasonId[]) {
+        if (scores[key] < 0) scores[key] = 0;
     }
 
     return scores;
@@ -346,12 +413,11 @@ function calculateFaceShape(landmarks: FaceKeypoint[]): AnalysisResult["faceShap
 
     // 2. Round vs Square vs Oval (Ratio closer to 1 or 1.25)
     if (ratio < 1.2) {
-        // Round or Square
         if (jawWidth > foreheadWidth * 0.95) return "square";
         return "round";
     }
 
-    // 3. Heart vs Diamond (Forehead width vs Cheek width)
+    // 3. Heart vs Diamond
     if (foreheadWidth > faceWidth * 0.85 && jawWidth < faceWidth * 0.7) {
         return "heart";
     }
@@ -360,38 +426,51 @@ function calculateFaceShape(landmarks: FaceKeypoint[]): AnalysisResult["faceShap
         return "diamond";
     }
 
-    // 4. Pear (Jaw wider than forehead)
+    // 4. Pear
     if (jawWidth > foreheadWidth * 1.1) {
         return "pear";
     }
 
-    // Default
     return "oval";
 }
 
-// Helper to determine the precise 12-season sub-tone based on features
-function determineSubSeason(baseSeason: SeasonId, brightness: 'light' | 'medium' | 'deep', clarity: 'clear' | 'muted', skinLab: { L: number; a: number; b: number }): SubSeasonId {
-    if (baseSeason === 'spring') {
-        if (brightness === 'light') return 'spring-light';
-        if (clarity === 'clear' && skinLab.L < 68) return 'spring-bright'; // more saturated/contrasting skin tone
-        return 'spring-true';
+// =============================================
+// Sub-Season Determination — Continuous Lab Metrics
+// =============================================
+function determineSubSeason(
+    baseSeason: SeasonId,
+    brightness: "light" | "medium" | "deep",
+    clarity: "clear" | "muted",
+    skinLab: { L: number; a: number; b: number },
+    contrast: number,
+    chroma: number
+): SubSeasonId {
+    /*
+     * Uses continuous Lab metrics rather than hard-coded binary thresholds
+     * that always resolve to the same sub-type.
+     */
+
+    if (baseSeason === "spring") {
+        if (chroma > 22 && contrast > 35) return "spring-bright";
+        if (skinLab.L > 70 && chroma < 22) return "spring-light";
+        return "spring-true";
     }
-    if (baseSeason === 'summer') {
-        if (brightness === 'light') return 'summer-light';
-        if (clarity === 'muted') return 'summer-soft';
-        return 'summer-true';
+    if (baseSeason === "summer") {
+        if (contrast < 25 && chroma < 18) return "summer-soft";
+        if (skinLab.L > 70) return "summer-light";
+        return "summer-true";
     }
-    if (baseSeason === 'autumn') {
-        if (brightness === 'deep') return 'autumn-deep';
-        if (clarity === 'muted' && skinLab.L >= 55) return 'autumn-soft';
-        return 'autumn-true';
+    if (baseSeason === "autumn") {
+        if (skinLab.L < 55) return "autumn-deep";
+        if (chroma < 18 && skinLab.L >= 58) return "autumn-soft";
+        return "autumn-true";
     }
-    if (baseSeason === 'winter') {
-        if (brightness === 'deep') return 'winter-deep';
-        if (clarity === 'clear' && skinLab.L >= 60) return 'winter-bright';
-        return 'winter-true';
+    if (baseSeason === "winter") {
+        if (skinLab.L < 50) return "winter-deep";
+        if (contrast > 45 && chroma > 20) return "winter-bright";
+        return "winter-true";
     }
-    return 'spring-true'; // Fallback
+    return "spring-true"; // Fallback
 }
 
 // =============================================
@@ -479,17 +558,17 @@ export async function analyzePersonalColorAI(
     const confidence = Math.round((entries[0][1] / totalScore) * 100);
 
     // 7. Determine descriptors
-    const warmth = skinLab.b * 0.6 + skinLab.a * 0.4;
+    const warmth = skinLab.a * 0.7 + (skinLab.b - 15) * 0.3;
     const undertone: AnalysisResult["undertone"] =
-        warmth > 5 ? "warm" : warmth < -5 ? "cool" : "neutral";
+        warmth > 2 ? "warm" : warmth < -2 ? "cool" : "neutral";
 
-    const brightness: AnalysisResult["brightness"] =
-        skinLab.L > 65 ? "light" : skinLab.L < 50 ? "deep" : "medium";
+    const brightnessLabel: AnalysisResult["brightness"] =
+        skinLab.L > 70 ? "light" : skinLab.L < 58 ? "deep" : "medium";
 
     const chroma = Math.sqrt(skinLab.a * skinLab.a + skinLab.b * skinLab.b);
-    const clarity: AnalysisResult["clarity"] = chroma > 20 ? "clear" : "muted";
+    const clarity: AnalysisResult["clarity"] = chroma > 18 ? "clear" : "muted";
 
-    const subSeason = determineSubSeason(winnerBase, brightness, clarity, skinLab);
+    const subSeason = determineSubSeason(winnerBase, brightnessLabel, clarity, skinLab, contrast, chroma);
     const faceShape = calculateFaceShape(landmarks);
 
     return {
@@ -498,7 +577,7 @@ export async function analyzePersonalColorAI(
         confidence,
         skinTone: skinColor,
         undertone,
-        brightness,
+        brightness: brightnessLabel,
         clarity,
         faceShape,
         scores: Object.fromEntries(entries) as Record<SeasonId, number>,
@@ -540,12 +619,14 @@ function fallbackAnalysis(imageData: ImageData, w: number, h: number): AnalysisR
     const winnerBase = entries[0][0];
     const totalScore = entries.reduce((sum, e) => sum + e[1], 0);
 
-    const warmth = skinLab.b * 0.6 + skinLab.a * 0.4;
-    const undertone: AnalysisResult["undertone"] = warmth > 5 ? "warm" : warmth < -5 ? "cool" : "neutral";
-    const brightness: AnalysisResult["brightness"] = skinLab.L > 65 ? "light" : skinLab.L < 50 ? "deep" : "medium";
-    const clarity: AnalysisResult["clarity"] = Math.sqrt(skinLab.a ** 2 + skinLab.b ** 2) > 20 ? "clear" : "muted";
+    const warmth = skinLab.a * 0.7 + (skinLab.b - 15) * 0.3;
+    const undertone: AnalysisResult["undertone"] = warmth > 2 ? "warm" : warmth < -2 ? "cool" : "neutral";
+    const brightnessLabel: AnalysisResult["brightness"] = skinLab.L > 70 ? "light" : skinLab.L < 58 ? "deep" : "medium";
+    const chroma = Math.sqrt(skinLab.a ** 2 + skinLab.b ** 2);
+    const clarity: AnalysisResult["clarity"] = chroma > 18 ? "clear" : "muted";
 
-    const subSeason = determineSubSeason(winnerBase, brightness, clarity, skinLab);
+    const contrast = 30; // fallback contrast
+    const subSeason = determineSubSeason(winnerBase, brightnessLabel, clarity, skinLab, contrast, chroma);
 
     return {
         season: subSeason,
@@ -553,7 +634,7 @@ function fallbackAnalysis(imageData: ImageData, w: number, h: number): AnalysisR
         confidence: Math.round((entries[0][1] / totalScore) * 100),
         skinTone: skinColor,
         undertone,
-        brightness,
+        brightness: brightnessLabel,
         clarity,
         faceShape: "oval", // Fallback
         scores: Object.fromEntries(entries) as Record<SeasonId, number>,

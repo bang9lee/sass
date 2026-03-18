@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Check, Download, Link2, RotateCcw, Share2, Home } from 'lucide-react';
 import type { SupportedLang } from "@/lib/site-content";
@@ -54,6 +54,13 @@ export function ColorResultCardClient({
     const [showToast, setShowToast] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [downloading, setDownloading] = useState(false);
+
+    // Save result to session storage for cross-feature integration (e.g. AI Makeup Auto-Recommend)
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem("personal_color_result", JSON.stringify({ subSeason: resultId }));
+        }
+    }, [resultId]);
 
     const shareUrl = typeof window !== 'undefined'
         ? `${window.location.origin}/color/result/${resultId}?lang=${lang}`
