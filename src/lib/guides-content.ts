@@ -1332,7 +1332,7 @@ const GUIDE_FAQ: Record<SupportedLang, GuideArticleCopy> = {
         ],
         faqTitle: "짧은 답변 모음",
         faqs: [
-            { question: "업로드한 사진이 서버에 저장되나요?", answer: "분석용 입력으로 쓰이는 흐름이라 장문 콘텐츠처럼 보관되는 구조로 보시면 안 됩니다. 업로드 이미지는 결과를 계산하기 위한 재료에 가깝습니다." },
+            { question: "업로드한 사진이 서버에 저장되나요?", answer: "아니요, 본 서비스는 상용자의 이미지를 서버에 저장하거나 전송하지 않습니다. 모든 분석은 브라우저(로컬) 내에서 즉시 수행되며, 결과 도출 후에는 어떠한 데이터도 남지 않으니 안심하고 사용하셔도 좋습니다." },
             { question: "얼굴형 결과가 남녀 같으면 이상한 것 아닌가요?", answer: "얼굴형 판정은 구조 분류라서 같을 수 있습니다. 대신 헤어, 안경, 메이크업처럼 스타일 추천 층은 다르게 보는 게 맞습니다." },
             { question: "보정 페이지에서 손본 값이 실제 결과에 반영되나요?", answer: "네. 보정 후 분석을 실행하면 수동 프레임이 최종 계산 기준으로 들어갑니다. 그래서 보정 단계가 생각보다 중요합니다." },
             { question: "왜 품질 경고가 떠도 분석은 진행되나요?", answer: "경고는 해석에 주의하라는 뜻이지 무조건 분석 불가라는 뜻은 아닙니다. 다만 경고가 남아 있으면 결과를 단정적으로 읽지 않는 편이 안전합니다." },
@@ -1390,7 +1390,7 @@ const GUIDE_FAQ: Record<SupportedLang, GuideArticleCopy> = {
         ],
         faqTitle: "Short answers",
         faqs: [
-            { question: "Are uploaded photos stored on the server?", answer: "From a product-use perspective, the image acts as analysis input rather than as long-form content inventory. Users interact with it as transient computation material." },
+            { question: "Are uploaded photos stored on the server?", answer: "No, we do not store or upload your photos to the server. All analysis is performed locally within your browser, and the image data is discarded immediately after the results are calculated." },
             { question: "Is it strange if face-shape labels are the same across genders?", answer: "The structural label can be the same. What should differ more clearly is the styling layer built on top of that structure." },
             { question: "Does the correction screen actually affect the final result?", answer: "Yes. If you run the analysis after correction, the manual frame becomes the final calculation input." },
             { question: "Why can analysis continue even when there is a quality warning?", answer: "A warning means interpret with caution, not always that analysis is impossible. But unresolved warnings should lower how strongly you trust the output." },
@@ -1448,7 +1448,7 @@ const GUIDE_FAQ: Record<SupportedLang, GuideArticleCopy> = {
         ],
         faqTitle: "简短回答",
         faqs: [
-            { question: "上传照片会保存在服务器吗？", answer: "从产品使用角度看，图片被当作浏览器端分析输入，而不是长期发布内容。用户与它的关系更像一次性计算材料。" },
+            { question: "上传照片会保存在服务器吗？", answer: "不，我们不会在服务器上存储或上传您的照片。所有分析均在您的浏览器本地完成，图像数据在计算结果后会立即被丢弃，确保您的隐私安全。" },
             { question: "如果男女结果一样，会不会不合理？", answer: "结构型脸型标签可以相同。更应该区分的是建立在结构之上的风格推荐层。" },
             { question: "校正页面里手动改的内容真的会影响最终结果吗？", answer: "会。只要你在校正后继续分析，手动框线就会作为最终计算输入。" },
             { question: "为什么有质量提示却仍然可以继续分析？", answer: "提示的含义是“要谨慎解读”，不一定等于“无法分析”。但警告没消失时，不适合过度相信输出。" },
