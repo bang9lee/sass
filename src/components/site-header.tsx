@@ -39,8 +39,8 @@ function resolveActiveSection(pathname: string, mode: string | null): SiteSectio
         return "face-shape";
     }
 
-    if (pathname === "/test/face-shape-harness" || pathname === "/test/face-shape-report") {
-        return null;
+    if (pathname === "/test/face-shape-harness" || pathname === "/test/face-shape-report" || pathname === "/face-shape-3d") {
+        return "face-shape"; // Or a new section if needed, but for now let's map it to face-shape for color highlighting
     }
 
     if (
@@ -64,31 +64,35 @@ function resolveActiveSection(pathname: string, mode: string | null): SiteSectio
 }
 
 function getDesktopLinkClass(section: Exclude<SiteSection, null>, activeSection: SiteSection) {
+    const baseClass = "text-[14px] font-semibold transition-colors tracking-tight whitespace-nowrap";
+    
     if (activeSection === section) {
         if (section === "color") {
-            return "text-[13px] font-medium text-pink-300 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap";
+            return `${baseClass} text-pink-300 hover:text-white`;
         }
         if (section === "face-shape") {
-            return "text-[13px] font-medium text-cyan-300 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap";
+            return `${baseClass} text-cyan-300 hover:text-white`;
         }
-        return "text-[13px] font-medium text-white/90 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap";
+        return `${baseClass} text-white/90 hover:text-white`;
     }
 
-    return "text-[13px] font-medium text-white/60 hover:text-white transition-colors tracking-wide uppercase whitespace-nowrap";
+    return `${baseClass} text-white/60 hover:text-white`;
 }
 
 function getMobileLinkClass(section: Exclude<SiteSection, null>, activeSection: SiteSection) {
+    const baseClass = "text-2xl font-medium transition-colors tracking-wide font-playfair";
+
     if (activeSection === section) {
         if (section === "color") {
-            return "text-xl font-medium text-pink-300 hover:text-pink-200 transition-colors tracking-widest uppercase";
+            return `${baseClass} text-pink-300 hover:text-pink-200`;
         }
         if (section === "face-shape") {
-            return "text-xl font-medium text-cyan-300 hover:text-cyan-200 transition-colors tracking-widest uppercase";
+            return `${baseClass} text-cyan-300 hover:text-cyan-200`;
         }
-        return "text-xl font-medium text-white/90 hover:text-white transition-colors tracking-widest uppercase";
+        return `${baseClass} text-white/90 hover:text-white`;
     }
 
-    return "text-xl font-medium text-white/70 hover:text-white transition-colors tracking-widest uppercase";
+    return `${baseClass} text-white/70 hover:text-white`;
 }
 
 export function SiteHeader({
@@ -123,6 +127,7 @@ export function SiteHeader({
             { href: `/aesthetic?lang=${lang}`, label: labels.aesthetic, section: "aesthetic" as const },
             { href: `/color?lang=${lang}`, label: labels.color, section: "color" as const },
             { href: `/face-shape?lang=${lang}`, label: labels.faceShape, section: "face-shape" as const },
+            { href: `/face-shape-3d?lang=${lang}`, label: labels.faceShape3D, section: "face-shape" as const }, // Reusing section for highlighting
         ],
         [lang, labels]
     );
@@ -151,13 +156,13 @@ export function SiteHeader({
                     </div>
 
                     <div className="hidden items-center justify-center sm:flex">
-                        <nav className="flex items-center gap-8">
+                        <nav className="flex items-center gap-16">
                             {navItems.map((item) => (
                                 <Link
-                                    key={item.section}
+                                    key={item.href}
                                     href={item.href}
                                     prefetch
-                                    className={`${getDesktopLinkClass(item.section, activeSection)} text-[11px]! font-bold! tracking-[0.25em] font-cinzel`}
+                                    className={getDesktopLinkClass(item.section, activeSection)}
                                 >
                                     {item.label}
                                 </Link>
@@ -202,7 +207,7 @@ export function SiteHeader({
                         <div className="flex flex-1 flex-col items-center justify-center gap-8">
                             {navItems.map((item, index) => (
                                 <motion.div
-                                    key={item.section}
+                                    key={item.href}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1 + index * 0.1 }}
