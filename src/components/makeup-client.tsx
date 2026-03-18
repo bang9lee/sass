@@ -741,10 +741,12 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                     </div>
 
                     <div className="relative z-10 max-w-5xl mx-auto space-y-8">
-                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
-                            <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-white to-white/70 font-sans tracking-tight drop-shadow-sm py-2 leading-relaxed">{t.title}</h1>
-                            <p className="text-white/50 text-sm tracking-wide font-medium">{t.subtitle}</p>
-                        </motion.div>
+                        {!imageLoaded && (
+                            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
+                                <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-white to-white/70 font-sans tracking-tight drop-shadow-sm py-2 leading-relaxed">{t.title}</h1>
+                                <p className="text-white/50 text-sm tracking-wide font-medium">{t.subtitle}</p>
+                            </motion.div>
+                        )}
 
                         <div className="flex flex-col lg:flex-row gap-8">
                             <div className="flex-1 min-w-0 flex items-start justify-center">
