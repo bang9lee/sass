@@ -38,6 +38,7 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
             calculating: "3D 좌표 기반 입체 분석 중...",
             success: "분석 완료",
             cameraError: "카메라를 사용할 수 없습니다. 권한 설정을 확인해 주세요.",
+            modelError: "분석 모델(AI) 로딩 중 오류가 발생했습니다. 새로고침 후 다시 시도해 주세요.",
             insecureError: "보안 연결(HTTPS)이 필요합니다. 모바일 기기에서는 주소창에 'https://'가 포함되어야 카메라 권한을 얻을 수 있습니다.",
             instruction: "정면박스에 얼굴을 맞추고 안내에 따라 고개를 돌려주세요."
         },
@@ -53,6 +54,7 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
             calculating: "Analyzing 3D spatial data...",
             success: "Analysis Complete",
             cameraError: "Camera access denied. Please check permissions.",
+            modelError: "AI model loading failed. Please refresh and try again.",
             insecureError: "HTTPS is required for camera access on mobile devices.",
             instruction: "Align your face and follow the instructions to turn your head."
         }
@@ -66,7 +68,7 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
     useEffect(() => {
         if (!mounted) return;
 
-        const initMediaPipe = async () => {
+        const initMediaPipe = async (delegate: "GPU" | "CPU" = "GPU") => {
             try {
                 const filesetResolver = await FilesetResolver.forVisionTasks(
                     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
@@ -74,22 +76,28 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
                 const landmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
                     baseOptions: {
                         modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-                        delegate: "GPU"
+                        delegate: delegate
                     },
                     runningMode: "VIDEO",
                     numFaces: 1
                 });
                 landmarkerRef.current = landmarker;
-                if (step === "loading-model") setStep("ready");
+                setStep("ready");
             } catch (err) {
-                console.error("MediaPipe initialization error:", err);
+                console.error(`MediaPipe ${delegate} initialization error:`, err);
+                if (delegate === "GPU") {
+                    console.log("Retrying with CPU delegate...");
+                    initMediaPipe("CPU");
+                } else {
+                    setError(t.modelError);
+                }
             }
         };
 
         if (step === "loading-model") {
             initMediaPipe();
         }
-    }, [step, mounted]);
+    }, [step, mounted, t.modelError]);
 
     // Camera Access
     const startCamera = async () => {
@@ -103,8 +111,14 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
             if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 throw new Error("MediaDevices API not available");
             }
+            
+            // Simplified constraints for mobile devices
             const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } 
+                video: { 
+                    facingMode: "user",
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                } 
             });
             setStream(mediaStream);
             if (videoRef.current) {
