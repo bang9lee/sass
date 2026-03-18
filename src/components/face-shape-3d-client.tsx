@@ -4,8 +4,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, RefreshCw, ChevronLeft, ChevronRight, Check, AlertCircle, RotateCcw } from "lucide-react";
 import { type SupportedLang } from "@/lib/site-content";
-import * as tf from "@tensorflow/tfjs-core";
-import "@tensorflow/tfjs-backend-webgl";
 
 interface FaceShape3DClientProps {
     lang: SupportedLang;
@@ -86,29 +84,44 @@ export function FaceShape3DClient({ lang }: FaceShape3DClientProps) {
         setMounted(true);
     }, []);
 
-    // Load BlazeFace model
+    // Load BlazeFace model — start immediately on mount, parallel with camera
     useEffect(() => {
-        if (!mounted || step !== "loading-model") return;
+        if (!mounted) return;
+        let cancelled = false;
 
         const loadModel = async () => {
             try {
-                await tf.setBackend("webgl");
-                await tf.ready();
-                
-                // dynamically import blazeface
                 const blazeface = await import("@tensorflow-models/blazeface");
                 const model = await blazeface.load();
+                if (cancelled) return;
                 modelRef.current = model;
-                setStep("ready");
+                // If we're still on loading-model step, advance
+                setStep(prev => prev === "loading-model" ? "ready" : prev);
             } catch (err) {
                 console.error("BlazeFace load error:", err);
-                const msg = err instanceof Error ? err.message : String(err);
-                setError(`${t.modelError}: ${msg.substring(0, 80)}`);
+                if (!cancelled) {
+                    const msg = err instanceof Error ? err.message : String(err);
+                    setError(`${t.modelError}: ${msg.substring(0, 80)}`);
+                }
             }
         };
 
         loadModel();
-    }, [step, mounted, t.modelError]);
+        return () => { cancelled = true; };
+    }, [mounted, t.modelError]);
+
+    // Timeout: if model takes >10s, skip to ready with demo mode
+    useEffect(() => {
+        if (step !== "loading-model") return;
+        const timeout = setTimeout(() => {
+            if (!modelRef.current) {
+                console.warn("Model load timeout, switching to demo");
+                setIsDemo(true);
+                setStep("ready");
+            }
+        }, 10000);
+        return () => clearTimeout(timeout);
+    }, [step]);
 
     // Camera access
     const startCamera = useCallback(async () => {
