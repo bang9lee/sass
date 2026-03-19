@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import HomeClient from '@/components/home-client';
+import { ToolInfoSection } from '@/components/tool-info-section';
 import { buildPageMetadata, resolveSupportedLang } from '@/lib/site-content';
 
 type Props = {
@@ -49,5 +50,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function AestheticPage({ searchParams }: Props) {
   const { lang } = await searchParams;
   const currentLang = resolveSupportedLang(lang);
-  return <HomeClient lang={currentLang} />;
+  return (
+    <div className="bg-black min-h-screen">
+      <HomeClient lang={currentLang} />
+      <ToolInfoSection lang={currentLang} type="aesthetic" />
+    </div>
+  );
 }

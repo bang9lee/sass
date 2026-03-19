@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import FaceShapeHomeClient from "@/components/face-shape-home-client";
+import { ToolInfoSection } from "@/components/tool-info-section";
 import { buildPageMetadata, resolveSupportedLang } from "@/lib/site-content";
 
 interface Props {
@@ -48,5 +49,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function FaceShapePage({ searchParams }: Props) {
     const { lang } = await searchParams;
     const currentLang = resolveSupportedLang(lang);
-    return <FaceShapeHomeClient lang={currentLang} />;
+    return (
+        <div className="bg-black min-h-screen">
+            <FaceShapeHomeClient lang={currentLang} />
+            <ToolInfoSection lang={currentLang} type="face-shape" />
+        </div>
+    );
 }

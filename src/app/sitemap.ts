@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { AESTHETICS } from '@/lib/data';
 import { COLOR_RESULTS } from '@/lib/color-data';
+import { MAGAZINE_ARTICLES } from '@/lib/magazine-content';
 
 const BASE_URL = 'https://findcore.me';
 const LANGUAGES = ['ko', 'en', 'zh', 'ja'];
@@ -23,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     [
         { path: "/color", priority: 0.9, changeFrequency: "weekly" as const },
         { path: "/face-shape", priority: 0.9, changeFrequency: "weekly" as const },
+        { path: "/magazine", priority: 0.8, changeFrequency: "weekly" as const },
         { path: "/about", priority: 0.6, changeFrequency: "monthly" as const },
         { path: "/guides", priority: 0.7, changeFrequency: "weekly" as const },
         { path: "/guides/face-shape-photo", priority: 0.7, changeFrequency: "monthly" as const },
@@ -74,5 +76,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
         });
     });
 
+    // 4. Magazine Article Pages (Dynamic)
+    MAGAZINE_ARTICLES.forEach((article) => {
+        routes.push({
+            url: `${BASE_URL}/magazine/${article.id}`,
+            changeFrequency: 'monthly',
+            priority: 0.7,
+            alternates: {
+                languages: Object.fromEntries(
+                    LANGUAGES.map((lang) => [lang, `${BASE_URL}/magazine/${article.id}?lang=${lang}`])
+                ),
+            },
+        });
+    });
+
     return routes;
 }
+

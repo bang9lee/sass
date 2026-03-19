@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ColorHomeClient from "@/components/color-home-client";
+import { ToolInfoSection } from "@/components/tool-info-section";
 import { buildPageMetadata, resolveSupportedLang } from "@/lib/site-content";
 
 type Props = {
@@ -48,5 +49,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function ColorLandingPage({ searchParams }: Props) {
     const { lang } = await searchParams;
     const currentLang = resolveSupportedLang(lang);
-    return <ColorHomeClient lang={currentLang} />;
+    return (
+        <div className="bg-black min-h-screen">
+            <ColorHomeClient lang={currentLang} />
+            <ToolInfoSection lang={currentLang} type="color" />
+        </div>
+    );
 }

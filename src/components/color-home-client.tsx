@@ -44,7 +44,7 @@ export default function ColorHomeClient({ lang: propLang }: ColorHomeClientProps
     }[lang];
     return (
         <AuroraBackground className="justify-start">
-            <div className="relative z-10 w-full h-dvh flex flex-col overflow-hidden">
+            <div className="relative z-10 w-full min-h-dvh flex flex-col">
                 <SiteHeader lang={lang} position="absolute" />
 
                 {/* Main Content */}
