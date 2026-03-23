@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import Link from "next/link";
 import {
     Check,
@@ -99,6 +100,7 @@ export function FaceShapeResultCardClient({ result, lang: propLang, gender = 'fe
     const cardRef = useRef<HTMLDivElement>(null);
     const cardShellRef = useRef<HTMLDivElement>(null);
     const imagePanelRef = useRef<HTMLDivElement>(null);
+    const imageStageRef = useRef<HTMLDivElement>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [downloading, setDownloading] = useState(false);
@@ -403,7 +405,9 @@ export function FaceShapeResultCardClient({ result, lang: propLang, gender = 'fe
 
     const handleDownloadImage = async () => {
         if (!cardRef.current) return;
-        setDownloading(true);
+        flushSync(() => {
+            setDownloading(true);
+        });
 
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const restoreStyles: Array<() => void> = [];
@@ -538,17 +542,60 @@ export function FaceShapeResultCardClient({ result, lang: propLang, gender = 'fe
             });
         };
 
+        const waitForNextPaint = () =>
+            new Promise<void>((resolve) => {
+                window.requestAnimationFrame(() => resolve());
+            });
+
+        const getLayoutOffset = (el: HTMLElement) => {
+            let left = 0;
+            let top = 0;
+            let current: HTMLElement | null = el;
+
+            while (current) {
+                left += current.offsetLeft;
+                top += current.offsetTop;
+                current = current.offsetParent as HTMLElement | null;
+            }
+
+            return { left, top };
+        };
+
+        const getRelativeLayoutBox = (el: HTMLElement, ancestor: HTMLElement) => {
+            const nodeOffset = getLayoutOffset(el);
+            const ancestorOffset = getLayoutOffset(ancestor);
+
+            return {
+                left: nodeOffset.left - ancestorOffset.left,
+                top: nodeOffset.top - ancestorOffset.top,
+                width: el.offsetWidth,
+                height: el.offsetHeight,
+            };
+        };
+
         try {
-            // 2. Extra long wait for Safari's layout engine (1200px shift + high-res stability)
-            await new Promise((resolve) => setTimeout(resolve, isIOS ? 1500 : 800));
+            await waitForNextPaint();
+            await waitForNextPaint();
+            if (document.fonts?.ready) {
+                try {
+                    await document.fonts.ready;
+                } catch {
+                    // Font readiness is best-effort only.
+                }
+            }
+            // Extra wait for Safari after the export layout is flushed.
+            await new Promise((resolve) => setTimeout(resolve, isIOS ? 600 : 250));
             await ensureImagesReady();
 
             const htmlToImage = await import("html-to-image");
+            const exportWidth = cardRef.current.offsetWidth;
+            const exportHeight = cardRef.current.offsetHeight;
 
             const captureOptions = {
                 backgroundColor: (isIOS && includePhoto) ? "transparent" : "#03060b", 
                 pixelRatio: isIOS ? 1.5 : 2,
-                width: 1200,
+                width: exportWidth,
+                height: exportHeight,
                 cacheBust: true,
                 style: {
                     transform: 'scale(1)',
@@ -609,16 +656,14 @@ export function FaceShapeResultCardClient({ result, lang: propLang, gender = 'fe
                 const ctx = compositeCanvas.getContext('2d');
 
                 if (ctx) {
-                    const imgRect = imgNode.getBoundingClientRect();
-                    const cardRect = cardRef.current.getBoundingClientRect();
-                    
-                    const scaleX = capturedCanvas.width / cardRect.width;
-                    const scaleY = capturedCanvas.height / cardRect.height;
-                    
-                    const x = (imgRect.left - cardRect.left) * scaleX;
-                    const y = (imgRect.top - cardRect.top) * scaleY;
-                    const w = imgRect.width * scaleX;
-                    const h = imgRect.height * scaleY;
+                    const imageStage = imageStageRef.current ?? imgNode;
+                    const stageBox = getRelativeLayoutBox(imageStage, cardRef.current);
+                    const scaleX = capturedCanvas.width / exportWidth;
+                    const scaleY = capturedCanvas.height / exportHeight;
+                    const x = stageBox.left * scaleX;
+                    const y = stageBox.top * scaleY;
+                    const w = stageBox.width * scaleX;
+                    const h = stageBox.height * scaleY;
 
                     // 1. Draw Background
                     ctx.fillStyle = "#03060b";
@@ -768,7 +813,7 @@ export function FaceShapeResultCardClient({ result, lang: propLang, gender = 'fe
                         ref={imagePanelRef}
                         className={`w-full shrink-0 bg-black relative ${downloading ? "rounded-[24px] overflow-hidden self-start" : "lg:rounded-[24px] lg:overflow-hidden lg:shadow-[0_8px_60px_-12px_rgba(0,0,0,0.8)]"}`}
                     >
-                        <div className="relative w-full overflow-hidden">
+                        <div ref={imageStageRef} className="relative w-full overflow-hidden">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={result.imageDataUrl}
