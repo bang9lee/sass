@@ -227,10 +227,25 @@ export function ColorResultCardClient({
                 cacheBust: true,
             });
 
+            // Convert Data URL to Blob for better iOS Safari support
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
             const link = document.createElement('a');
             link.download = `personal-color-${resultId}.png`;
-            link.href = dataUrl;
+            link.href = url;
+            
+            // For better compatibility with iOS Safari
+            link.style.display = 'none';
+            document.body.appendChild(link);
             link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 200);
 
             setShowToast(true);
             setTimeout(() => setShowToast(false), 2500);

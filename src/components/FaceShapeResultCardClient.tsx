@@ -698,12 +698,37 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
             }
 
             // 5. Convert & Download
-            const dataUrl = finalCanvas.toDataURL('image/png', 1.0);
-            const link = document.createElement("a");
-            link.download = `findcore-face-${presentedShape}.png`;
-            link.href = dataUrl;
-            link.click();
-            showTemporaryToast(t.saved);
+            try {
+                const blob = await new Promise<Blob | null>((resolve) => finalCanvas.toBlob(resolve, 'image/png', 1.0));
+                if (!blob) throw new Error("Canvas toBlob failed");
+                
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.download = `findcore-face-${presentedShape}.png`;
+                link.href = url;
+                
+                // For better compatibility with iOS Safari
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 200);
+                
+                showTemporaryToast(t.saved);
+            } catch (err) {
+                console.error("Blob capture failed", err);
+                // Fallback to Data URL if Blob fails
+                const dataUrl = finalCanvas.toDataURL('image/png', 1.0);
+                const link = document.createElement("a");
+                link.download = `findcore-face-${presentedShape}.png`;
+                link.href = dataUrl;
+                link.click();
+                showTemporaryToast(t.saved);
+            }
         } catch (error) {
             console.error("Capture failed", error);
             alert(t.failedSave);
