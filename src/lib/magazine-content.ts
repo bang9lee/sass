@@ -464,7 +464,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     description: { ko: "All About Vision, Warby Parker 등 검안 전문 매체의 가이드를 기반으로, 얼굴형별 최적의 안경테를 정리합니다.", en: "Based on guides from optometry sources like All About Vision and Warby Parker, the optimal frames for each face shape.", zh: "基于All About Vision、Warby Parker等视光专业媒体的指南，整理各脸型的最佳镜框。", ja: "All About Vision、Warby Parker等の検眼専門メディアのガイドに基づく、顔型別最適フレームまとめ。" },
     metaTitle: { ko: "얼굴형별 안경테 완벽 가이드 | FINDCORE", en: "Face Shape Eyeglasses Complete Guide | FINDCORE", zh: "脸型配眼镜完美指南 | FINDCORE", ja: "顔型別メガネフレーム完全ガイド | FINDCORE" },
     metaDescription: { ko: "둥근형·타원형·각진형·하트형·다이아몬드형·긴형 등 6가지 얼굴형별 프레임 추천. 검안 전문 매체 기반 가이드.", en: "Frame recommendations for 6 face shapes: round, oval, square, heart, diamond, and oblong. Based on optometry expert sources.", zh: "圆形、椭圆形、方形、心形、菱形、长形等6种脸型的镜框推荐。基于视光专业媒体指南。", ja: "丸顔・卵型・四角・ハート・ダイヤモンド・長顔の6つの顔型別フレーム推薦。検眼専門メディア基盤ガイド。" },
-    image: "/eyeglasses_guide_2026.png",
+    image: "/eyeglasses_faceshape_2026.png",
     category: { ko: "스타일", en: "Style", zh: "风格", ja: "スタイル" },
     date: "2026.03.18",
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
