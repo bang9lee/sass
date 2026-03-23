@@ -9,6 +9,7 @@ import type {
     FaceShapeQualityFlag,
     FaceStyleTarget,
 } from "@/lib/face-shape-analysis-official";
+import { buildNormalizedFifthGuideXs, normalizedLinePath, normalizedPairPath } from "@/lib/face-shape-svg";
 import { getFaceStyleTargetCopy } from "@/lib/face-shape-style-content";
 
 interface FaceShapeFrameEditorProps {
@@ -31,29 +32,8 @@ interface FaceShapeFrameEditorProps {
     onAnalyze: () => void;
 }
 
-function toPath(points: FacePoint[], close = false) {
-    if (!points.length) return "";
-    return points
-        .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x * 100} ${point.y * 100}`)
-        .join(" ")
-        .concat(close ? " Z" : "");
-}
-
-function pairPath(points?: [FacePoint, FacePoint] | null) {
-    if (!points) return "";
-    return `M ${points[0].x * 100} ${points[0].y * 100} L ${points[1].x * 100} ${points[1].y * 100}`;
-}
-
 function averageX(points: FacePoint[]) {
     return points.reduce((sum, point) => sum + point.x, 0) / Math.max(points.length, 1);
-}
-
-function buildFifthGuideXs(guide?: [FacePoint, FacePoint] | null) {
-    if (!guide) return [];
-    const [left, right] = guide[0].x <= guide[1].x ? guide : [guide[1], guide[0]];
-    const width = right.x - left.x;
-    if (width <= 0.02) return [];
-    return [1, 2, 3, 4].map((step) => left.x + (width * step) / 5);
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -97,7 +77,7 @@ export function FaceShapeFrameEditor({
 }: FaceShapeFrameEditorProps) {
     const stageRef = useRef<HTMLDivElement>(null);
     const [activeHandle, setActiveHandle] = useState<number | null>(null);
-    const path = useMemo(() => toPath(contour, true), [contour]);
+    const path = useMemo(() => normalizedLinePath(contour, true), [contour]);
     const isKo = lang === "ko";
     const isEnglish = lang === "en";
 
@@ -349,15 +329,15 @@ export function FaceShapeFrameEditor({
         .map((flag) => qualityFlagCopy[flag]);
     const handleLayout = getHandleLayout();
 
-    const hairlinePath = preview?.overlay.hairlineContour?.length ? toPath(preview.overlay.hairlineContour) : "";
+    const hairlinePath = preview?.overlay.hairlineContour?.length ? normalizedLinePath(preview.overlay.hairlineContour) : "";
     const frameGuideRange: [FacePoint, FacePoint] | null =
         preview?.overlay.centerLine && handles[handleLayout.chin]
             ? [preview.overlay.centerLine[0], handles[handleLayout.chin]]
             : preview?.overlay.faceHeight ?? null;
-    const centerLinePath = pairPath(frameGuideRange);
-    const upperThirdPath = pairPath(preview?.overlay.upperThirdGuide);
-    const middleThirdPath = pairPath(preview?.overlay.middleThirdGuide);
-    const fifthGuideXs = buildFifthGuideXs(preview?.overlay.upperThirdGuide ?? preview?.overlay.cheekboneWidth);
+    const centerLinePath = normalizedPairPath(frameGuideRange);
+    const upperThirdPath = normalizedPairPath(preview?.overlay.upperThirdGuide);
+    const middleThirdPath = normalizedPairPath(preview?.overlay.middleThirdGuide);
+    const fifthGuideXs = buildNormalizedFifthGuideXs(preview?.overlay.upperThirdGuide ?? preview?.overlay.cheekboneWidth);
     const fifthGuideRange = frameGuideRange;
     const guideMarkers = [
         {
@@ -435,10 +415,10 @@ export function FaceShapeFrameEditor({
     return (
         <div className={`relative flex w-full flex-1 flex-col items-center overflow-x-hidden bg-[#03060b] px-4 py-8 md:px-6 lg:py-12 ${isKo ? "font-korean" : ""}`}>
             <div className="pointer-events-none absolute inset-0">
-                <div className="absolute inset-x-0 top-0 h-[300px] bg-[radial-gradient(ellipse_at_top,rgba(45,127,249,0.1),transparent_70%)]" />
+                <div className="absolute inset-x-0 top-0 h-75 bg-[radial-gradient(ellipse_at_top,rgba(45,127,249,0.1),transparent_70%)]" />
             </div>
 
-            <div className="relative z-10 w-full max-w-[1240px]">
+            <div className="relative z-10 w-full max-w-310">
                 {/* Header Sequence */}
                 <div className="mb-6 flex flex-col gap-3 lg:mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-white/5 pb-4">
@@ -458,7 +438,7 @@ export function FaceShapeFrameEditor({
                     
                     {/* Left Panel: Primary Photo Stage */}
                     <div className="flex flex-col gap-4">
-                        <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#090b0f] shadow-[0_20px_80px_rgba(0,0,0,0.5)]">
+                        <section className="relative overflow-hidden rounded-4xl border border-white/10 bg-[#090b0f] shadow-[0_20px_80px_rgba(0,0,0,0.5)]">
                             <div
                                 ref={stageRef}
                                 className="relative w-full overflow-hidden bg-black touch-none"
@@ -591,7 +571,7 @@ export function FaceShapeFrameEditor({
 
 
                         {preview && (
-                            <div className="flex flex-col gap-4 rounded-[32px] border border-white/10 bg-[#070b12] p-5 lg:p-6 shadow-xl">
+                            <div className="flex flex-col gap-4 rounded-4xl border border-white/10 bg-[#070b12] p-5 lg:p-6 shadow-xl">
                                 
                                 {/* AI Action Items */}
                                 {!preview.gate.canAnalyze && (

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { COLOR_RESULTS, SubSeasonId } from '@/lib/color-data';
+import { COLOR_RESULTS, getLocalizedColorResultContent, SubSeasonId } from '@/lib/color-data';
 import { ColorResultCardClient } from '@/components/ColorResultCardClient';
 import { AuroraBackground } from '@/components/ui/aurora-background';
 import { LayoutShell } from '@/components/layout-shell';
+import { resolveSupportedLang } from '@/lib/site-content';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -12,9 +13,8 @@ interface Props {
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { id } = await params;
-    const { lang, gender } = await searchParams;
-    const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
-    const selectedGender = (gender === 'male' || gender === 'female') ? gender : 'female';
+    const { lang } = await searchParams;
+    const currentLang = resolveSupportedLang(lang);
 
     const result = COLOR_RESULTS[id as SubSeasonId];
 
@@ -80,9 +80,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function ColorResultPage({ params, searchParams }: Props) {
     const { id } = await params;
     const { lang, gender } = await searchParams;
-    const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
+    const currentLang = resolveSupportedLang(lang);
     const selectedGender = (gender === 'male' || gender === 'female' ? gender : 'female') as 'male' | 'female';
-    const isKo = currentLang === 'ko';
 
     const resultData = COLOR_RESULTS[id as SubSeasonId];
 
@@ -90,28 +89,26 @@ export default async function ColorResultPage({ params, searchParams }: Props) {
         notFound();
     }
 
-    const content = {
-        title: { ko: resultData.title_ko, zh: resultData.title_zh, ja: resultData.title_ja, en: resultData.title }[currentLang] || resultData.title,
-        description: { ko: resultData.description_ko, zh: resultData.description_zh, ja: resultData.description_ja, en: resultData.description }[currentLang] || resultData.description,
-        keywords: { ko: resultData.keywords_ko, zh: resultData.keywords_zh, ja: resultData.keywords_ja, en: resultData.keywords }[currentLang] || resultData.keywords,
-        subtitle: { ko: 'Personal Color', zh: 'Personal Color', ja: 'Personal Color', en: 'Personal Color' }[currentLang] || 'Personal Color',
-    };
+    const content = getLocalizedColorResultContent(resultData.id, currentLang, selectedGender);
+
+    if (!content) {
+        notFound();
+    }
 
     return (
         <AuroraBackground>
             <LayoutShell lang={currentLang}>
                 <div className="flex flex-col min-h-screen w-full items-center justify-start p-4 md:p-8 overflow-y-auto">
                     <ColorResultCardClient
-                        resultId={resultData.id}
+                        resultId={content.id}
                         title={content.title}
                         description={content.description}
-                        image={resultData.image}
+                        image={content.image}
                         keywords={content.keywords}
-                        bestColors={resultData.bestColors}
-                        worstColors={resultData.worstColors}
-                        isKo={isKo}
+                        bestColors={content.bestColors}
+                        worstColors={content.worstColors}
                         lang={currentLang}
-                        gender={selectedGender}
+                        celebrities={content.celebrities}
                     />
                 </div>
             </LayoutShell>

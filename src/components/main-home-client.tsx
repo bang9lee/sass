@@ -1,27 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, ScanFace, Palette, ArrowRight, ChevronRight, ChevronLeft } from "lucide-react";
+import { Sparkles, ScanFace, Palette, ArrowRight, ChevronRight, ChevronLeft, type LucideIcon } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { Footer } from "./footer";
 import { SiteHeader } from "@/components/site-header";
-import { useLanguage } from "@/components/language-provider";
 import { MagazineSection } from "./MagazineSection";
+import type { LocalizedMagazineArticlePreview } from "@/lib/magazine-content";
 
 type Language = "ko" | "en" | "zh" | "ja";
 
+type HomeCategory = {
+    id: string;
+    title: string;
+    desc: string;
+    href: string;
+    image: string;
+    icon: LucideIcon;
+    accent: string;
+};
+
 interface MainHomeClientProps {
     lang: Language;
+    magazineArticles: LocalizedMagazineArticlePreview[];
 }
 
-export default function MainHomeClient({}: MainHomeClientProps) {
-    const { lang } = useLanguage();
+export default function MainHomeClient({ lang, magazineArticles }: MainHomeClientProps) {
     const isKorean = lang === "ko";
 
-    const contentByLang = {
+    const contentByLang: Record<Language, { title: string; heroTagline: string; subtitle: string; categories: HomeCategory[]; explore: string }> = {
         ko: {
             title: "FINDCORE",
             heroTagline: "FINDCORE",
@@ -243,8 +253,8 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                     {/* Premium Center Carousel */}
                     <div className="w-full relative py-4 sm:py-12 flex flex-col items-center">
                         {/* Container for Spatial Cards */}
-                        <div className="relative w-full h-[480px] sm:h-[650px] flex items-center justify-center overflow-visible">
-                            {t.categories.map((cat: { id: string; href: string; image: string; title: string; desc: string, icon: any, accent: string }, idx: number) => {
+                        <div className="relative w-full h-120 sm:h-162.5 flex items-center justify-center overflow-visible">
+                            {t.categories.map((cat, idx) => {
                                 const total = t.categories.length;
                                 let diff = idx - activeIdx;
                                 
@@ -272,7 +282,7 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                                             damping: 20,
                                             opacity: { duration: 0.4 }
                                         }}
-                                        className="absolute w-[300px] sm:w-[400px] h-[450px] sm:h-[580px] pointer-events-auto cursor-pointer"
+                                        className="absolute w-75 sm:w-100 h-112.5 sm:h-145 pointer-events-auto cursor-pointer"
                                         onClick={() => isActive ? null : setActiveIdx(idx)}
                                     >
                                         <Link href={`${cat.href}?lang=${lang}`} className="block h-full group">
@@ -338,7 +348,7 @@ export default function MainHomeClient({}: MainHomeClientProps) {
                     </div>
 
                     {/* Magazine Section */}
-                    <MagazineSection />
+                    <MagazineSection lang={lang} articles={magazineArticles} />
                 </main>
 
                 <Footer lang={lang} />

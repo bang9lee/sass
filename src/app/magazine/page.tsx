@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { MAGAZINE_ARTICLES } from "@/lib/magazine-content";
+import { getLocalizedMagazinePreviews, MAGAZINE_ARTICLES } from "@/lib/magazine-content";
 import { MagazineIndexClient } from "@/components/magazine-index-client";
+import { resolveSupportedLang } from "@/lib/site-content";
 
 type Props = {
     searchParams: Promise<{ lang?: string }>;
@@ -8,7 +9,7 @@ type Props = {
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
     const { lang } = await searchParams;
-    const currentLang = (lang as "ko" | "en" | "zh" | "ja") || "ko";
+    const currentLang = resolveSupportedLang(lang);
 
     const titles = {
         ko: "FINDCORE 매거진 — 뷰티·패션·라이프스타일 트렌드",
@@ -37,7 +38,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function MagazinePage({ searchParams }: Props) {
     const { lang } = await searchParams;
-    const currentLang = (lang as "ko" | "en" | "zh" | "ja") || "ko";
+    const currentLang = resolveSupportedLang(lang);
 
-    return <MagazineIndexClient lang={currentLang} />;
+    return <MagazineIndexClient lang={currentLang} articles={getLocalizedMagazinePreviews(currentLang)} />;
 }

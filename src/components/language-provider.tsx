@@ -38,7 +38,11 @@ export function LanguageProvider({
         // 1. Instant state update for reactive UI
         setLang(nextLang);
 
-        // 2. Update URL in background
+        // 2. Persist explicit user choice immediately in the browser.
+        document.cookie = `lang=${nextLang}; path=/; max-age=31536000; samesite=lax`;
+        document.cookie = `lang_source=user; path=/; max-age=31536000; samesite=lax`;
+
+        // 3. Update URL in background
         startTransition(() => {
             const params = new URLSearchParams(searchParams.toString());
             params.set("lang", nextLang);

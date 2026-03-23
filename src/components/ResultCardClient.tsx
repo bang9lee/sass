@@ -6,8 +6,7 @@ import { Download, Check, Link2, RotateCcw, Share2, Home } from 'lucide-react';
 import type { SupportedLang } from "@/lib/site-content";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import Link from 'next/link';
-import { AESTHETICS, type AestheticId } from '@/lib/data';
-import { useLanguage } from '@/components/language-provider';
+import { buildAbsoluteShareUrl, copyText, shareUrl as shareBrowserUrl } from '@/lib/browser-share';
 
 interface ResultCardClientProps {
     resultId: string;
@@ -17,37 +16,26 @@ interface ResultCardClientProps {
     image: string;
     keywords: string[];
     colorPalette: string[];
-    isKo: boolean;
     lang: SupportedLang;
 }
 
 export function ResultCardClient({
     resultId,
-    title: propTitle,
-    archetype: propArchetype,
-    description: propDescription,
+    title,
+    archetype,
+    description,
     image,
-    keywords: propKeywords,
+    keywords,
     colorPalette,
+    lang,
 }: ResultCardClientProps) {
-    const { lang } = useLanguage();
     const isKo = lang === 'ko';
-
-    const aestheticData = AESTHETICS[resultId as AestheticId];
-    
-    // Prefer lookup for reactivity in static builds, props as fallback
-    const title = propTitle;
-    const archetype = aestheticData ? ({ ko: aestheticData.archetype_ko, zh: aestheticData.archetype_zh, ja: aestheticData.archetype_ja, en: aestheticData.archetype }[lang] || aestheticData.archetype) : propArchetype;
-    const description = aestheticData ? ({ ko: aestheticData.description_ko, zh: aestheticData.description_zh, ja: aestheticData.description_ja, en: aestheticData.description }[lang] || aestheticData.description) : propDescription;
-    const keywords = aestheticData ? ({ ko: aestheticData.keywords_ko, zh: aestheticData.keywords_zh, ja: aestheticData.keywords_ja, en: aestheticData.keywords }[lang] || aestheticData.keywords) : propKeywords;
     const cardRef = useRef<HTMLDivElement>(null);
     const [showToast, setShowToast] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [downloading, setDownloading] = useState(false);
 
-    const shareUrl = typeof window !== 'undefined'
-        ? `${window.location.origin}/result/${resultId}?lang=${lang}`
-        : '';
+    const shareUrl = buildAbsoluteShareUrl(`/result/${resultId}?lang=${lang}`);
 
     const uiText = {
         ko: {
@@ -107,71 +95,25 @@ export function ResultCardClient({
     const t = uiText[lang as keyof typeof uiText] || uiText.en;
 
     const handleShare = async () => {
-        const shareData = {
-            url: shareUrl,
-        };
-
-        // 1. Try Native Share (Prioritize)
-        if (typeof navigator !== 'undefined' && navigator.share) {
-            try {
-                // canShare check is optional but good; if it fails, just try sharing anyway
-                await navigator.share(shareData);
-                return;
-            } catch (err) {
-                // AbortError means user cancelled, don't show modal
-                if ((err as Error).name === 'AbortError') return;
-
-                // Other errors (like insecure context) fall back to modal
-                console.error('Native share failed:', err);
-            }
+        if (await shareBrowserUrl(shareUrl)) {
+            return;
         }
 
-        // 2. Fallback to Custom Modal
         setShowShareModal(true);
     };
 
     const handleCopyLink = async () => {
-        // 1. Try Modern API (HTTPS)
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            try {
-                await navigator.clipboard.writeText(shareUrl);
-                setShowShareModal(false);
-                setShowToast(true);
-                setTimeout(() => setShowToast(false), 2500);
-                return;
-            } catch {
-                // Ignore error and try fallback
-            }
+        if (await copyText(shareUrl)) {
+            setShowShareModal(false);
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 2500);
+            return;
         }
 
-        // 2. Fallback for HTTP / Older Browsers (execCommand)
         try {
-            const textArea = document.createElement("textarea");
-            textArea.value = shareUrl;
-
-            // Avoid scrolling to bottom
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.position = "fixed";
-            textArea.style.opacity = "0";
-
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-
-            if (successful) {
-                setShowShareModal(false);
-                setShowToast(true);
-                setTimeout(() => setShowToast(false), 2500);
-            } else {
-                // Really failed
-                prompt(t.copyLink, shareUrl);
-            }
-        } catch {
             prompt(t.copyLink, shareUrl);
+        } catch {
+            // Prompt can be blocked by the browser.
         }
     };
 
@@ -310,7 +252,7 @@ export function ResultCardClient({
             const footerIcon = clone.querySelector('.footer-telegram-icon');
 
             if (footerDomain) (footerDomain as HTMLElement).style.fontSize = '24px'; // 10 -> 24
-            
+
             const logoCore = clone.querySelector('.logo-core');
             if (logoCore) {
                 (logoCore as HTMLElement).style.backgroundImage = 'linear-gradient(to right, #60a5fa, #a855f7, #f472b6)';

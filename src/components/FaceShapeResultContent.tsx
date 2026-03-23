@@ -18,8 +18,6 @@ function InnerContent() {
     const { lang } = useLanguage();
     const searchParams = useSearchParams();
     const gender = (searchParams.get("gender") as "male" | "female") || "female";
-    const isKorean = lang === "ko";
-
     const [result, setResult] = useState<FaceShapeAnalysisResult | null>(null);
     const [ready, setReady] = useState(false);
 
@@ -76,7 +74,7 @@ function InnerContent() {
                     <SiteHeader lang={lang} position="sticky" surfaceClassName="bg-black/20 backdrop-blur-xl" />
 
                     <main className="flex flex-1 items-center justify-center px-4 py-10">
-                        <div className="w-full max-w-xl rounded-[32px] border border-white/10 bg-black/40 p-12 text-center text-white shadow-2xl backdrop-blur-2xl">
+                        <div className="w-full max-w-xl rounded-4xl border border-white/10 bg-black/40 p-12 text-center text-white shadow-2xl backdrop-blur-2xl">
                             <h1 className="text-2xl font-bold tracking-tight">{t.noResultTitle}</h1>
                             <p className="mt-3 text-sm text-zinc-400">{t.noResultBody}</p>
                             <Link
@@ -100,7 +98,7 @@ function InnerContent() {
                 <SiteHeader lang={lang} position="sticky" surfaceClassName="bg-black/20 backdrop-blur-xl" />
 
                 <main className="flex-1 w-full flex items-start justify-center p-4 pt-6 pb-16 md:p-10 lg:p-14">
-                    <FaceShapeResultCardClient result={result} lang={lang} isKo={isKorean} gender={gender} />
+                    <FaceShapeResultCardClient result={result} lang={lang} gender={gender} />
                 </main>
 
                 <Footer lang={lang} />

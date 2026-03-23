@@ -1,3 +1,5 @@
+import type { SupportedLang } from "@/lib/site-content";
+
 export type MagazineSection = {
     subtitle?: { ko: string; en: string; zh: string; ja: string };
     text: { ko: string; en: string; zh: string; ja: string };
@@ -18,6 +20,37 @@ export type MagazineArticle = {
     author: { ko: string; en: string; zh: string; ja: string };
     content: MagazineSection[];
 };
+
+export interface LocalizedMagazineArticlePreview {
+    id: string;
+    title: string;
+    description: string;
+    image: string;
+    category: string;
+    date: string;
+    author: string;
+}
+
+export interface LocalizedMagazineSection {
+    subtitle?: string;
+    text: string;
+    image?: string;
+    imageCaption?: string;
+    list?: string[];
+}
+
+export interface LocalizedMagazineArticle {
+    id: string;
+    title: string;
+    description: string;
+    metaTitle: string;
+    metaDescription: string;
+    image: string;
+    category: string;
+    date: string;
+    author: string;
+    content: LocalizedMagazineSection[];
+}
 
 export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   {
@@ -697,3 +730,44 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     ]
   },
 ];
+
+export function getLocalizedMagazinePreviews(lang: SupportedLang): LocalizedMagazineArticlePreview[] {
+    return MAGAZINE_ARTICLES.map((article) => ({
+        id: article.id,
+        title: article.title[lang],
+        description: article.description[lang],
+        image: article.image,
+        category: article.category[lang],
+        date: article.date,
+        author: article.author[lang],
+    }));
+}
+
+export function getLocalizedMagazineArticle(
+    id: string,
+    lang: SupportedLang
+): LocalizedMagazineArticle | null {
+    const article = MAGAZINE_ARTICLES.find((item) => item.id === id);
+    if (!article) {
+        return null;
+    }
+
+    return {
+        id: article.id,
+        title: article.title[lang],
+        description: article.description[lang],
+        metaTitle: article.metaTitle[lang],
+        metaDescription: article.metaDescription[lang],
+        image: article.image,
+        category: article.category[lang],
+        date: article.date,
+        author: article.author[lang],
+        content: article.content.map((section) => ({
+            subtitle: section.subtitle?.[lang],
+            text: section.text[lang],
+            image: section.image,
+            imageCaption: section.imageCaption?.[lang],
+            list: section.list?.[lang],
+        })),
+    };
+}

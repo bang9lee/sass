@@ -1,3 +1,5 @@
+import type { SupportedLang } from "@/lib/site-content";
+
 export type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
 
 export type SubSeasonId =
@@ -34,6 +36,17 @@ export interface ColorResult {
     image: string;
     celebrities_male: LocalizedCelebrities;
     celebrities_female: LocalizedCelebrities;
+}
+
+export interface LocalizedColorResultContent {
+    id: SubSeasonId;
+    title: string;
+    description: string;
+    keywords: string[];
+    bestColors: string[];
+    worstColors: string[];
+    image: string;
+    celebrities: string[];
 }
 
 export const COLOR_RESULTS: Record<SubSeasonId, ColorResult> = {
@@ -422,6 +435,51 @@ export const COLOR_RESULTS: Record<SubSeasonId, ColorResult> = {
         }
     }
 };
+
+export function getLocalizedColorResultContent(
+    id: SubSeasonId,
+    lang: SupportedLang,
+    gender: "male" | "female"
+): LocalizedColorResultContent | null {
+    const result = COLOR_RESULTS[id];
+    if (!result) {
+        return null;
+    }
+
+    const celebrities =
+        gender === "male"
+            ? result.celebrities_male[lang] ?? result.celebrities_male.en
+            : result.celebrities_female[lang] ?? result.celebrities_female.en;
+
+    return {
+        id: result.id,
+        title:
+            {
+                ko: result.title_ko,
+                en: result.title,
+                zh: result.title_zh,
+                ja: result.title_ja,
+            }[lang] ?? result.title,
+        description:
+            {
+                ko: result.description_ko,
+                en: result.description,
+                zh: result.description_zh,
+                ja: result.description_ja,
+            }[lang] ?? result.description,
+        keywords:
+            {
+                ko: result.keywords_ko,
+                en: result.keywords,
+                zh: result.keywords_zh,
+                ja: result.keywords_ja,
+            }[lang] ?? result.keywords,
+        bestColors: result.bestColors,
+        worstColors: result.worstColors,
+        image: result.image,
+        celebrities,
+    };
+}
 
 export function analyzePersonalColor(imageElement: HTMLImageElement): SubSeasonId {
     const canvas = document.createElement('canvas');

@@ -1,3 +1,4 @@
+import type { SupportedLang } from "@/lib/site-content";
 
 export type AestheticId =
     | 'whimsigoth'
@@ -43,6 +44,16 @@ export interface Aesthetic {
     image: string;
     // Target psychological profile for this aesthetic
     targetTraits: TraitProfile;
+}
+
+export interface LocalizedAestheticContent {
+    id: AestheticId;
+    title: string;
+    archetype: string;
+    description: string;
+    keywords: string[];
+    colorPalette: string[];
+    image: string;
 }
 
 export const AESTHETICS: Record<AestheticId, Aesthetic> = {
@@ -295,6 +306,44 @@ Coquetteは、あなたが愛されるための方法です。
         targetTraits: { openness: 0, conscientiousness: -1, extraversion: 1, agreeableness: 1, neuroticism: 2 }
     }
 };
+
+export function getLocalizedAestheticContent(
+    id: AestheticId,
+    lang: SupportedLang
+): LocalizedAestheticContent | null {
+    const aesthetic = AESTHETICS[id];
+    if (!aesthetic) {
+        return null;
+    }
+
+    return {
+        id: aesthetic.id,
+        title: aesthetic.title,
+        archetype:
+            {
+                ko: aesthetic.archetype_ko,
+                en: aesthetic.archetype,
+                zh: aesthetic.archetype_zh,
+                ja: aesthetic.archetype_ja,
+            }[lang] ?? aesthetic.archetype,
+        description:
+            {
+                ko: aesthetic.description_ko,
+                en: aesthetic.description,
+                zh: aesthetic.description_zh,
+                ja: aesthetic.description_ja,
+            }[lang] ?? aesthetic.description,
+        keywords:
+            {
+                ko: aesthetic.keywords_ko,
+                en: aesthetic.keywords,
+                zh: aesthetic.keywords_zh,
+                ja: aesthetic.keywords_ja,
+            }[lang] ?? aesthetic.keywords,
+        colorPalette: aesthetic.colorPalette,
+        image: aesthetic.image,
+    };
+}
 
 export interface Question {
     id: number;

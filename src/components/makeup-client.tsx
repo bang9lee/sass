@@ -7,7 +7,7 @@ import { Upload, RotateCcw, Download, Sliders, Eye, Palette, Droplet, Heart, Cir
 import "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
 import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
-import type { FaceLandmarksDetector } from "@tensorflow-models/face-landmarks-detection";
+import type { FaceLandmarksDetector, MediaPipeFaceMeshTfjsModelConfig } from "@tensorflow-models/face-landmarks-detection";
 
 // MediaPipe FaceMesh landmark indices for makeup regions
 const OUTER_LIP_INDICES = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
@@ -206,7 +206,6 @@ export function MakeupClient({ lang }: MakeupClientProps) {
     const uploadedImageRef = useRef<HTMLImageElement | null>(null);
     const isInitializing = useRef(false);
 
-    const [mounted, setMounted] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [analyzing, setAnalyzing] = useState(false);
     const [activeTab, setActiveTab] = useState<MakeupCategory>("lip");
@@ -312,19 +311,18 @@ export function MakeupClient({ lang }: MakeupClientProps) {
     }[lang === "ko" ? "ko" : lang === "zh" ? "zh" : lang === "ja" ? "ja" : "en"];
 
     useEffect(() => {
-        setMounted(true);
         if (isInitializing.current || faceLandmarkerRef.current) return;
         isInitializing.current = true;
 
         const initTFJS = async () => {
             try {
                 const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-                const detectorConfig = {
+                const detectorConfig: MediaPipeFaceMeshTfjsModelConfig = {
                     runtime: "tfjs", 
                     refineLandmarks: true, 
                     maxFaces: 1,
                 };
-                faceLandmarkerRef.current = await faceLandmarksDetection.createDetector(model, detectorConfig as any);
+                faceLandmarkerRef.current = await faceLandmarksDetection.createDetector(model, detectorConfig);
             } catch (err) {
                 console.error("Failed to initialize TFJS detector:", err);
             }
@@ -434,7 +432,7 @@ export function MakeupClient({ lang }: MakeupClientProps) {
 
         // Eyebrows with Shape Warping
         if (settings.eyebrow.enabled) {
-            const warpEyebrow = (indices: number[], isRight: boolean) => {
+            const warpEyebrow = (indices: number[]) => {
                 const pts = indices.map(idx => getPoint(idx));
                 if (settings.eyebrow.style === "natural") return pts;
                 
@@ -442,7 +440,7 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                 const midY = pts.reduce((sum, p) => sum + p.y, 0) / pts.length;
                 
                 return pts.map((p, i) => {
-                    let dx = 0, dy = 0;
+                    let dy = 0;
                     const relX = (p.x - midX) / (w * 0.05); // normalized relative x
                     if (settings.eyebrow.style === "straight") {
                         dy = (midY - p.y) * 0.4;
@@ -451,12 +449,12 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                     } else if (settings.eyebrow.style === "curved") {
                         dy = Math.sin(relX) * h * 0.005;
                     }
-                    return { x: p.x + dx, y: p.y + dy };
+                    return { x: p.x, y: p.y + dy };
                 });
             };
 
-            const leftPts = warpEyebrow(LEFT_EYEBROW, false);
-            const rightPts = warpEyebrow(RIGHT_EYEBROW, true);
+            const leftPts = warpEyebrow(LEFT_EYEBROW);
+            const rightPts = warpEyebrow(RIGHT_EYEBROW);
             [leftPts, rightPts].forEach(pts => {
                 fillRegionFromPoints(pts, settings.eyebrow.color, settings.eyebrow.opacity * 0.4, 6, "multiply");
                 fillRegionFromPoints(pts, settings.eyebrow.color, settings.eyebrow.opacity * 0.6, 2, "multiply");
@@ -565,7 +563,6 @@ export function MakeupClient({ lang }: MakeupClientProps) {
             const blur = Math.max(15, w * 0.05);
             const getCheekPts = (indices: number[], isRight: boolean) => {
                 let pts = indices.map(idx => getPoint(idx));
-                const mid = pts[0];
                 if (settings.blush.style === "cheekbone") {
                     pts = pts.map(p => ({ x: p.x + (isRight ? w*0.01 : -w*0.01), y: p.y - h*0.02 }));
                 } else if (settings.blush.style === "under-eye") {
@@ -732,6 +729,16 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                 natural: t.natural, coral: t.coral, rose: t.rose, berry: t.berry, brick: t.brick, plum: t.plum,
                 peach: t.peach, mauve: t.mauve, sunset: t.sunset, nude: t.nude
             };
+            const categoryLabels: Record<MakeupCategory, string> = {
+                foundation: t.foundation,
+                lip: t.lip,
+                blush: t.blush,
+                contour: t.contour,
+                eyeshadow: t.eyeshadow,
+                eyeliner: t.eyeliner,
+                eyebrow: t.eyebrow,
+                lens: t.lens,
+            };
 
             return (
                 <div className="relative min-h-[80vh] py-10 px-4 sm:px-6">
@@ -768,7 +775,7 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                                         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                     </motion.div>
                                 ) : (
-                                    <div className="relative w-full max-w-[600px]">
+                                    <div className="relative w-full max-w-150">
                                         <motion.div
                                             initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}
                                             className="rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl ring-1 ring-white/5"
@@ -830,7 +837,7 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                             {imageLoaded && (
                                 <motion.div
                                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ type: "spring", stiffness: 100 }}
-                                    className="lg:w-[340px] shrink-0 space-y-5 max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar pb-6"
+                                    className="lg:w-85 shrink-0 space-y-5 max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar pb-6"
                                 >
                                     <div className="bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 p-5 space-y-4 shadow-xl">
                                         <h3 className="text-white/60 text-[11px] uppercase tracking-widest font-semibold flex items-center gap-2">
@@ -869,7 +876,7 @@ export function MakeupClient({ lang }: MakeupClientProps) {
                                                     }`}
                                                 >
                                                     <Icon className={`w-5 h-5 ${activeTab === cat ? 'drop-shadow-[0_0_5px_rgba(236,72,153,0.5)]' : ''}`} strokeWidth={activeTab === cat ? 2.5 : 1.5} />
-                                                    <span className="text-[10px] font-medium tracking-tight whitespace-nowrap scale-90 sm:scale-100">{(t as any)[cat] || cat}</span>
+                                                    <span className="text-[10px] font-medium tracking-tight whitespace-nowrap scale-90 sm:scale-100">{categoryLabels[cat]}</span>
                                                 </button>
                                             )})}
                                         </div>

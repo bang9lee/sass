@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { StaticContentShell } from "@/components/static-content-shell";
 import { PUBLISHER_PROFILE } from "@/lib/publisher-profile";
 import { buildPageMetadata, getAboutCopy, resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
-import { Sparkles, ShieldCheck, Compass, Info } from "lucide-react";
 
 type Props = {
     searchParams: Promise<{ lang?: string }>;
@@ -37,8 +36,6 @@ const OPERATOR_COPY: Record<SupportedLang, { badge: string; heading: string; bod
     },
 };
 
-const SECTION_ICONS = [Sparkles, ShieldCheck, Compass, Info];
-
 export default async function AboutPage({ searchParams }: Props) {
     const { lang } = await searchParams;
     const currentLang = resolveSupportedLang(lang);
@@ -54,7 +51,7 @@ export default async function AboutPage({ searchParams }: Props) {
     return (
         <StaticContentShell lang={currentLang} title={copy.heading} intro={copy.intro}>
             <div className="mx-auto max-w-3xl space-y-10 md:space-y-14 mt-4">
-                {allSections.map((section, i) => (
+                {allSections.map((section) => (
                     <div
                         key={section.title}
                         className="group relative pl-6 md:pl-10"

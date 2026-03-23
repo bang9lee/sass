@@ -6,9 +6,7 @@ import { Check, Download, Link2, RotateCcw, Share2, Home } from 'lucide-react';
 import type { SupportedLang } from "@/lib/site-content";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
 import Link from 'next/link';
-import { AESTHETICS, type AestheticId } from '@/lib/data';
-import { useLanguage } from '@/components/language-provider';
-import { COLOR_RESULTS, SubSeasonId } from '@/lib/color-data';
+import { buildAbsoluteShareUrl, copyText, shareUrl as shareBrowserUrl } from '@/lib/browser-share';
 
 interface ColorResultCardClientProps {
     resultId: string;
@@ -18,38 +16,22 @@ interface ColorResultCardClientProps {
     keywords: string[];
     bestColors: string[];
     worstColors: string[];
-    isKo: boolean;
     lang: SupportedLang;
-    gender?: 'male' | 'female';
+    celebrities: string[];
 }
 
 export function ColorResultCardClient({
     resultId,
-    title: propTitle,
-    description: propDescription,
+    title,
+    description,
     image,
-    keywords: propKeywords,
+    keywords,
     bestColors,
     worstColors,
-    gender = 'female',
+    lang,
+    celebrities,
 }: ColorResultCardClientProps) {
-    const { lang } = useLanguage();
     const isKo = lang === 'ko';
-
-    const aestheticData = AESTHETICS[resultId as AestheticId];
-    
-    const title = aestheticData ? ({ ko: aestheticData.title_ko, zh: aestheticData.title_zh, ja: aestheticData.title_ja, en: aestheticData.title }[lang] || aestheticData.title) : propTitle;
-    const description = aestheticData ? ({ ko: aestheticData.description_ko, zh: aestheticData.description_zh, ja: aestheticData.description_ja, en: aestheticData.description }[lang] || aestheticData.description) : propDescription;
-    const keywords = aestheticData ? ({ ko: aestheticData.keywords_ko, zh: aestheticData.keywords_zh, ja: aestheticData.keywords_ja, en: aestheticData.keywords }[lang] || aestheticData.keywords) : propKeywords;
-
-    // Personal Color Celebrity Reference
-    const colorResultsData = COLOR_RESULTS[resultId as SubSeasonId];
-    const celebrities = colorResultsData
-        ? (gender === 'male' 
-            ? (colorResultsData.celebrities_male[lang as keyof typeof colorResultsData.celebrities_male] || colorResultsData.celebrities_male.en)
-            : (colorResultsData.celebrities_female[lang as keyof typeof colorResultsData.celebrities_female] || colorResultsData.celebrities_female.en))
-        : [];
-
     const cardRef = useRef<HTMLDivElement>(null);
     const [showToast, setShowToast] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
@@ -62,9 +44,7 @@ export function ColorResultCardClient({
         }
     }, [resultId]);
 
-    const shareUrl = typeof window !== 'undefined'
-        ? `${window.location.origin}/color/result/${resultId}?lang=${lang}`
-        : '';
+    const shareUrl = buildAbsoluteShareUrl(`/color/result/${resultId}?lang=${lang}`);
 
     const uiData = {
         ko: {
@@ -132,57 +112,25 @@ export function ColorResultCardClient({
     const t = uiData[lang as keyof typeof uiData] || uiData.en;
 
     const handleShare = async () => {
-        const shareData = { url: shareUrl };
-
-        if (typeof navigator !== 'undefined' && navigator.share) {
-            try {
-                await navigator.share(shareData);
-                return;
-            } catch (err) {
-                if ((err as Error).name === 'AbortError') return;
-                console.error('Native share failed:', err);
-            }
+        if (await shareBrowserUrl(shareUrl)) {
+            return;
         }
 
         setShowShareModal(true);
     };
 
     const handleCopyLink = async () => {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            try {
-                await navigator.clipboard.writeText(shareUrl);
-                setShowShareModal(false);
-                setShowToast(true);
-                setTimeout(() => setShowToast(false), 2500);
-                return;
-            } catch {
-            }
+        if (await copyText(shareUrl)) {
+            setShowShareModal(false);
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 2500);
+            return;
         }
 
         try {
-            const textArea = document.createElement('textarea');
-            textArea.value = shareUrl;
-            textArea.style.top = '0';
-            textArea.style.left = '0';
-            textArea.style.position = 'fixed';
-            textArea.style.opacity = '0';
-
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-
-            if (successful) {
-                setShowShareModal(false);
-                setShowToast(true);
-                setTimeout(() => setShowToast(false), 2500);
-            } else {
-                prompt(t.copyLink, shareUrl);
-            }
-        } catch {
             prompt(t.copyLink, shareUrl);
+        } catch {
+            // Prompt can be blocked by the browser.
         }
     };
 

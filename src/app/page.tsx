@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import MainHomeClient from '@/components/main-home-client';
+import { getLocalizedMagazinePreviews } from '@/lib/magazine-content';
 import { buildPageMetadata, resolveSupportedLang } from '@/lib/site-content';
 
 type Props = {
@@ -8,7 +9,7 @@ type Props = {
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { lang } = await searchParams;
-  const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
+  const currentLang = resolveSupportedLang(lang);
 
   const metadataMap = {
     ko: {
@@ -64,5 +65,5 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function Page({ searchParams }: Props) {
   const { lang } = await searchParams;
   const currentLang = resolveSupportedLang(lang);
-  return <MainHomeClient lang={currentLang} />;
+  return <MainHomeClient lang={currentLang} magazineArticles={getLocalizedMagazinePreviews(currentLang)} />;
 }

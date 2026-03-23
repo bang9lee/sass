@@ -14,7 +14,6 @@ import {
     getFallbackFaceShapeEditorDraft,
     getFaceShapeEditorDraft,
     getFaceShapeEditorPreview,
-    getFaceShapeContour,
     normalizeFaceShapeEditorHandles,
     type FacePoint,
     type FaceShapePreviewResult,
@@ -49,7 +48,7 @@ const SEASON_SWATCHES: Record<SeasonId, string[]> = {
     ],
     // Winter (Bright/True/Deep): Cool, clear, dark Magenta, Navy Blue, True Red, Icy White/Black
     winter: [
-        '#000000', '#FFFFFF', '#1D2327', '#E4D5EE', '#CAC2CE', // True/Deep Winter & Icy 
+        '#000000', '#FFFFFF', '#1D2327', '#E4D5EE', '#CAC2CE', // True/Deep Winter & Icy
         '#767676', '#DC143C', '#0F5C6E', '#35415E', '#191970', // Dark & Bold Colors
         '#FF00FF', '#0000CD', '#4169E1', '#8B008B', '#800020', // Clear/Bright Winter
     ],
@@ -589,7 +588,7 @@ function ColorTestContent() {
     };
 
     const performAnalysis = async (img: HTMLImageElement, manualFrameHandles?: FacePoint[]) => {
-        const finalGender = mode === 'shape' 
+        const finalGender = mode === 'shape'
             ? (shapeStyleTarget === 'masculine' ? 'male' : 'female')
             : selectedGender;
         if (isAnalyzing) return;
@@ -738,11 +737,11 @@ function ColorTestContent() {
 
     const applyCrop = () => {
         if (!sourceImgRef.current) return;
-        
+
         // Convert canvas pixel points to normalized coordinates (0-1) of the image
         const canvas = cropCanvasRef.current;
         if (!canvas) return;
-        
+
         const rect = canvas.getBoundingClientRect();
         const w = rect.width;
         const h = rect.height;
@@ -1363,5 +1362,4 @@ export default function ColorTestPage() {
         </Suspense>
     );
 }
-
 

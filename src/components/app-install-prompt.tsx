@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-type SupportedLang = "ko" | "en" | "zh" | "ja";
+import { resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -17,8 +16,7 @@ function resolveLanguage(): SupportedLang {
         return "en";
     }
 
-    const lang = new URLSearchParams(window.location.search).get("lang");
-    return ["ko", "en", "zh", "ja"].includes(lang || "") ? (lang as SupportedLang) : "en";
+    return resolveSupportedLang(new URLSearchParams(window.location.search).get("lang") || "");
 }
 
 function isStandaloneMode() {

@@ -1,19 +1,19 @@
 "use client";
 
-import { MagazineArticle } from "@/lib/magazine-content";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, CheckCircle2 } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { Footer } from "@/components/footer";
-import { useLanguage } from "@/components/language-provider";
+import type { LocalizedMagazineArticle } from "@/lib/magazine-content";
+import type { SupportedLang } from "@/lib/site-content";
 
 interface MagazineArticleClientProps {
-    article: MagazineArticle;
+    article: LocalizedMagazineArticle;
+    lang?: SupportedLang;
 }
 
-export function MagazineArticleClient({ article }: MagazineArticleClientProps) {
-    const { lang } = useLanguage();
+export function MagazineArticleClient({ article, lang = "ko" }: MagazineArticleClientProps) {
     const isKorean = lang === "ko";
 
     return (
@@ -36,17 +36,17 @@ export function MagazineArticleClient({ article }: MagazineArticleClientProps) {
                     </Link>
 
                     <div className="flex items-center gap-3 text-[11px] font-bold tracking-tight text-amber-500 mb-4">
-                        <span>{article.category[lang]}</span>
+                        <span>{article.category}</span>
                         <span className="w-0.5 h-0.5 rounded-full bg-zinc-700" />
                         <span className="text-zinc-500">{article.date}</span>
                     </div>
 
                     <h1 className={`text-2xl md:text-3xl font-bold tracking-tight text-white leading-tight mb-4 antialiased ${isKorean ? "font-korean" : "font-sans"}`}>
-                        {article.title[lang]}
+                        {article.title}
                     </h1>
 
                     <p className="text-sm md:text-base text-zinc-400 font-medium leading-relaxed antialiased">
-                        {article.description[lang]}
+                        {article.description}
                     </p>
                 </div>
 
@@ -55,7 +55,7 @@ export function MagazineArticleClient({ article }: MagazineArticleClientProps) {
                     <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-900 border border-white/5">
                         <Image
                             src={article.image}
-                            alt={article.title[lang]}
+                            alt={article.title}
                             fill
                             className="object-cover"
                             priority
@@ -71,12 +71,12 @@ export function MagazineArticleClient({ article }: MagazineArticleClientProps) {
                             <section key={idx} className="scroll-mt-32">
                                 {section.subtitle && (
                                     <h2 className="text-lg md:text-xl font-bold text-white mb-4 tracking-tight leading-tight antialiased text-left">
-                                        {section.subtitle[lang]}
+                                        {section.subtitle}
                                     </h2>
                                 )}
 
                                 <div className="text-zinc-300 text-sm md:text-[15px] leading-relaxed space-y-5 font-normal antialiased break-keep text-left">
-                                    {section.text[lang].split('\n\n').map((para, pIdx) => (
+                                    {section.text.split('\n\n').map((para, pIdx) => (
                                         <p key={pIdx}>{para}</p>
                                     ))}
                                 </div>
@@ -87,14 +87,14 @@ export function MagazineArticleClient({ article }: MagazineArticleClientProps) {
                                         <div className="relative aspect-video rounded-lg overflow-hidden border border-white/5">
                                             <Image
                                                 src={section.image}
-                                                alt={section.imageCaption?.[lang] || ""}
+                                                alt={section.imageCaption || ""}
                                                 fill
                                                 className="object-cover"
                                             />
                                         </div>
                                         {section.imageCaption && (
                                             <p className="text-zinc-500 text-[10px] font-medium text-left px-1">
-                                                {section.imageCaption[lang]}
+                                                {section.imageCaption}
                                             </p>
                                         )}
                                     </div>
@@ -103,7 +103,7 @@ export function MagazineArticleClient({ article }: MagazineArticleClientProps) {
                                 {/* Ultra-minimal Insight List - Aligned Left */}
                                 {section.list && (
                                     <div className="mt-8 p-6 rounded-xl bg-zinc-900/30 border border-white/5 space-y-3">
-                                        {section.list[lang].map((item, lIdx) => (
+                                        {section.list.map((item, lIdx) => (
                                             <div key={lIdx} className="flex gap-3 items-start">
                                                 <div className="mt-1.5 shrink-0 w-1 h-1 rounded-full bg-amber-500/50" />
                                                 <p className="text-zinc-400 text-xs md:text-sm font-medium leading-relaxed text-left">

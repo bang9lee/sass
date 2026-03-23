@@ -10,7 +10,7 @@ export type NavigationLabels = {
     makeup: string;
 };
 
-const SUPPORTED_LANGS: SupportedLang[] = ["ko", "en", "zh", "ja"];
+export const SUPPORTED_LANGS: SupportedLang[] = ["ko", "en", "zh", "ja"];
 const BASE_URL = "https://findcore.me";
 const LOCALE_BY_LANG: Record<SupportedLang, string> = {
     ko: "ko_KR",

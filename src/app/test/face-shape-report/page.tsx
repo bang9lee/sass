@@ -76,5 +76,5 @@ export default function FaceShapeReportPreviewPage() {
         );
     }
 
-    return <FaceShapeResultCardClient result={state.result} lang="ko" isKo />;
+    return <FaceShapeResultCardClient result={state.result} lang="ko" />;
 }

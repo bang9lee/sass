@@ -4,17 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { MAGAZINE_ARTICLES } from "@/lib/magazine-content";
 import { SiteHeader } from "@/components/site-header";
 import { Footer } from "@/components/footer";
-import { useLanguage } from "@/components/language-provider";
+import type { LocalizedMagazineArticlePreview } from "@/lib/magazine-content";
+import type { SupportedLang } from "@/lib/site-content";
 
 interface MagazineIndexClientProps {
-    lang: "ko" | "en" | "zh" | "ja";
+    lang: SupportedLang;
+    articles: LocalizedMagazineArticlePreview[];
 }
 
-export function MagazineIndexClient({}: MagazineIndexClientProps) {
-    const { lang } = useLanguage();
+export function MagazineIndexClient({ lang, articles }: MagazineIndexClientProps) {
     const isKorean = lang === "ko";
 
     const headerText = {
@@ -25,14 +25,14 @@ export function MagazineIndexClient({}: MagazineIndexClientProps) {
     };
 
     const t = headerText[lang];
-    const featuredArticle = MAGAZINE_ARTICLES[0];
-    const otherArticles = MAGAZINE_ARTICLES.slice(1);
+    const featuredArticle = articles[0];
+    const otherArticles = articles.slice(1);
 
     return (
         <div className="min-h-dvh bg-black text-white">
             <SiteHeader lang={lang} position="fixed" />
 
-            <main className="max-w-5xl mx-auto px-6 pt-28 pb-24">
+            <main className="max-w-6xl mx-auto px-6 pt-28 pb-24">
                 {/* Page Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -61,7 +61,7 @@ export function MagazineIndexClient({}: MagazineIndexClientProps) {
                             <div className="relative w-full md:w-3/5 aspect-16/10 overflow-hidden rounded-xl bg-zinc-900 shrink-0 border border-white/5">
                                 <Image
                                     src={featuredArticle.image}
-                                    alt={featuredArticle.title[lang]}
+                                    alt={featuredArticle.title}
                                     fill
                                     className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:opacity-90"
                                     priority
@@ -70,15 +70,15 @@ export function MagazineIndexClient({}: MagazineIndexClientProps) {
                             </div>
                             <div className="flex-1 space-y-4 pt-2">
                                 <div className="flex items-center gap-2 text-[10px] font-bold tracking-tight text-amber-500">
-                                    <span>{featuredArticle.category[lang]}</span>
+                                    <span>{featuredArticle.category}</span>
                                     <span className="w-0.5 h-0.5 rounded-full bg-zinc-700" />
                                     <span className="text-zinc-500">{featuredArticle.date}</span>
                                 </div>
                                 <h2 className={`text-2xl md:text-3xl font-bold text-white leading-tight group-hover:text-amber-500 transition-colors whitespace-pre-line ${isKorean ? "font-korean break-keep" : "font-sans"}`}>
-                                    {featuredArticle.title[lang]}
+                                    {featuredArticle.title}
                                 </h2>
                                 <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3">
-                                    {featuredArticle.description[lang]}
+                                    {featuredArticle.description}
                                 </p>
                                 <div className="inline-flex items-center gap-2 text-[11px] font-bold text-amber-500 mt-2">
                                     <span>Read Full Story</span>
@@ -99,7 +99,7 @@ export function MagazineIndexClient({}: MagazineIndexClientProps) {
                 </div>
 
                 {/* Article Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 xl:gap-x-10 gap-y-14">
                     {otherArticles.map((article, idx) => (
                         <motion.div
                             key={article.id}
@@ -112,7 +112,7 @@ export function MagazineIndexClient({}: MagazineIndexClientProps) {
                                 <div className="relative aspect-16/10 rounded-lg overflow-hidden bg-zinc-900 border border-white/5">
                                     <Image
                                         src={article.image}
-                                        alt={article.title[lang]}
+                                        alt={article.title}
                                         fill
                                         className="object-cover transition-all duration-500 group-hover:scale-105 group-hover:opacity-80"
                                         sizes="(max-width: 768px) 100vw, 300px"
@@ -120,15 +120,15 @@ export function MagazineIndexClient({}: MagazineIndexClientProps) {
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-[9px] font-bold tracking-tight text-zinc-500">
-                                        <span className="text-amber-500/80">{article.category[lang]}</span>
+                                        <span className="text-amber-500/80">{article.category}</span>
                                         <span>•</span>
                                         <span>{article.date}</span>
                                     </div>
-                                    <h4 className={`text-base font-bold text-white group-hover:text-amber-500 transition-colors leading-tight line-clamp-2 whitespace-pre-line ${isKorean ? "font-korean" : "font-sans"}`}>
-                                        {article.title[lang]}
+                                    <h4 className={`text-base xl:text-lg font-bold text-white group-hover:text-amber-500 transition-colors leading-tight line-clamp-2 whitespace-pre-line ${isKorean ? "font-korean" : "font-sans"}`}>
+                                        {article.title}
                                     </h4>
                                     <p className="text-zinc-500 text-[11px] leading-relaxed line-clamp-2 font-medium">
-                                        {article.description[lang]}
+                                        {article.description}
                                     </p>
                                 </div>
                             </Link>

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { AESTHETICS, AestheticId } from '@/lib/data';
+import { AESTHETICS, AestheticId, getLocalizedAestheticContent } from '@/lib/data';
 import { ResultCardClient } from '@/components/ResultCardClient';
 import { AuroraBackground } from '@/components/ui/aurora-background';
 import { LayoutShell } from '@/components/layout-shell';
+import { resolveSupportedLang } from '@/lib/site-content';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -13,7 +14,7 @@ interface Props {
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { id } = await params;
     const { lang } = await searchParams;
-    const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
+    const currentLang = resolveSupportedLang(lang);
 
     const aesthetic = AESTHETICS[id as AestheticId];
 
@@ -82,8 +83,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function ResultPage({ params, searchParams }: Props) {
     const { id } = await params;
     const { lang } = await searchParams;
-    const currentLang = (['ko', 'en', 'zh', 'ja'].includes(lang || '') ? lang : 'en') as 'ko' | 'en' | 'zh' | 'ja';
-    const isKo = currentLang === 'ko';
+    const currentLang = resolveSupportedLang(lang);
 
     const aesthetic = AESTHETICS[id as AestheticId];
 
@@ -91,26 +91,24 @@ export default async function ResultPage({ params, searchParams }: Props) {
         notFound();
     }
 
-    const content = {
-        title: aesthetic.title, // ALWAYS English for global consistency
-        archetype: { ko: aesthetic.archetype_ko, zh: aesthetic.archetype_zh, ja: aesthetic.archetype_ja, en: aesthetic.archetype }[currentLang] || aesthetic.archetype,
-        description: { ko: aesthetic.description_ko, zh: aesthetic.description_zh, ja: aesthetic.description_ja, en: aesthetic.description }[currentLang] || aesthetic.description,
-        keywords: { ko: aesthetic.keywords_ko, zh: aesthetic.keywords_zh, ja: aesthetic.keywords_ja, en: aesthetic.keywords }[currentLang] || aesthetic.keywords,
-    };
+    const content = getLocalizedAestheticContent(aesthetic.id, currentLang);
+
+    if (!content) {
+        notFound();
+    }
 
     return (
         <AuroraBackground>
             <LayoutShell lang={currentLang}>
                 <div className="flex flex-col min-h-screen w-full items-center justify-start p-4 md:p-8 overflow-y-auto">
                     <ResultCardClient
-                        resultId={aesthetic.id}
+                        resultId={content.id}
                         title={content.title}
                         archetype={content.archetype}
                         description={content.description}
-                        image={aesthetic.image}
+                        image={content.image}
                         keywords={content.keywords}
-                        colorPalette={aesthetic.colorPalette}
-                        isKo={isKo}
+                        colorPalette={content.colorPalette}
                         lang={currentLang}
                     />
                 </div>

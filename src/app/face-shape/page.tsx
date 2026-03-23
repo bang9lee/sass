@@ -8,7 +8,7 @@ interface Props {
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
     const { lang } = await searchParams;
-    const currentLang = (["ko", "en", "zh", "ja"].includes(lang || "") ? lang : "en") as "ko" | "en" | "zh" | "ja";
+    const currentLang = resolveSupportedLang(lang);
 
     const content = {
         ko: {

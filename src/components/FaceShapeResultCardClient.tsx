@@ -23,43 +23,13 @@ import {
     getFaceStyleTargetCopy,
     toFaceStyleTarget,
 } from "@/lib/face-shape-style-content";
+import { buildAbsoluteShareUrl, copyText, shareUrl as shareBrowserUrl } from "@/lib/browser-share";
+import { buildNormalizedFifthGuideXs, normalizedLinePath, normalizedPairPath } from "@/lib/face-shape-svg";
 import { ReportSignatureStrip } from "@/components/report-signature-strip";
-import type { SupportedLang } from "@/lib/site-content";
-import { useLanguage } from "@/components/language-provider";
+import { resolveSupportedLang, type SupportedLang } from "@/lib/site-content";
 import type {
-    FacePoint,
     FaceShapeAnalysisResult,
 } from "@/lib/face-shape-analysis-official";
-
-function toPercent(point: FacePoint) {
-    return { x: point.x * 100, y: point.y * 100 };
-}
-
-function linePath(points: FacePoint[], close = false) {
-    if (!points.length) return "";
-    return points
-        .map((point, index) => {
-            const { x, y } = toPercent(point);
-            return `${index === 0 ? "M" : "L"} ${x} ${y}`;
-        })
-        .join(" ")
-        .concat(close ? " Z" : "");
-}
-
-function pairPath(points?: [FacePoint, FacePoint] | null) {
-    if (!points) return "";
-    const start = toPercent(points[0]);
-    const end = toPercent(points[1]);
-    return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
-}
-
-function buildFifthGuideXs(guide?: [FacePoint, FacePoint] | null) {
-    if (!guide) return [];
-    const [left, right] = guide[0].x <= guide[1].x ? guide : [guide[1], guide[0]];
-    const width = right.x - left.x;
-    if (width <= 0.02) return [];
-    return [1, 2, 3, 4].map((step) => left.x + (width * step) / 5);
-}
 
 function getKeywords(shape: string, lang: string) {
     const keywords: Record<string, Record<SupportedLang, string[]>> = {
@@ -120,12 +90,11 @@ function getConfidenceDotClass(confidence: number) {
 interface Props {
     result: FaceShapeAnalysisResult;
     lang: SupportedLang;
-    isKo: boolean;
     gender?: 'male' | 'female';
 }
 
-export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) {
-    const { lang } = useLanguage();
+export function FaceShapeResultCardClient({ result, lang: propLang, gender = 'female' }: Props) {
+    const lang = resolveSupportedLang(propLang);
     const isKo = lang === 'ko';
     const cardRef = useRef<HTMLDivElement>(null);
     const cardShellRef = useRef<HTMLDivElement>(null);
@@ -135,7 +104,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
     const [downloading, setDownloading] = useState(false);
     const [includePhoto, setIncludePhoto] = useState(true);
     const isEnglish = lang === "en";
-    const safeLang: SupportedLang = lang === "ko" || lang === "en" || lang === "zh" || lang === "ja" ? lang : "en";
+    const safeLang = lang;
     const presentedShape = resolvePresentedFaceShape(result);
     const styleTarget = toFaceStyleTarget(result.styleTarget);
     const styleTargetCopy = getFaceStyleTargetCopy(safeLang);
@@ -318,12 +287,12 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
     const chinPoint = result.overlay.faceHeight[1];
     const browPoint = result.overlay.browLine;
     const nosePoint = result.overlay.noseBase;
-    const contourPath = linePath(result.overlay.contour, true);
-    const axisPath = pairPath(result.overlay.centerLine);
+    const contourPath = normalizedLinePath(result.overlay.contour, true);
+    const axisPath = normalizedPairPath(result.overlay.centerLine);
     const axisX = result.overlay.centerLine
         ? (result.overlay.centerLine[0].x + result.overlay.centerLine[1].x) / 2
         : (topPoint.x + chinPoint.x) / 2;
-    const fifthGuideXs = buildFifthGuideXs(result.overlay.upperThirdGuide ?? result.overlay.cheekboneWidth);
+    const fifthGuideXs = buildNormalizedFifthGuideXs(result.overlay.upperThirdGuide ?? result.overlay.cheekboneWidth);
     const fifthGuideRange = result.overlay.centerLine
         ? [result.overlay.centerLine[0], result.overlay.centerLine[1]]
         : result.overlay.faceHeight;
@@ -401,7 +370,10 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
     ];
 
     const confidenceDotClass = getConfidenceDotClass(result.confidence);
-    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const shareUrl =
+        typeof window !== "undefined"
+            ? buildAbsoluteShareUrl(`${window.location.pathname}${window.location.search}`)
+            : "";
 
     const showTemporaryToast = (message: string) => {
         setToastMessage(message);
@@ -409,41 +381,23 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
     };
 
     const handleShare = async () => {
-        if (typeof navigator !== "undefined" && navigator.share) {
-            try {
-                await navigator.share({ url: shareUrl });
-                return;
-            } catch (error) {
-                if ((error as Error).name === "AbortError") return;
-            }
+        if (await shareBrowserUrl(shareUrl)) {
+            return;
         }
         setShowShareModal(true);
     };
 
     const handleCopyLink = async () => {
-        try {
-            await navigator.clipboard.writeText(shareUrl);
+        if (await copyText(shareUrl)) {
             setShowShareModal(false);
             showTemporaryToast(t.copied);
-        } catch {
-            try {
-                const textarea = document.createElement("textarea");
-                textarea.value = shareUrl;
-                textarea.style.cssText = "position:fixed;top:0;left:0;opacity:0";
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
-                const copied = document.execCommand("copy");
-                document.body.removeChild(textarea);
-                if (copied) {
-                    setShowShareModal(false);
-                    showTemporaryToast(t.copied);
-                    return;
-                }
-            } catch {
-                // Fall through to prompt fallback.
-            }
+            return;
+        }
+
+        try {
             prompt(t.copyLink, shareUrl);
+        } catch {
+            // Prompt can be blocked by the browser.
         }
     };
 
@@ -742,11 +696,11 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
 
 
         <div
-            className={`mx-auto flex w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-[1240px] flex-col gap-4 px-4 py-8 pb-10 md:px-6 lg:py-12 ${isKo ? "font-korean" : isEnglish ? "font-cinzel" : ""}`}
+            className={`mx-auto flex w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-310 flex-col gap-4 px-4 py-8 pb-10 md:px-6 lg:py-12 ${isKo ? "font-korean" : isEnglish ? "font-cinzel" : ""}`}
         >
             {/* Background ambiance */}
             <div className="pointer-events-none fixed inset-0 z-[-1]">
-                <div className="absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_at_top,rgba(45,127,249,0.05),transparent_70%)]" />
+                <div className="absolute inset-x-0 top-0 h-100 bg-[radial-gradient(ellipse_at_top,rgba(45,127,249,0.05),transparent_70%)]" />
             </div>
 
             {toastMessage && (
@@ -807,7 +761,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
             >
                 <div
                     ref={cardShellRef}
-                    className={`relative w-full flex flex-col ${downloading ? "grid grid-cols-2 gap-10" : "lg:grid lg:grid-cols-2 lg:gap-10"} bg-[#050505] lg:bg-transparent text-white rounded-[32px] sm:rounded-4xl lg:rounded-none overflow-hidden lg:overflow-visible`}
+                    className={`relative w-full flex flex-col ${downloading ? "grid grid-cols-2 gap-10" : "lg:grid lg:grid-cols-2 lg:gap-10"} bg-[#050505] lg:bg-transparent text-white rounded-4xl sm:rounded-4xl lg:rounded-none overflow-hidden lg:overflow-visible`}
                 >
                     {/* ═══ LEFT: Image Panel ═══ */}
                     <div
@@ -952,7 +906,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                                             <span className="text-[11px] sm:text-[13px] font-black leading-tight tracking-tight text-white uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] whitespace-nowrap">
                                                 {guide.label}
                                             </span>
-                                            <div className="flex items-center gap-1.5 min-w-[30px]">
+                                            <div className="flex items-center gap-1.5 min-w-7.5">
                                                 <span className={`text-[8px] sm:text-[9px] font-mono font-black italic tracking-tighter ${idx === 0 ? 'text-blue-400' : idx === 1 ? 'text-emerald-400' : idx === 2 ? 'text-amber-400' : 'text-rose-400'}`}>
                                                     {(guide.y * 100).toFixed(1)}%
                                                 </span>
@@ -1094,7 +1048,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                                 {thirds.map((seg) => (
                                     <div key={seg.label} className="grid grid-cols-[50px_1fr_44px] items-center gap-3">
                                         <span className="text-[12px] font-bold text-white">{seg.label}</span>
-                                        <div className="relative h-[8px] overflow-hidden rounded-full bg-white/8">
+                                        <div className="relative h-2 overflow-hidden rounded-full bg-white/8">
                                             <div className="absolute inset-y-0 left-0 rounded-full bg-[linear-gradient(90deg,#4e80ff,#6b9fff)]" style={{ width: `${(seg.value / maxThirdValue) * 100}%` }} />
                                             <div className="absolute inset-y-0 left-[33.3%] w-px bg-white/25 z-10" />
                                         </div>
@@ -1113,7 +1067,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                             <div className="space-y-3">
                                 {highlightPoints.map((pt) => (
                                     <div key={pt} className="flex items-start gap-2.5">
-                                        <div className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                                        <div className="mt-1.75 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
                                         <p className="text-[13px] leading-[1.7] text-white break-keep">{pt}</p>
                                     </div>
                                 ))}
@@ -1159,7 +1113,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                                     <ul className="space-y-2.5 pl-1">
                                         {card.items.map((item) => (
                                             <li key={item} className="flex items-start gap-2.5 text-[12.5px] sm:text-[13px] leading-[1.65] text-white break-keep">
-                                                <span className={`mt-[8px] flex h-1.5 w-1.5 shrink-0 rounded-full ${card.bulletClass}`} />
+                                                <span className={`mt-2 flex h-1.5 w-1.5 shrink-0 rounded-full ${card.bulletClass}`} />
                                                 <span>{item}</span>
                                             </li>
                                         ))}
@@ -1183,7 +1137,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                                 checked={includePhoto}
                                 onChange={(e) => setIncludePhoto(e.target.checked)}
                             />
-                            <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 group-hover:bg-white/15 transition-colors"></div>
+                            <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 group-hover:bg-white/15 transition-colors"></div>
                             <span className="ms-3 text-[13px] font-bold text-white/70 group-hover:text-white transition-colors">
                                 {t.includePhotoLabel}
                             </span>
