@@ -807,12 +807,12 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
             >
                 <div
                     ref={cardShellRef}
-                    className={`relative w-full flex flex-col ${downloading ? "grid grid-cols-[1fr_1.1fr] gap-10" : "lg:grid lg:grid-cols-[1fr_1fr] lg:gap-10"} bg-[#050505] lg:bg-transparent text-white rounded-[32px] sm:rounded-4xl lg:rounded-none overflow-hidden lg:overflow-visible`}
+                    className={`relative w-full flex flex-col ${downloading ? "grid grid-cols-2 gap-10" : "lg:grid lg:grid-cols-2 lg:gap-10"} bg-[#050505] lg:bg-transparent text-white rounded-[32px] sm:rounded-4xl lg:rounded-none overflow-hidden lg:overflow-visible`}
                 >
                     {/* ═══ LEFT: Image Panel ═══ */}
                     <div
                         ref={imagePanelRef}
-                        className={`w-full shrink-0 bg-black relative ${downloading ? "rounded-[24px] overflow-hidden" : "lg:rounded-[24px] lg:overflow-hidden lg:shadow-[0_8px_60px_-12px_rgba(0,0,0,0.8)]"}`}
+                        className={`w-full shrink-0 bg-black relative ${downloading ? "rounded-[24px] overflow-hidden self-start" : "lg:rounded-[24px] lg:overflow-hidden lg:shadow-[0_8px_60px_-12px_rgba(0,0,0,0.8)]"}`}
                     >
                         <div className="relative w-full overflow-hidden">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -829,7 +829,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                             <div className={`absolute left-3 top-3 ${downloading ? "left-4 top-4" : "lg:left-4 lg:top-4"} z-30`}>
                                 <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-black/50 px-2.5 py-1 backdrop-blur-xl shadow-lg">
                                     <span className={`h-2 w-2 rounded-full ${confidenceDotClass}`} />
-                                    <span className="font-sans text-[9px] font-bold tracking-widest text-white/90 uppercase">
+                                    <span className="font-sans text-[11px] font-black tracking-widest text-white uppercase">
                                         {t.verified} {result.confidence.toFixed(0)}%
                                     </span>
                                 </div>
@@ -986,10 +986,10 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                         
                         {/* ▸ Celebrity Match (Standard position for Desktop & Saved Image) */}
                         {celebrities && celebrities.length > 0 && (
-                            <div className={`${downloading ? "flex" : "hidden lg:flex"} flex-col gap-3 mt-6 animate-in fade-in slide-in-from-bottom-3 duration-700`}>
+                            <div className={`${downloading ? "flex px-6 pb-8" : "hidden lg:flex"} flex-col gap-3 mt-6 animate-in fade-in slide-in-from-bottom-3 duration-700`}>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-1 h-4 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]" />
-                                    <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-amber-300">{t.celebrityMatch}</h3>
+                                    <div className="w-1.5 h-4 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
+                                    <h3 className="text-[13px] font-black uppercase tracking-[0.15em] text-amber-300">{t.celebrityMatch}</h3>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {celebrities.map((celeb, idx) => (
@@ -1006,7 +1006,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                     </div>
 
                     {/* ═══ RIGHT: Professional Report Dashboard ═══ */}
-                    <div className={`flex flex-col px-0 py-7 lg:pl-10 lg:pr-0 lg:py-0 z-10 w-full text-left bg-black lg:bg-transparent ${downloading ? "pl-10 pr-0 py-0" : ""}`} style={{ gap: '1.5rem' }}>
+                    <div className={`flex flex-col px-0 py-7 lg:pl-10 lg:pr-0 lg:py-0 z-10 w-full text-left bg-black lg:bg-transparent ${downloading ? "pl-10 pr-0 pt-4 pb-0" : ""}`} style={{ gap: '1.5rem' }}>
 
                         {/* ▸ Celebrity Match (Mobile only during preview, hidden on large export) */}
                         {celebrities && celebrities.length > 0 && (
@@ -1031,19 +1031,19 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                         {/* ▸ Desktop Title & Metrics Block (Reverted to Right Panel) */}
                         <div className={`${downloading ? "flex" : "hidden lg:flex"} flex-col gap-6 pb-6 border-b border-white/8`}>
                             <div className="flex flex-col items-start">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400/60 mb-2">
+                                <p className="text-[13px] font-black uppercase tracking-[0.2em] text-sky-300 mb-2">
                                     {t.resultLabel}
                                 </p>
-                                <h1 className="text-[36px] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/50 break-keep">
+                                <h1 className="text-[36px] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/80 break-keep">
                                     {shapeCopy.name}
                                 </h1>
                                 {keywords.length > 0 && (
                                     <div className="flex flex-wrap items-center gap-2 mt-4 max-w-full">
-                                        {keywords.map((keyword) => (
-                                            <span key={keyword} className="px-3 py-1.5 rounded-full text-[10px] font-bold border bg-white/10 border-white/15 text-white tracking-wide shadow-xs whitespace-nowrap">
-                                                #{keyword}
-                                            </span>
-                                        ))}
+                                                {keywords.map((keyword) => (
+                                                    <span key={keyword} className="px-3 py-1.5 rounded-full text-[12px] font-bold border backdrop-blur-md bg-zinc-900/60 border-white/20 text-white tracking-wide shadow-sm whitespace-nowrap">
+                                                        #{keyword}
+                                                    </span>
+                                                ))}
                                     </div>
                                 )}
                             </div>
@@ -1051,7 +1051,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                             <div className="grid grid-cols-3 gap-2 w-full">
                                 {metricCards.map((metric) => (
                                     <div key={metric.label} className="flex flex-col items-start gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                                        <p className="text-[9px] font-extrabold uppercase text-white/50 tracking-[0.2em] leading-none">{metric.label}</p>
+                                        <p className="text-[12px] font-black uppercase text-white/90 tracking-widest leading-none">{metric.label}</p>
                                         <p className="text-[18px] font-mono font-black tracking-tighter text-white leading-none">{metric.value}</p>
                                     </div>
                                 ))}
@@ -1073,8 +1073,8 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                         {/* ▸ Executive Summary */}
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
-                                <div className="w-1 h-4 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(78,128,255,0.4)]" />
-                                <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-blue-300">{t.analysisSummary}</h3>
+                                <div className="w-1.5 h-4 rounded-full bg-blue-400 shadow-[0_0_12px_rgba(78,128,255,0.5)]" />
+                                <h3 className="text-[13px] font-black uppercase tracking-[0.15em] text-blue-300">{t.analysisSummary}</h3>
                             </div>
                             <p className={`text-[15px] sm:text-[16px] ${downloading ? "text-[13.5px]" : "lg:text-[13.5px]"} text-white/90 leading-[1.7] tracking-tight break-keep whitespace-pre-line`}>
                                 {executiveSummary}
@@ -1085,10 +1085,10 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                         <div className={`rounded-xl border-y border-white/8 lg:border-x lg:rounded-xl bg-white/3 py-5 px-0 ${downloading ? "px-5 border-x rounded-xl" : "lg:px-5"}`}>
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-1 h-4 rounded-full bg-sky-400" />
-                                    <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-sky-300">{t.thirds}</h3>
+                                    <div className="w-1.5 h-4 rounded-full bg-sky-400" />
+                                    <h3 className="text-[13px] font-black uppercase tracking-[0.15em] text-sky-300">{t.thirds}</h3>
                                 </div>
-                                <span className="text-[10px] font-mono font-black text-white tracking-widest bg-white/15 px-2.5 py-1 rounded-sm border border-white/10 shadow-sm">{t.ideal}</span>
+                                <span className="text-[11px] font-mono font-black text-white tracking-widest bg-white/15 px-3 py-1.5 rounded-sm border border-white/10 shadow-sm">{t.ideal}</span>
                             </div>
                             <div className="space-y-3.5">
                                 {thirds.map((seg) => (
@@ -1107,8 +1107,8 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                         {/* ▸ Strengths */}
                         <div className={`rounded-xl border-y border-white/8 lg:border-x lg:rounded-xl bg-white/3 py-5 px-0 ${downloading ? "px-5 border-x rounded-xl" : "lg:px-5"}`}>
                             <div className="flex items-center gap-2 mb-4">
-                                <div className="w-1 h-4 rounded-full bg-emerald-400" />
-                                <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-emerald-300">{t.strengths}</h3>
+                                <div className="w-1.5 h-4 rounded-full bg-emerald-400" />
+                                <h3 className="text-[13px] font-black uppercase tracking-[0.15em] text-emerald-300">{t.strengths}</h3>
                             </div>
                             <div className="space-y-3">
                                 {highlightPoints.map((pt) => (
