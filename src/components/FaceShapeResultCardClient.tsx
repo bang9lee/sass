@@ -961,7 +961,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
                         
                         {/* ▸ Celebrity Match (Standard position for Desktop & Saved Image) */}
                         {celebrities && celebrities.length > 0 && (
-                            <div className="hidden lg:flex flex-col gap-3 mt-6 animate-in fade-in slide-in-from-bottom-3 duration-700">
+                            <div className={`${downloading ? "flex" : "hidden lg:flex"} flex-col gap-3 mt-6 animate-in fade-in slide-in-from-bottom-3 duration-700`}>
                                 <div className="flex items-center gap-2">
                                     <div className="w-1 h-4 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]" />
                                     <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-amber-300">{t.celebrityMatch}</h3>
@@ -985,7 +985,7 @@ export function FaceShapeResultCardClient({ result, gender = 'female' }: Props) 
 
                         {/* ▸ Celebrity Match (Mobile only during preview, hidden on large export) */}
                         {celebrities && celebrities.length > 0 && (
-                            <div className="flex lg:hidden flex-col gap-3">
+                            <div className={`${downloading ? "hidden" : "flex lg:hidden"} flex-col gap-3`}>
                                 <div className="flex items-center gap-2">
                                     <div className="w-1 h-4 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]" />
                                     <h3 className="text-[12px] font-extrabold uppercase tracking-[0.15em] text-yellow-300">{t.celebrityMatch}</h3>
