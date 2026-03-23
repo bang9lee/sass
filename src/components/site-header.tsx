@@ -149,7 +149,7 @@ export function SiteHeader({
     return (
         <>
             <header className={`${positionClass} z-50 w-full border-b border-white/5 ${surfaceClassName} ${className}`}>
-                <div className="flex items-center justify-between px-4 py-3 sm:grid sm:grid-cols-3 sm:px-6 sm:py-4">
+                <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
                     <div className="flex items-center shrink-0 justify-start">
                         <Link
                             href={`/?lang=${lang}`}
@@ -159,8 +159,8 @@ export function SiteHeader({
                         </Link>
                     </div>
 
-                    <div className="hidden items-center justify-center sm:flex">
-                        <nav className="flex items-center gap-16">
+                    <div className="hidden items-center justify-center sm:flex flex-1 mx-4">
+                        <nav className="relative z-10 flex items-center gap-10">
                             {navItems.map((item) => (
                                 <Link
                                     key={item.href}
