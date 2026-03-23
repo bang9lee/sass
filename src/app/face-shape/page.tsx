@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import FaceShapeHomeClient from "@/components/face-shape-home-client";
-import { ToolInfoSection } from "@/components/tool-info-section";
 import { buildPageMetadata, resolveSupportedLang } from "@/lib/site-content";
 
 interface Props {
@@ -52,7 +51,6 @@ export default async function FaceShapePage({ searchParams }: Props) {
     return (
         <div className="bg-black min-h-screen">
             <FaceShapeHomeClient lang={currentLang} />
-            <ToolInfoSection lang={currentLang} type="face-shape" />
         </div>
     );
 }

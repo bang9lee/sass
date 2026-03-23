@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import ColorHomeClient from "@/components/color-home-client";
-import { ToolInfoSection } from "@/components/tool-info-section";
 import { buildPageMetadata, resolveSupportedLang } from "@/lib/site-content";
 
 type Props = {
@@ -52,7 +51,6 @@ export default async function ColorLandingPage({ searchParams }: Props) {
     return (
         <div className="bg-black min-h-screen">
             <ColorHomeClient lang={currentLang} />
-            <ToolInfoSection lang={currentLang} type="color" />
         </div>
     );
 }

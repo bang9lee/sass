@@ -3,7 +3,6 @@ import { Footer } from "@/components/footer";
 import { resolveSupportedLang, buildPageMetadata } from "@/lib/site-content";
 import { cookies } from "next/headers";
 import { MakeupClient } from "@/components/makeup-client";
-import { ToolInfoSection } from "@/components/tool-info-section";
 
 export async function generateMetadata() {
     const cookieStore = await cookies();
@@ -24,7 +23,6 @@ export default async function MakeupPage() {
             <SiteHeader lang={lang} />
             <main className="flex-1">
                 <MakeupClient lang={lang} />
-                <ToolInfoSection lang={lang} type="makeup" />
             </main>
             <Footer lang={lang} />
         </div>
