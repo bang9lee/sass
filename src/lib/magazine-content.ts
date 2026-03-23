@@ -35,10 +35,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       ja: "人工的なツヤではなく、肌バリアを基盤とした健康的な発光感。Refinery29とCosmopolitanが選ぶ2026年最大のスキンケアトレンドを解説。"
     },
     metaTitle: {
-      ko: "블룸 스킨: 2026년 글래스 스킨 이후의 뷰티 트렌드 | FINDCORE",
-      en: "Bloom Skin: The 2026 Beauty Trend After Glass Skin | FINDCORE",
-      zh: "花绽肌：玻璃肌之后的 2026 美容趋势 | FINDCORE",
-      ja: "ブルームスキン：ガラス肌の次、2026年ビューティートレンド | FINDCORE"
+      ko: "블룸 스킨, 2026년 글래스 스킨 이후의 뷰티 트렌드 | FINDCORE",
+      en: "Bloom Skin, The 2026 Beauty Trend After Glass Skin | FINDCORE",
+      zh: "花绽肌，玻璃肌之后的 2026 美容趋势 | FINDCORE",
+      ja: "ブルームスキン ガラス肌の次、2026年ビューティートレンド | FINDCORE"
     },
     metaDescription: {
       ko: "Refinery29·Cosmopolitan이 선정한 2026년 핵심 스킨케어 트렌드 '블룸 스킨'. 세라마이드, 프리바이오틱스, 바이오리퍼멘트 성분과 간소화된 루틴으로 피부 장벽을 회복하는 방법을 알아보세요.",
@@ -88,10 +88,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       },
       {
         subtitle: {
-          ko: "실전 루틴: 간소화가 핵심이다",
-          en: "Practical Routine: Simplification Is the Key",
-          zh: "实战流程：精简才是核心",
-          ja: "実践ルーティン：シンプル化が鍵"
+          ko: "실전 루틴, 간소화가 핵심이다",
+          en: "Practical Routine, Simplification Is the Key",
+          zh: "实战流程，精简才是核心",
+          ja: "実践ルーティン シンプル化が鍵"
         },
         text: {
           ko: "블룸 스킨의 또 다른 특징은 단계 축소입니다. 2026년 글로벌 스킨케어 시장 보고서(Longevity.Technology)에 따르면, 소비자들은 10-12단계 루틴에서 4-6단계의 핵심 중심 루틴으로 이동하고 있습니다.\n\n추천 기본 루틴은 다음과 같습니다. 약산성 클렌저로 pH 밸런스 유지 → 세라마이드·히알루론산 기반 에센스 → 프리바이오틱 보습제 → SPF 50+ 자외선 차단.\n\n핵심은 과도한 박피나 자극 성분(고농도 레티놀, 산 성분의 과용)을 피하는 것입니다. Optimadermatology.com(2026)은 '장벽이 온전할 때 피부는 스스로 회복한다'는 원칙을 마이크로바이옴 케어의 중심으로 강조합니다.",
@@ -123,9 +123,9 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       ja: "Marie ClaireとWho What Wearが選ぶ2026年最大のファッションキーワード。パワーショルダー、ゴールドアクセサリー、大胆なシルエットで完成するグラモラッティを分析します。"
     },
     metaTitle: {
-      ko: "글래모라티 2026: 80년대 파워 드레싱의 귀환 | FINDCORE",
-      en: "Glamoratti 2026: The Return of 80s Power Dressing | FINDCORE",
-      zh: "Glamoratti 2026：80 年代力量穿搭的回归 | FINDCORE",
+      ko: "글래모라티 2026, 80년대 파워 드레싱의 귀환 | FINDCORE",
+      en: "Glamoratti 2026, The Return of 80s Power Dressing | FINDCORE",
+      zh: "Glamoratti 2026，80 年代力量穿搭的回归 | FINDCORE",
       ja: "グラモラッティ 2026：80年代パワードレッシングの귀환 | FINDCORE"
     },
     metaDescription: {
@@ -191,10 +191,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       ja: "アモーレパシフィックのCES 2026革新賞受賞作「Skinsight」、APRのMedicube AGE-Rライン。韓国が主導するAIスキンケアデバイス市場の現状を検証します。"
     },
     metaTitle: {
-      ko: "K-뷰티 AI 스킨케어 디바이스 2026: Skinsight·Medicube AGE-R 분석 | FINDCORE",
-      en: "K-Beauty AI Skincare Device 2026: Skinsight & Medicube AGE-R | FINDCORE",
-      zh: "K-beauty AI 护肤设备 2026：Skinsight·Medicube AGE-R 分析 | FINDCORE",
-      ja: "Kビューティー AIスキンケアデバイス2026：Skinsight·Medicube AGE-R | FINDCORE"
+      ko: "K-뷰티 AI 스킨케어 디바이스 2026, Skinsight·Medicube AGE-R 분석 | FINDCORE",
+      en: "K-Beauty AI Skincare Device 2026, Skinsight & Medicube AGE-R | FINDCORE",
+      zh: "K-beauty AI 护肤设备 2026，Skinsight·Medicube AGE-R 分析 | FINDCORE",
+      ja: "Kビューティー AIスキンケアデバイス2026 Skinsight·Medicube AGE-R | FINDCORE"
     },
     metaDescription: {
       ko: "글로벌 뷰티 디바이스 시장은 2030년 898억 달러 규모로 성장이 전망됩니다. CES 2026 혁신상 수상 기술 'Skinsight'부터 가정용 마이크로커런트 디바이스까지, K-뷰티 AI 기술의 최전선을 탐구합니다.",
@@ -223,10 +223,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       },
       {
         subtitle: {
-          ko: "AI 스킨케어 디바이스 시장: 2030년까지 898억 달러",
-          en: "The AI Skincare Device Market: $89.8 Billion by 2030",
-          zh: "AI 护肤设备市场：2030 年达 898 亿美元",
-          ja: "AIスキンケアデバイス市場：2030年までに898億ドル"
+          ko: "AI 스킨케어 디바이스 시장, 2030년까지 898억 달러",
+          en: "The AI Skincare Device Market, $89.8 Billion by 2030",
+          zh: "AI 护肤设备市场，2030 年达 898 亿美元",
+          ja: "AIスキンケアデバイス市場 2030年までに898億ドル"
         },
         text: {
           ko: "Korea Herald가 인용한 시장 조사에 따르면, 글로벌 뷰티 디바이스 시장은 2022년 140억 달러에서 2030년 898억 달러로 성장이 전망됩니다. 연평균 성장률(CAGR)은 약 26%입니다.\n\n이 성장을 이끄는 핵심 기술로는 네 가지가 있습니다. ① 실시간 피부 스캐닝 AI(수분·색소·탄력·모공 동시 분석), ② 적응형 파장 LED 마스크(피부 상태에 따라 파장 자동 조절), ③ 마이크로커런트 디바이스(피부 근육 자극 및 제품 흡수 촉진), ④ 초음파 인퓨전 툴(세럼을 피부 깊이 침투시키는 가정용 기기).\n\n⑤ Genesiscosmotech.com(2026)은 AI 피부 스캐너가 단순한 진단 도구를 넘어 바이오테크 성분 활용 최적화 플랫폼으로 진화하고 있다고 분석했습니다. PDRN·엑소좀·바이오 발효 성분의 개인 맞춤 적용이 AI 알고리즘으로 결정된다는 것입니다.",
@@ -278,9 +278,9 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       {
         subtitle: {
           ko: "투명하게 겹치는 파스텔, 수채화의 원리",
-          en: "Translucent Layered Pastels: The Watercolour Principle",
-          zh: "透明叠加马卡龙色：水彩原理",
-          ja: "透明感を重ねるパステル：水彩の原理"
+          en: "Translucent Layered Pastels, The Watercolour Principle",
+          zh: "透明叠加马卡龙色，水彩原理",
+          ja: "透明感を重ねるパステル 水彩の原理"
         },
         text: {
           ko: "Marie Claire UK(2026년 봄 메이크업 특집)에서 셀레브리티 메이크업 아티스트 크리스티안 브리세노는 수채화 아이 메이크업을 이렇게 정의합니다. '색을 어느 정도 투명하게 유지하는 것이 표현력과 착용감을 동시에 높이는 비결입니다.'\n\n이 트렌드는 고체이지만 불투명한 기존 아이섀도우 활용 방식에서 벗어납니다. 크림 또는 액체 아이섀도우를 손가락이나 넓은 브러시로 살짝 두드려 번지게 하고, 그 위에 반투명한 파스텔 파우더를 얹어 깊이감을 더합니다.\n\nVogue Scandinavia(2026)는 이 룩을 '예술적인 불완전함을 허용하는 메이크업'이라 묘사했습니다. 완벽한 경계선보다는 자연스럽게 번진 가장자리가 오히려 완성도를 높입니다.",
@@ -291,10 +291,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       },
       {
         subtitle: {
-          ko: "베이비 블루·라일락·소프트 핑크: 2026 파스텔 3색 가이드",
-          en: "Baby Blue, Lilac & Soft Pink: 2026's Pastel Trio Guide",
-          zh: "宝宝蓝·丁香紫·柔粉：2026 马卡龙三色指南",
-          ja: "ベビーブルー・ライラック・ソフトピンク：2026年パステル三色ガイド"
+          ko: "베이비 블루·라일락·소프트 핑크, 2026 파스텔 3색 가이드",
+          en: "Baby Blue, Lilac & Soft Pink, 2026's Pastel Trio Guide",
+          zh: "宝宝蓝·丁香紫·柔粉，2026 马卡龙三色指南",
+          ja: "ベビーブルー・ライラック・ソフトピンク 2026年パステル三色ガイド"
         },
         text: {
           ko: "Cosmopolitan(2026)과 Voir Fashion UK는 수채화 아이 메이크업에서 세 가지 파스텔 컬러를 핵심으로 꼽았습니다.\n\n베이비 블루(Baby Blue): 맑고 차가운 하늘색 계열로, 흰 피부톤부터 중간 피부톤에 가장 잘 어울립니다. 하이라이터와 함께 쓰면 눈매가 더 또렷해 보입니다.\n\n라일락(Lilac): 연보라는 2026 봄 아이메이크업에서 가장 다재다능한 컬러입니다. Cosmopolitan은 피부 섀이드에 관계없이 라일락이 생기 있고 몽환적인 눈매를 만든다고 보도했습니다.\n\n소프트 핑크(Soft Pink): 블러셔 컬러와 통일했을 때 완벽한 모노크로매틱 룩이 완성됩니다. 로맨틱하고 애틋한 봄 분위기를 연출합니다.\n\n중요한 팁: Cosmopolitan(2026)은 깊은 피부톤을 가진 사람에게는 리퀴드·크림 포뮬러나 파스텔 시머 아이섀도우가 발색력을 높인다고 조언합니다.",
@@ -327,10 +327,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       ja: "BustleとCoveteurが注目する2026年Kビューティーリップトレンド。ベージュブラウンにグレーのアンダートーンを加えた「ミュート（Muted）」リップの魅力とブラードリップテクニックを解説。"
     },
     metaTitle: {
-      ko: "피너츠 버터 립 2026: K-뷰티 블러 립 완벽 가이드 | FINDCORE",
-      en: "Peanut Butter Lips 2026: K-Beauty Blurred Lip Complete Guide | FINDCORE",
-      zh: "花生酱唇 2026：K-beauty 晕染唇完整指南 | FINDCORE",
-      ja: "ピーナッツバターリップ2026：Kビューティーブラードリップ完全ガイド | FINDCORE"
+      ko: "피너츠 버터 립 2026, K-뷰티 블러 립 완벽 가이드 | FINDCORE",
+      en: "Peanut Butter Lips 2026, K-Beauty Blurred Lip Complete Guide | FINDCORE",
+      zh: "花生酱唇 2026, K-beauty 晕染唇完整指南 | FINDCORE",
+      ja: "ピーナッツバターリップ2026 Kビューティーブラードリップ完全ガイド | FINDCORE"
     },
     metaDescription: {
       ko: "2026년 Pantone 컬러 '모카 무스(Mocha Mousse 17-1230)'의 가벼운 진화형. Bustle·Marie Claire UK가 분석한 피너츠 버터 브라운 누드와 블러드 립 기법의 완벽한 실전 가이드.",
@@ -345,10 +345,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     content: [
       {
         subtitle: {
-          ko: "모카 무스의 진화: 왜 피너츠 버터인가",
-          en: "The Evolution of Mocha Mousse: Why Peanut Butter?",
-          zh: "摩卡慕斯的进化：为什么是花生酱？",
-          ja: "モカムースの進化：なぜピーナッツバターなのか"
+          ko: "모카 무스의 진화, 왜 피너츠 버터인가",
+          en: "The Evolution of Mocha Mousse, Why Peanut Butter?",
+          zh: "摩卡慕斯的进化，为什么是花生酱？",
+          ja: "モカムースの進化 なぜピーナッツバターなのか"
         },
         text: {
           ko: "2026년 팬톤(Pantone)이 올해의 컬러로 선정한 '모카 무스(Mocha Mousse, 17-1230)'는 따뜻하고 포근한 카카오 브라운입니다. 그런데 K-뷰티는 이를 그대로 수용하지 않고 독자적인 방향으로 진화시켰습니다.\n\nBustle.com(2026)이 분석한 'K-뷰티 피너츠 버터 립'은 모카 무스보다 더 밝고 쿨한 방향의 베이지-브라운으로, 회색빛 언더톤이 가미되어 있습니다. 한국 뷰티 씬에서는 이를 '뮤트톤(Muted-tone) 메이크업' 혹은 '애쉬 누드(Ash Nude)'라 부르며, 특유의 '세련되고 도회적인 분위기'를 뜻합니다.\n\n캐러멜이나 웜 브라운과 명확히 구분되며, 채도를 낮추고 쿨한 회색조를 섞어 피부와 낮은 대비(Low-contrast)를 만드는 것이 핵심 특징입니다.",
@@ -359,10 +359,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       },
       {
         subtitle: {
-          ko: "블러드 립(Blurred Lip): 경계를 지우는 기술",
-          en: "Blurred Lip: The Technique of Erasing Boundaries",
-          zh: "晕染唇（Blurred Lip）：消除轮廓的技巧",
-          ja: "ブラードリップ：境界を消す技術"
+          ko: "블러드 립(Blurred Lip), 경계를 지우는 기술",
+          en: "Blurred Lip, The Technique of Erasing Boundaries",
+          zh: "晕染唇（Blurred Lip），消除轮廓的技巧",
+          ja: "ブラードリップ 境界を消す技術"
         },
         text: {
           ko: "피너츠 버터 립 트렌드의 또 다른 핵심은 적용 기법입니다. Coveteur, Marie Claire UK, Confaloniericosmetica 등이 공통적으로 주목한 것은 '블러드 립(Blurred Lip)' 기법입니다.\n\n블러드 립은 립라이너를 먼저 바르고 그 경계를 손가락이나 면봉으로 부드럽게 번지게 한 후, 립 컬러를 그 위에 가볍게 얹는 방식입니다. 선명한 윤곽선 대신 자연스럽게 퍼진 가장자리가 '생활감 있는(lived-in)' 입술을 만들어냅니다.\n\nNSS Magazine(2026)은 이 기법이 '정밀함보다 즉흥성을 중시하는 Z세대의 미적 감수성'과 맥을 같이 한다고 분석했습니다. 완벽하게 채워진 립보다 살짝 바랜 듯한 자연스러운 마무리가 오히려 더 세련되게 보입니다.",
@@ -389,10 +389,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   {
     id: "sunscreen-trends-2026",
     title: {
-      ko: "선크림의 진화: 미네랄 vs 케미컬 자외선 차단의 과학",
-      en: "The Evolution of Sunscreen: Mineral vs Chemical UV Protection Science",
-      zh: "防晒霜的进化：物理防晒 vs 化学防晒的科学",
-      ja: "日焼け止めの進化：ミネラル vs ケミカルUVプロテクションの科学"
+      ko: "선크림의 진화, 미네랄 vs 케미컬 자외선 차단의 과학",
+      en: "The Evolution of Sunscreen, Mineral vs Chemical UV Protection Science",
+      zh: "防晒霜的进化，物理防晒 vs 化学防晒的科学",
+      ja: "日焼け止めの進化、ミネラル vs ケミカルUVプロテクションの科学"
     },
     description: {
       ko: "자외선 차단 성분의 과학적 원리와 최신 트렌드. 징크옥사이드와 화학 필터의 차이, 리프세이프 포뮬러, FDA 규제 변화까지 정리합니다.",
@@ -408,7 +408,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
     content: [
       {
-        subtitle: { ko: "미네랄 vs 케미컬: 자외선 차단의 두 가지 원리", en: "Mineral vs Chemical: Two Principles of UV Protection", zh: "物理 vs 化学：紫外线防护的两大原理", ja: "ミネラル vs ケミカル：紫外線防御の2つの原理" },
+        subtitle: { ko: "미네랄 vs 케미컬, 자외선 차단의 두 가지 원리", en: "Mineral vs Chemical, Two Principles of UV Protection", zh: "物理 vs 化学，紫外线防护的两大原理", ja: "ミネラル vs ケミカル 紫外線防御の2つの原理" },
         text: {
           ko: "자외선 차단제는 크게 미네랄(물리적)과 케미컬(화학적) 두 가지로 나뉩니다. 미네랄 자외선 차단제는 징크옥사이드(Zinc Oxide)와 티타늄디옥사이드(Titanium Dioxide) 두 가지 성분을 사용합니다. 이 성분들은 FDA가 GRASE(Generally Recognized as Safe and Effective)로 분류한 유일한 두 가지 자외선 차단 성분입니다.\n\n미네랄 필터는 피부 표면에 물리적 막을 형성하여 UV를 반사·산란시키는 원리로 작동합니다. 반면 케미컬 필터(아보벤존, 옥시벤존, 옥티녹세이트 등)는 UV를 흡수하여 열에너지로 변환합니다. 각각 장단점이 있는데, 미네랄 필터는 바르자마자 즉시 효과가 나타나고 자극이 적지만 백탁 현상이 있을 수 있고, 케미컬 필터는 텍스처가 가볍지만 도포 후 약 15-30분 후에 효과가 시작됩니다.\n\n최근에는 두 방식을 결합한 '하이브리드 시스템'이 주목받고 있습니다. 미네랄과 케미컬 필터를 함께 사용하면서 항산화 성분, 안티폴루션 성분을 추가하여 UV뿐 아니라 블루라이트(HEV)까지 방어하는 종합적 광보호 포뮬러가 등장하고 있습니다.",
           en: "Sunscreens are broadly divided into mineral (physical) and chemical types. Mineral sunscreens use two ingredients: zinc oxide and titanium dioxide. These are the only two UV filter ingredients classified as GRASE (Generally Recognized as Safe and Effective) by the FDA.\n\nMineral filters work by forming a physical film on the skin surface that reflects and scatters UV rays. Chemical filters (avobenzone, oxybenzone, octinoxate, etc.) absorb UV and convert it into heat energy. Each has pros and cons: mineral filters work immediately upon application and have lower irritation potential but may leave a white cast, while chemical filters have lighter textures but take approximately 15-30 minutes after application to become effective.\n\nRecently, 'hybrid systems' combining both approaches have gained attention. By using mineral and chemical filters together with antioxidants and anti-pollution ingredients, comprehensive photoprotection formulas that defend against not only UV but also blue light (HEV) have emerged.",
@@ -429,7 +429,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   },
   {
     id: "retinol-vs-bakuchiol",
-    title: { ko: "레티놀 vs 바쿠치올: 임상연구로 본 안티에이징 성분 비교", en: "Retinol vs Bakuchiol: Anti-Ageing Ingredients Compared by Clinical Research", zh: "视黄醇 vs 补骨脂酚：临床研究揭示的抗衰成分对比", ja: "レチノール vs バクチオール：臨床研究で見る抗エイジング成分比較" },
+    title: { ko: "레티놀 vs 바쿠치올, 임상연구로 본 안티에이징 성분 비교", en: "Retinol vs Bakuchiol, Anti-Ageing Ingredients Compared by Clinical Research", zh: "视黄醇 vs 补骨脂酚，临床研究揭示的抗衰成分对比", ja: "レチノール vs バクチオール 臨床研究で見る抗エイジング成分比較" },
     description: { ko: "British Journal of Dermatology에 발표된 임상연구를 기반으로, 레티놀과 바쿠치올의 효능·자극도·안전성을 객관적으로 비교합니다.", en: "Based on clinical research published in the British Journal of Dermatology, objectively comparing retinol and bakuchiol in efficacy, irritation, and safety.", zh: "基于《英国皮肤病学杂志》发表的临床研究，客观对比视黄醇与补骨脂酚的功效、刺激性和安全性。", ja: "British Journal of Dermatologyに発表された臨床研究に基づき、レチノールとバクチオールの効能・刺激性・安全性を客観比較。" },
     metaTitle: { ko: "레티놀 vs 바쿠치올 임상연구 비교 | FINDCORE", en: "Retinol vs Bakuchiol Clinical Research Comparison | FINDCORE", zh: "视黄醇 vs 补骨脂酚临床研究对比 | FINDCORE", ja: "レチノール vs バクチオール臨床研究比較 | FINDCORE" },
     metaDescription: { ko: "British Journal of Dermatology 임상연구 기반, 레티놀과 바쿠치올의 주름 개선·색소침착·자극도를 비교한 객관적 가이드.", en: "Based on British Journal of Dermatology clinical studies. Objective guide comparing retinol and bakuchiol for wrinkles, pigmentation, and irritation.", zh: "基于《英国皮肤病学杂志》临床研究，客观对比视黄醇与补骨脂酚在皱纹改善、色素沉着和刺激性方面的表现。", ja: "British Journal of Dermatology臨床研究に基づく、レチノールとバクチオールのシワ改善・色素沈着・刺激性の客観的比較ガイド。" },
@@ -439,7 +439,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
     content: [
       {
-        subtitle: { ko: "레티놀: 수십 년간 검증된 안티에이징 표준 성분", en: "Retinol: The Gold Standard Anti-Ageing Ingredient Backed by Decades of Research", zh: "视黄醇：数十年验证的抗衰黄金标准成分", ja: "レチノール：数十年のリサーチに裏付けられたアンチエイジングの標準成分" },
+        subtitle: { ko: "레티놀, 수십 년간 검증된 안티에이징 표준 성분", en: "Retinol, The Gold Standard Anti-Ageing Ingredient Backed by Decades of Research", zh: "视黄醇，数十年验证的抗衰黄金标准成分", ja: "レチノール 数十年のリサーチに裏付けられたアンチエイジングの標準成分" },
         text: {
           ko: "레티놀(Retinol)은 비타민 A의 유도체로, 피부 내에서 레티노산(Retinoic Acid)으로 전환되어 효과를 발휘합니다(Journal of Clinical and Aesthetic Dermatology). 그 작용 메커니즘은 세포 증식률을 높이고, 표피를 두텁게 하며, 콜라겐 합성을 촉진하고 분해를 억제하는 것입니다.\n\nDermatology Times에 보도된 임상연구에서 0.1% 레티놀을 12주간 사용한 결과, 눈가 주름(crow's feet), 안면 주름, 불균일한 피부톤, 갈색 반점, 전반적 광노화 징후 모두에서 통계적으로 유의미한 개선이 관찰되었으며, 일부 효과는 4주 만에 시각적으로 확인되었습니다.\n\n다만 레티놀의 단점도 명확합니다. 사용 초기에 피부 각질 벗겨짐(peeling), 따가움(stinging), 건조, 화끈거림이 나타날 수 있으며, 자외선 민감도가 증가하므로 반드시 자외선 차단제와 함께 사용해야 합니다. 또한 임신 중에는 사용이 금지되는 성분입니다.",
           en: "Retinol is a vitamin A derivative that converts into retinoic acid within the skin to exert its effects (Journal of Clinical and Aesthetic Dermatology). Its mechanisms include increasing cell proliferation rates, thickening the epidermis, stimulating collagen synthesis, and inhibiting collagen breakdown.\n\nA clinical study reported by Dermatology Times showed that 12 weeks of 0.1% retinol use produced statistically significant improvements in crow's feet, facial wrinkles, uneven skin tone, brown spots, and overall photoaging signs, with some results visible as early as four weeks.\n\nHowever, retinol's drawbacks are clear. Initial use can cause skin peeling, stinging, dryness, and burning, and it increases UV sensitivity, making sunscreen an absolute necessity. Additionally, retinol is contraindicated during pregnancy.",
@@ -448,7 +448,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
         }
       },
       {
-        subtitle: { ko: "바쿠치올: 식물 유래의 레티놀 대안", en: "Bakuchiol: The Plant-Derived Retinol Alternative", zh: "补骨脂酚：植物来源的视黄醇替代品", ja: "バクチオール：植物由来のレチノール代替成分" },
+        subtitle: { ko: "바쿠치올, 식물 유래의 레티놀 대안", en: "Bakuchiol, The Plant-Derived Retinol Alternative", zh: "补骨脂酚，植物来源的视黄醇替代品", ja: "バクチオール 植物由来のレチノール代替成分" },
         text: {
           ko: "바쿠치올(Bakuchiol)은 포랄레아 코릴리폴리아(Psoralea corylifolia, 보골지)라는 식물에서 추출한 천연 성분입니다. 레티놀과 화학적 구조는 전혀 다르지만, 피부에서 유사한 유전자 발현 패턴을 유도한다는 의미에서 '기능적 유사체(functional analogue)'로 분류됩니다(NIH/PubMed).\n\nBritish Journal of Dermatology에 발표된 비교 임상연구에서, 바쿠치올과 레티놀은 주름 면적 감소와 색소침착 개선 모두에서 통계적으로 유의미한 차이가 없는 것으로 나타났습니다. 바쿠치올은 I형, III형, IV형 콜라겐을 상향 조절하여 피부 탄력과 밀도를 개선하는 것으로 확인되었습니다.\n\n가장 중요한 차이는 내약성(tolerability)입니다. 같은 연구에서 레티놀 사용자들은 바쿠치올 사용자 대비 유의하게 더 많은 각질 벗겨짐과 따가움을 보고했습니다. 바쿠치올은 민감성 피부에도 잘 맞고, 임신 중에도 안전한 것으로 간주됩니다(Women's Health Magazine). 다만 바쿠치올에 대한 대규모 장기 임상연구는 레티놀에 비해 아직 적으므로, 장기적 효능에 대해서는 추가 연구가 필요합니다.",
           en: "Bakuchiol is a natural compound extracted from the plant Psoralea corylifolia. While structurally unrelated to retinol, it is classified as a 'functional analogue' because it induces similar gene expression patterns in the skin (NIH/PubMed).\n\nA comparative clinical study published in the British Journal of Dermatology found no statistically significant differences between bakuchiol and retinol in reducing wrinkle surface area and improving hyperpigmentation. Bakuchiol was confirmed to upregulate types I, III, and IV collagen, improving skin elasticity and density.\n\nThe most important difference is tolerability. In the same study, retinol users reported significantly more scaling and stinging than bakuchiol users. Bakuchiol is well-suited for sensitive skin and is considered safe during pregnancy (Women's Health Magazine). However, large-scale long-term clinical studies on bakuchiol remain fewer compared to retinol, so further research on long-term efficacy is needed.",
@@ -460,7 +460,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   },
   {
     id: "face-shape-eyeglasses-guide",
-    title: { ko: "얼굴형별 안경테 가이드: 검안 전문가의 조언", en: "Face Shape Eyeglasses Guide: Expert Optometrist Advice", zh: "脸型配眼镜指南：视光专家建议", ja: "顔型別メガネフレームガイド：検眼専門家のアドバイス" },
+    title: { ko: "얼굴형별 안경테 가이드, 검안 전문가의 조언", en: "Face Shape Eyeglasses Guide, Expert Optometrist Advice", zh: "脸型配眼镜指南，视光专家建议", ja: "顔型別メガネフレームガイド 検眼専門家のアドバイス" },
     description: { ko: "All About Vision, Warby Parker 등 검안 전문 매체의 가이드를 기반으로, 얼굴형별 최적의 안경테를 정리합니다.", en: "Based on guides from optometry sources like All About Vision and Warby Parker, the optimal frames for each face shape.", zh: "基于All About Vision、Warby Parker等视光专业媒体的指南，整理各脸型的最佳镜框。", ja: "All About Vision、Warby Parker等の検眼専門メディアのガイドに基づく、顔型別最適フレームまとめ。" },
     metaTitle: { ko: "얼굴형별 안경테 완벽 가이드 | FINDCORE", en: "Face Shape Eyeglasses Complete Guide | FINDCORE", zh: "脸型配眼镜完美指南 | FINDCORE", ja: "顔型別メガネフレーム完全ガイド | FINDCORE" },
     metaDescription: { ko: "둥근형·타원형·각진형·하트형·다이아몬드형·긴형 등 6가지 얼굴형별 프레임 추천. 검안 전문 매체 기반 가이드.", en: "Frame recommendations for 6 face shapes: round, oval, square, heart, diamond, and oblong. Based on optometry expert sources.", zh: "圆形、椭圆形、方形、心形、菱形、长形等6种脸型的镜框推荐。基于视光专业媒体指南。", ja: "丸顔・卵型・四角・ハート・ダイヤモンド・長顔の6つの顔型別フレーム推薦。検眼専門メディア基盤ガイド。" },
@@ -470,7 +470,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
     content: [
       {
-        subtitle: { ko: "둥근형·타원형·각진형: 기본 3가지 얼굴형의 안경 선택법", en: "Round, Oval, and Square: Choosing Glasses for Three Basic Face Shapes", zh: "圆形、椭圆形、方形：三种基本脸型的选镜法", ja: "丸顔・卵型・四角：基本3つの顔型のメガネ選び" },
+        subtitle: { ko: "둥근형·타원형·각진형, 기본 3가지 얼굴형의 안경 선택법", en: "Round, Oval, and Square, Choosing Glasses for Three Basic Face Shapes", zh: "圆形、椭圆形、方形，三种基本脸型的选镜法", ja: "丸顔・卵型・四角 基本3つの顔型のメガネ選び" },
         text: {
           ko: "검안 전문 매체 All About Vision과 미국검안사협회(Optometrists.org)에 따르면, 안경테 선택의 핵심 원칙은 '대비(contrast)'입니다. 얼굴의 자연스러운 선과 반대되는 프레임을 선택하면 균형 잡힌 인상을 만들 수 있습니다.\n\n둥근형 얼굴(폭과 길이가 비슷하고 곡선이 부드러운 형태)에는 각진 프레임이 어울립니다. 직사각형, 정사각형, 기하학적 프레임이 부드러운 이목구비에 구조감을 더합니다. 캣아이 프레임도 시선을 위로 끌어올려 좋은 선택입니다. 반면 둥근 프레임은 얼굴의 둥근 인상을 강조하므로 피하는 것이 좋습니다(Heartland Optical).\n\n타원형 얼굴은 비율이 가장 균형 잡힌 형태로, 대부분의 프레임이 잘 어울립니다. Warby Parker는 타원형 얼굴에 정사각형, 직사각형, 기하학적 프레임으로 자연스러운 균형 위에 구조감을 더할 것을 추천합니다. 얼굴의 가장 넓은 부분과 같거나 약간 넓은 프레임을 선택하는 것이 핵심입니다.\n\n각진형(사각형) 얼굴은 강한 턱선과 넓은 이마가 특징입니다. 이 경우 둥근 또는 타원형 프레임이 강한 각도를 부드럽게 완화합니다. 얇은 프레임이 광대뼈보다 약간 넓으면 자연스러운 중화 효과를 줍니다. 에비에이터 프레임도 각진 인상을 부드럽게 만드는 좋은 선택입니다(LensDirect, Optica Optometry).",
           en: "According to All About Vision and the American Optometric Association (Optometrists.org), the core principle of frame selection is 'contrast.' Choosing frames that oppose your face's natural lines creates a balanced impression.\n\nFor round faces (similar width and length with soft curves), angular frames are ideal. Rectangular, square, and geometric frames add structure to soft features. Cat-eye frames also work well by drawing the eye upward. Round frames should be avoided as they emphasise the face's roundness (Heartland Optical).\n\nOval faces have the most balanced proportions, and most frame styles suit them well. Warby Parker recommends square, rectangular, or geometric frames to add structure atop natural balance. The key is selecting frames that are as wide as or slightly wider than the face's broadest part.\n\nSquare faces feature a strong jawline and broad forehead. Round or oval frames effectively soften angular features. Thin frames slightly wider than the cheekbones provide a natural counterbalance. Aviator frames are also a great choice for softening angular impressions (LensDirect, Optica Optometry).",
@@ -479,7 +479,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
         }
       },
       {
-        subtitle: { ko: "하트형·다이아몬드형·긴형: 특수 얼굴형의 프레임 선택", en: "Heart, Diamond, and Oblong: Frame Selection for Special Face Shapes", zh: "心形、菱形、长形：特殊脸型的镜框选择", ja: "ハート型・ダイヤモンド型・面長：特殊顔型のフレーム選択" },
+        subtitle: { ko: "하트형·다이아몬드형·긴형, 특수 얼굴형의 프레임 선택", en: "Heart, Diamond, and Oblong, Frame Selection for Special Face Shapes", zh: "心形、菱形、长形，特殊脸型的镜框选择", ja: "ハート型・ダイヤモンド型・面長 特殊顔型のフレーム選択" },
         text: {
           ko: "하트형 얼굴은 이마가 가장 넓고 턱이 좁아지는 형태입니다. All About Vision은 하단이 넓거나 밝은 색상의 림을 가진 프레임, 세미리밀리스(반무테) 또는 리밀리스(무테) 안경을 추천합니다. 이는 넓은 이마에서 시선을 분산하고 좁은 턱 부근에 시각적 무게를 더합니다. 캣아이 프레임도 광대뼈를 강조하고 얼굴을 리프팅합니다. 반면 과도하게 두꺼운 상단 프레임은 이마를 더 넓어 보이게 할 수 있으므로 주의합니다(Warby Parker).\n\n다이아몬드형 얼굴은 가장 희귀한 얼굴형 중 하나로, 이마와 턱이 좁고 광대뼈가 넓고 돋보이는 형태입니다. 캣아이나 타원형 프레임이 광대뼈를 강조하면서도 좁은 이마·턱과 조화를 이룹니다. 리밀리스 안경은 섬세한 이목구비를 압도하지 않으면서 깔끔한 인상을 줍니다(Zenni Optical, EyeBuyDirect).\n\n긴형(직사각형/장타원형) 얼굴은 세로 길이가 가로보다 긴 형태입니다. 오버사이즈 프레임이 시각적 넓이감을 더하고, 둥근 또는 정사각형 렌즈가 얼굴 비율의 균형을 잡아줍니다. 렌즈 높이가 큰 딥 프레임이 주요 포인트입니다. 반면 좁거나 직사각형의 세로가 짧은 프레임은 얼굴이 더 길어 보이게 할 수 있으므로 피합니다(Visionworks, All About Vision).",
           en: "Heart-shaped faces are widest at the forehead and taper to a narrow chin. All About Vision recommends frames with wider bottoms or light-coloured rims, semi-rimless, or rimless glasses. These disperse attention from a broad forehead and add visual weight near the narrow chin. Cat-eye frames also highlight cheekbones and lift the face. However, excessively thick upper frames may make the forehead appear wider (Warby Parker).\n\nDiamond-shaped faces are among the rarest, with narrow foreheads and chins and broad, prominent cheekbones. Cat-eye or oval frames highlight cheekbones while harmonising with the narrow forehead and chin. Rimless glasses give a clean look without overpowering delicate features (Zenni Optical, EyeBuyDirect).\n\nOblong (rectangular) faces are longer than they are wide. Oversized frames add visual width, and round or square lenses balance facial proportions. Deep frames with tall lenses are key. Narrow or short rectangular frames should be avoided as they can make the face appear even longer (Visionworks, All About Vision).",
@@ -492,10 +492,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   {
     id: "personal-color-wardrobe-2026",
     title: {
-      ko: "퍼스널 컬러별 봄 옷장 정리법: 타입별 머스트 해브 컬러",
-      en: "Spring Wardrobe by Personal Colour: Must-Have Colours for Every Type",
-      zh: "按个人色彩整理春季衣橱：各类型必备色彩",
-      ja: "パーソナルカラー別 春のワードローブ整理法：タイプ別マストハブカラー"
+      ko: "퍼스널 컬러별 봄 옷장 정리법, 타입별 머스트 해브 컬러",
+      en: "Spring Wardrobe by Personal Colour, Must-Have Colours for Every Type",
+      zh: "按个人色彩整理春季衣橱，各类型必备色彩",
+      ja: "パーソナルカラー別 春のワードローブ整理法 タイプ別マストハブカラー"
     },
     description: { ko: "Johannes Itten의 색채 이론과 Munsell 색 체계에 기반한 퍼스널 컬러의 과학적 원리. 4시즌 체계의 작동 방식과 옷장 정리에 활용하는 방법을 정리합니다.", en: "The scientific principles of personal colour based on Johannes Itten's colour theory and the Munsell colour system. How the 4-season system works and how to apply it to wardrobe curation.", zh: "基于Johannes Itten色彩理论和Munsell色彩体系的个人色彩科学原理。四季体系的运作方式及其在衣橱整理中的应用。", ja: "Johannes Ittenの色彩理論とMunsell色体系に基づくパーソナルカラーの科学的原理。4シーズン体系の仕組みとワードローブ整理への活用法。" },
     metaTitle: {
@@ -516,7 +516,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
     content: [
       {
-        subtitle: { ko: "퍼스널 컬러의 과학적 기반: 색상·명도·채도", en: "The Scientific Foundation of Personal Colour: Hue, Value, and Chroma", zh: "个人色彩的科学基础：色相、明度、彩度", ja: "パーソナルカラーの科学的基盤：色相・明度・彩度" },
+        subtitle: { ko: "퍼스널 컬러의 과학적 기반, 색상·명도·채도", en: "The Scientific Foundation of Personal Colour, Hue, Value, and Chroma", zh: "个人色彩的科学基础，色相、明度、彩度", ja: "パーソナルカラーの科学的基盤 色相・明度・彩度" },
         text: {
           ko: "퍼스널 컬러 분석의 이론적 토대는 스위스 예술가 Johannes Itten의 색채 이론과 미국 예술가 Albert H. Munsell의 색 체계에 뿌리를 두고 있습니다(IED Milano, Wikipedia). Itten은 색의 온도(난색/한색)와 명도(밝기/어두움)를 고려한 색채 이론을 개발했고, Munsell은 색상(Hue), 명도(Value), 채도(Chroma) 세 가지 차원으로 색을 정의하는 체계를 만들었습니다.\n\n퍼스널 컬러 분석에서 핵심이 되는 세 가지 요소는 다음과 같습니다. 첫째, 색상 온도(Hue/Temperature)는 피부·머리카락·눈의 웜(황색 기반) 또는 쿨(청색 기반) 언더톤을 의미합니다. 둘째, 명도(Value)는 전체적인 컬러링이 얼마나 밝거나 어두운지를 측정합니다. 셋째, 채도(Chroma)는 이목구비 색의 선명도나 채도를 의미하며, 뮤트한 색이 어울리는지 선명한 색이 어울리는지를 결정합니다.\n\n가장 널리 알려진 4시즌 체계는 개인을 봄(웜·밝음·선명), 여름(쿨·밝음·뮤트), 가을(웜·어두움·뮤트), 겨울(쿨·어두움·선명)로 분류합니다. 더 세밀한 분석을 위해 12시즌, 16시즌 체계도 있으며, 주된 특성(밝기·깊이·선명도·부드러움)에 따라 하위 카테고리를 제공합니다(The Concept Wardrobe, Camille Styles).",
           en: "The theoretical foundation of personal colour analysis is rooted in Swiss artist Johannes Itten's colour theory and American artist Albert H. Munsell's colour system (IED Milano, Wikipedia). Itten developed a colour theory considering temperature (warm/cool) and value (light/dark), while Munsell created a system defining colour by three dimensions: Hue, Value, and Chroma.\n\nThree core elements in personal colour analysis are: First, hue/temperature refers to the warm (yellow-based) or cool (blue-based) undertones in skin, hair, and eyes. Second, value measures how light or dark one's overall colouring is. Third, chroma describes the clarity or saturation of features, determining whether muted or vivid colours are most flattering.\n\nThe most widely known 4-season system classifies individuals as Spring (warm, light, bright), Summer (cool, light, muted), Autumn (warm, dark, muted), or Winter (cool, dark, bright). For more nuanced analysis, 12-season and 16-season systems exist, providing subcategories based on dominant characteristics like lightness, depth, clarity, or softness (The Concept Wardrobe, Camille Styles).",
@@ -538,10 +538,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   {
     id: "ai-skin-analysis-science",
     title: {
-      ko: "AI 피부 분석의 원리: 카메라가 피부톤을 읽는 방법",
-      en: "The Science of AI Skin Analysis: How Cameras Read Your Skin Tone",
-      zh: "AI 皮肤分析的原理：相机如何读取肤色",
-      ja: "AI肌分析の原理：カメラが肌色を読み取る仕組み"
+      ko: "AI 피부 분석의 원리, 카메라가 피부톤을 읽는 방법",
+      en: "The Science of AI Skin Analysis, How Cameras Read Your Skin Tone",
+      zh: "AI 皮肤分析的原理，相机如何读取肤色",
+      ja: "AI肌分析の原理、カメラが肌色を読み取る仕組み"
     },
     description: {
       ko: "MIT Media Lab·Stanford 연구를 기반으로 한 AI 피부 분석 기술의 과학적 배경. 컬러 스페이스, 광원 보정, 마이크로바이옴 분석까지 차세대 뷰티 테크를 해설합니다.",
@@ -550,10 +550,10 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
       ja: "MIT Media Lab・Stanford研究に基づくAI肌分析技術の科学的背景。カラースペースから光源補正、マイクロバイオーム分析まで次世代ビューティーテクを解説。"
     },
     metaTitle: {
-      ko: "AI 피부 분석 기술의 과학: 퍼스널 컬러 진단의 원리 | FINDCORE",
-      en: "The Science of AI Skin Analysis: How Personal Colour Diagnosis Works | FINDCORE",
-      zh: "AI 皮肤分析技术的科学：个人色彩诊断原理 | FINDCORE",
-      ja: "AI肌分析技術の科学：パーソナルカラー診断の原理 | FINDCORE"
+      ko: "AI 피부 분석 기술의 과학, 퍼스널 컬러 진단의 원리 | FINDCORE",
+      en: "The Science of AI Skin Analysis, How Personal Colour Diagnosis Works | FINDCORE",
+      zh: "AI 皮肤分析技术的科学，个人色彩诊断原理 | FINDCORE",
+      ja: "AI肌分析技術の科学 パーソナルカラー診断の原理 | FINDCORE"
     },
     metaDescription: {
       ko: "AI가 피부톤을 분석하는 과학적 원리. Lab 색 공간, 광원 교정, 피부 색소 추출 알고리즘까지 FINDCORE 퍼스널 컬러 기술의 배경을 해설합니다.",
@@ -588,9 +588,9 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   },
   {
     id: "color-psychology-emotions",
-    title: { ko: "컬러 심리학: 색이 감정과 퍼스널 브랜딩에 미치는 영향", en: "Colour Psychology: How Colour Affects Emotions and Personal Branding", zh: "色彩心理学：颜色如何影响情绪与个人品牌", ja: "カラー心理学：色が感情とパーソナルブランディングに与える影響" },
+    title: { ko: "컬러 심리학, 색이 감정과 퍼스널 브랜딩에 미치는 영향", en: "Colour Psychology, How Colour Affects Emotions and Personal Branding", zh: "色彩心理学，颜色如何影响情绪与个人品牌", ja: "カラー心理学 色が感情とパーソナルブランディングに与える影響" },
     description: { ko: "색채 심리학이 첫인상과 감정에 미치는 영향에 대한 과학적 연구. '입는 인지(Enclothed Cognition)' 이론과 색상별 심리적 반응을 분석합니다.", en: "Scientific research on how colour psychology influences first impressions and emotions. Analysing the 'Enclothed Cognition' theory and psychological responses to different hues.", zh: "色彩心理学对第一印象和情绪影响的科学研究。分析'穿衣认知'理论以及不同颜色引起的心理反应。", ja: "色彩心理学が第一印象や感情に与える影響に関する科学的研究。「着衣認知（Enclothed Cognition）」理論と色別の心理的反応を分析します。" },
-    metaTitle: { ko: "컬러 심리학 가이드: 색이 감정에 미치는 영향 | FINDCORE", en: "Colour Psychology Guide: How Colour Affects Emotions | FINDCORE", zh: "色彩心理学指南：颜色如何影响情绪 | FINDCORE", ja: "カラー心理学ガイド：色が感情に与える影響 | FINDCORE" },
+    metaTitle: { ko: "컬러 심리학 가이드, 색이 감정에 미치는 영향 | FINDCORE", en: "Colour Psychology Guide, How Colour Affects Emotions | FINDCORE", zh: "色彩心理学指南，颜色如何影响情绪 | FINDCORE", ja: "カラー心理学ガイド 色が感情に与える影響 | FINDCORE" },
     metaDescription: { ko: "빨강·파랑·초록·노랑 등 주요 색의 심리적 효과와 퍼스널 브랜딩 활용법. 퍼스널 컬러 진단 결과를 일상에 적용하는 심층 가이드.", en: "Psychological effects of key colours and personal branding applications. An in-depth guide to applying personal colour diagnosis results to daily life.", zh: "主要颜色的心理效应与个人品牌应用。将个人色彩诊断结果应用于日常的深度指南。", ja: "主要カラーの心理的効果とパーソナルブランディング活用法。パーソナルカラー診断結果を日常に適用する深掘りガイド。" },
     image: "/color_psychology_2026.png",
     category: { ko: "라이프스타일", en: "Lifestyle", zh: "生活方式", ja: "ライフスタイル" },
@@ -598,7 +598,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
     content: [
       {
-        subtitle: { ko: "색상과 첫인상의 과학: 90%의 법칙", en: "The Science of Colour and First Impressions: The 90% Rule", zh: "色彩与第一印象的科学：90%法则", ja: "色と第一印象の科学：90%の法則" },
+        subtitle: { ko: "색상과 첫인상의 과학, 90%의 법칙", en: "The Science of Colour and First Impressions, The 90% Rule", zh: "色彩与第一印象的科学，90%法则", ja: "色と第一印象の科学 90%の法則" },
         text: {
           ko: "색채 심리학(Color Psychology)은 특정 색상이 인간의 행동과 감정에 어떻게 영향을 미치는지 연구하는 학문입니다. 연구에 따르면, 타인에 대한 첫인상을 형성하는 데 걸리는 시간은 90초 이내이며, 이 과정에서 색상이 판단의 최대 90%를 차지한다는 결과가 있습니다(Medium, The Art Logic).\n\n이 중 '입는 인지(Enclothed Cognition)'라는 개념이 특히 중요합니다. 2012년 하트퍼드셔 대학교의 연구에 따르면, 우리가 입는 옷의 색상과 스타일은 타인의 시선뿐 아니라 우리 자신의 심리 상태, 자신감, 심지어 인지 능력에도 영향을 미칩니다. 특정 감정을 유발하는 색을 입음으로써 스스로의 기분과 성과를 조절할 수 있다는 것입니다.\n\n대표적인 색상별 심리적 반응은 다음과 같습니다. 빨강은 에너지, 자신감, 추진력을 상징하며 심박수를 약간 높이는 효과가 있습니다. 파랑은 신뢰, 전문성, 안정감을 주어 기업 면접이나 비즈니스 미팅에서 선호됩니다. 검정은 권위와 전문성, 우아함을 나타내며 지적인 인상을 주는 데 효과적입니다(Ape to Gentleman).",
           en: "Colour psychology studies how different hues influence human behaviour and emotions. Research suggests that first impressions are formed within 90 seconds, and colour can account for up to 90% of that initial judgement (Medium, The Art Logic).\n\nA particularly important concept is 'Enclothed Cognition.' A 2012 study (University of Hertfordshire context) suggests that the clothes we wear—including their colours—influence not just how others see us, but our own psychological state, confidence, and cognitive performance. By wearing colours associated with specific emotions, we can regulate our own mood and performance.\n\nKey psychological responses to colours include: Red symbolises energy, confidence, and determination, potentially slightly increasing heart rate. Blue evokes trust, professionalism, and stability, making it a preferred choice for interviews and business meetings. Black represents authority, professionalism, and elegance, often associated with perceived intelligence (Ape to Gentleman).",
@@ -610,9 +610,9 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   },
   {
     id: "cleansing-oil-guide-2026",
-    title: { ko: "피부 타입별 클렌징 오일 선택법: 더블 클렌징의 과학", en: "Choosing Cleansing Oil by Skin Type: The Science of Double Cleansing", zh: "按肤质选择卸妆油：双重清洁的科学", ja: "肌タイプ別クレンジングオイルの選び方：ダブル洗顔の科学" },
+    title: { ko: "피부 타입별 클렌징 오일 선택법, 더블 클렌징의 과학", en: "Choosing Cleansing Oil by Skin Type, The Science of Double Cleansing", zh: "按肤质选择卸妆油，双重清洁的科学", ja: "肌タイプ別クレンジングオイルの選び方 ダブル洗顔の科学" },
     description: { ko: "피부과 전문의들이 권장하는 더블 클렌징의 과학적 근거. '유유상종(Like Dissolves Like)' 원리에 기반한 세정 메커니즘과 피부 타입별 오일 선택법을 정리합니다.", en: "The scientific basis of double cleansing recommended by dermatologists. Explaining the cleaning mechanism based on the 'Like Dissolves Like' principle and how to choose oils by skin type.", zh: "皮肤科专家建议的双重清洁科学依据。基于'类以类溶'原理的清洁机制及按肤质选择卸妆油的方法。", ja: "皮膚科専門医が推奨するダブル洗顔の科学的根拠。「類は友を呼ぶ（Like Dissolves Like）」の原理に基づく洗浄メカニズムと肌タイプ別オイル選択法をまとめます。" },
-    metaTitle: { ko: "클렌징 오일 가이드 2026: 피부 타입별 선택법 | FINDCORE", en: "Cleansing Oil Guide 2026: How to Choose by Skin Type | FINDCORE", zh: "卸妆油指南 2026：按肤质选择 | FINDCORE", ja: "クレンジングオイルガイド 2026：肌タイプ別選択法 | FINDCORE" },
+    metaTitle: { ko: "클렌징 오일 가이드 2026, 피부 타입별 선택법 | FINDCORE", en: "Cleansing Oil Guide 2026, How to Choose by Skin Type | FINDCORE", zh: "卸妆油指南 2026，按肤质选择 | FINDCORE", ja: "クレンジングオイルガイド 2026 肌タイプ別選択法 | FINDCORE" },
     metaDescription: { ko: "지성·건성·복합성 피부별 최적 클렌징 오일 성분과 더블 클렌징의 과학적 근거. 2026년 K-뷰티 클렌징 트렌드 완벽 가이드.", en: "Optimal cleansing oil ingredients by skin type and the science of double cleansing. Complete guide to 2026 K-beauty cleansing trends.", zh: "按肤质推荐最佳卸妆油成分与双重清洁的科学依据。2026 年 K-beauty 清洁趋势完整指南。", ja: "肌タイプ別最適クレンジングオイル成分とダブル洗顔の科学的根拠。2026年Kビューティークレンジングトレンド完全ガイド。" },
     image: "/cleansing_oil_2026.png",
     category: { ko: "뷰티", en: "Beauty", zh: "美容", ja: "ビューティー" },
@@ -620,7 +620,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
     content: [
       {
-        subtitle: { ko: "더블 클렌징의 과학: 왜 오일이 필요한가", en: "The Science of Double Cleansing: Why You Need Oil", zh: "双重清洁的科学：为什么需要深层清洁油", ja: "ダブル洗顔の科学：なぜオイルが必要なのか" },
+        subtitle: { ko: "더블 클렌징의 과학, 왜 오일이 필요한가", en: "The Science of Double Cleansing, Why You Need Oil", zh: "双重清洁的科学，为什么需要深层清洁油", ja: "ダブル洗顔の科学 なぜオイルが必要なのか" },
         text: {
           ko: "더블 클렌징은 K-뷰티에서 시작되어 글로벌 피부과학계가 인정한 클렌징 기법입니다. 핵심 원리는 '유유상종(Like Dissolves Like)'입니다(Cleveland Clinic, CeraVe). 피지, 메이크업, 대부분의 자외선 차단제는 오일 기반의 불순물입니다. 이들은 물만으로는 제거되지 않으며, 클렌징 오일이나 밤이 이 성분들을 효과적으로 녹여낼 수 있습니다.\n\n첫 번째 단계인 오일 클렌징은 피부 표면의 유분기 있는 노폐물을 용해합니다. 두 번째 단계인 수성 클렌징(폼/젤)은 땀, 먼지 등 수용성 노폐물과 오일 잔여물을 제거합니다. 이 과정은 모공 막힘을 방지하여 트러블을 예방하고, 이후 바르는 스킨케어 제품의 흡수율을 높여줍니다(Healthline, Paula's Choice).\n\n지성 피부가 오일을 사용하는 것에 대한 우려가 있지만, 적절한 비코메도제닉(Non-comedogenic) 오일은 과도한 피지를 조절하는 데 오히려 도움을 줍니다. 조조바 오일, 포도씨유 등 가벼운 식물성 오일은 피지를 부드럽게 녹여내어 모공을 깨끗하게 유지해 줍니다.",
           en: "Double cleansing is a technique that originated in K-beauty and is now recognised by the global dermatological community. The core principle is 'Like Dissolves Like' (Cleveland Clinic, CeraVe). Sebum, makeup, and most sunscreens are oil-based impurities. These cannot be effectively removed by water alone; cleansing oils or balms are required to dissolve them.\n\nThe first step, oil cleansing, dissolves oil-based residue on the skin surface. The second step, water-based cleansing (foam/gel), removes water-soluble impurities like sweat and dust along with any oil residue. This process prevents clogged pores, reduces breakouts, and enhances the absorption efficacy of subsequent skincare products (Healthline, Paula's Choice).\n\nWhile oily skin types often worry about using oil, appropriate non-comedogenic oils actually help regulate excess sebum. Lightweight plant oils like jojoba or grapeseed oil gently dissolve sebum, keeping pores clean without stripping the skin.",
@@ -632,9 +632,9 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   },
   {
     id: "minimalism-vs-maximalism-2026",
-    title: { ko: "미니멀리즘 vs 맥시멀리즘: 2026 스타일 정체성 찾기", en: "Minimalism vs Maximalism: Finding Your 2026 Style Identity", zh: "极简主义 vs 极繁主义：找到你的 2026 风格定位", ja: "ミニマリズム vs マキシマリズム：2026年スタイルアイデンティティを見つける" },
+    title: { ko: "미니멀리즘 vs 맥시멀리즘, 2026 스타일 정체성 찾기", en: "Minimalism vs Maximalism, Finding Your 2026 Style Identity", zh: "极简主义 vs 极繁主义，找到你的 2026 风格定位", ja: "ミニマリズム vs マキシマリズム 2026年スタイルアイデンティティを見つける" },
     description: { ko: "2024-2025년을 지배한 '조용한 럭셔리(Quiet Luxury)'에서 2026년 화려한 '맥시멀리즘'으로의 패션 패러다임 변화를 분석합니다.", en: "Analysing the fashion paradigm shift from the 'Quiet Luxury' that dominated 2024-2025 to the vibrant 'Maximalism' of 2026.", zh: "分析从主宰2024-2025年的'静奢风'到2026年华丽'极繁主义'的时尚范式转变。", ja: "2024-2025年を支配した「クワイエット・ラグジュアリー」から2026年の華やかな「マキシマリズム」へのファッションパラダイムの変化を分析します。" },
-    metaTitle: { ko: "미니멀리즘 vs 맥시멀리즘 2026: 나만의 스타일 가이드 | FINDCORE", en: "Minimalism vs Maximalism 2026: Your Style Identity Guide | FINDCORE", zh: "极简 vs 极繁 2026：你的个人风格指南 | FINDCORE", ja: "ミニマル vs マキシマル 2026：スタイルアイデンティティガイド | FINDCORE" },
+    metaTitle: { ko: "미니멀리즘 vs 맥시멀리즘 2026, 나만의 스타일 가이드 | FINDCORE", en: "Minimalism vs Maximalism 2026, Your Style Identity Guide | FINDCORE", zh: "极简 vs 极繁 2026，你的个人风格指南 | FINDCORE", ja: "ミニマル vs マキシマル 2026 スタイルアイデンティティガイド | FINDCORE" },
     metaDescription: { ko: "2026년 패션의 양극화 트렌드. 에스테틱 코어 테스트로 자신의 감성 유형을 파악하고 미니멀/맥시멀 스펙트럼에서 위치를 찾는 방법.", en: "2026 fashion polarisation trend. Discover where you sit on the minimal/maximal spectrum with the aesthetic core test.", zh: "2026 时尚两极化趋势。通过美学类型测试了解自己在极简/极繁光谱中的位置。", ja: "2026年ファッション両極化トレンド。エステティックコアテストで自分のミニマル/マキシマルスペクトラム上の位置を発見。" },
     image: "/minimalism_maximalism_2026.png",
     category: { ko: "패션", en: "Fashion", zh: "时尚", ja: "ファッション" },
@@ -654,9 +654,9 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   },
   {
     id: "led-beauty-device-guide",
-    title: { ko: "홈 뷰티 디바이스 구매 가이드: LED 마스크부터 갈바닉까지", en: "Home Beauty Device Buying Guide: From LED Masks to Galvanic", zh: "家用美容仪购买指南：从 LED 面膜到微电流仪", ja: "ホームビューティーデバイス購入ガイド：LEDマスクからガルバニックまで" },
+    title: { ko: "홈 뷰티 디바이스 구매 가이드, LED 마스크부터 갈바닉까지", en: "Home Beauty Device Buying Guide, From LED Masks to Galvanic", zh: "家用美容仪购买指南，从 LED 面膜到微电流仪", ja: "ホームビューティーデバイス購入ガイド LEDマスクからガルバニックまで" },
     description: { ko: "홈 뷰티 디바이스의 과학: LED, RF, 갈바닉의 원리와 효과. 피부과 전문의들이 강조하는 파장별 차이와 안전한 사용법을 정리합니다.", en: "The Science of Home Beauty Devices: Principles and Effects of LED, RF, and Galvanic. Explaining wavelength differences and safe usage methods emphasised by dermatologists.", zh: "家用美容仪的科学：LED、RF、伽伐尼电流的原理与效果。整理皮肤科专家强调的波长差异及安全使用方法。", ja: "ホームビューティーデバイスの科学：LED、RF、ガルバニックの原理と効果。皮膚科専門医が強調する波長別の違いと安全な使用法をまとめます。" },
-    metaTitle: { ko: "홈 뷰티 디바이스 가이드 2026: LED·RF·갈바닉 완벽 비교 | FINDCORE", en: "Home Beauty Device Guide 2026: LED, RF, Galvanic Comparison | FINDCORE", zh: "家用美容仪指南 2026：LED·RF·微电流完全对比 | FINDCORE", ja: "ホームビューティーデバイスガイド 2026：LED・RF・ガルバニック完全比較 | FINDCORE" },
+    metaTitle: { ko: "홈 뷰티 디바이스 가이드 2026, LED·RF·갈바닉 완벽 비교 | FINDCORE", en: "Home Beauty Device Guide 2026, LED, RF, Galvanic Comparison | FINDCORE", zh: "家用美容仪指南 2026，LED·RF·微电流完全对比 | FINDCORE", ja: "ホームビューティーデバイスガイド 2026 LED・RF・ガルバニック完全比較 | FINDCORE" },
     metaDescription: { ko: "LED 마스크·RF 고주파·갈바닉 이온토포레시스의 작동 원리와 피부 타입별 추천. FDA 승인 디바이스 기준 2026 완벽 가이드.", en: "How LED masks, RF devices, and galvanic iontophoresis work, with recommendations by skin type. Complete 2026 guide based on FDA-approved devices.", zh: "LED 面膜·RF 射频·微电流导入的工作原理及按肤质推荐。基于 FDA 认证设备的 2026 完整指南。", ja: "LEDマスク・RF高周波・ガルバニックの作動原理と肌タイプ別推薦。FDA承認デバイス基準2026完全ガイド。" },
     image: "/led_beauty_device_2026.png",
     category: { ko: "테크", en: "Tech", zh: "科技", ja: "テクノロジー" },
@@ -664,7 +664,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
     content: [
       {
-        subtitle: { ko: "LED 광치료의 원리: 적색광과 청색광의 차이", en: "Principles of LED Phototherapy: Red vs Blue Light", zh: "LED光疗原理：红光与蓝光的区别", ja: "LED光治療の原理：赤色光と青色光の違い" },
+        subtitle: { ko: "LED 광치료의 원리, 적색광과 청색광의 차이", en: "Principles of LED Phototherapy, Red vs Blue Light", zh: "LED光疗原理，红光与蓝光的区别", ja: "LED光治療の原理 赤色光と青色光の違い" },
         text: {
           ko: "LED 광치료(Phototherapy)는 특정 파장의 빛을 피부에 조사하여 세포 활성화를 돕는 비침습적 치료법입니다. 가장 널리 사용되는 파장은 적색광(Red Light)과 청색광(Blue Light)입니다(Cleveland Clinic, NIH).\n\n적색광(약 630-660nm)은 피부 진피층까지 깊숙이 침투합니다. 세포 내 미토콘드리아를 자극하여 ATP(세포 에너지) 생산을 높이고, 콜라겐과 엘라스틴 합성을 촉진하여 잔주름 개선과 피부 탄력 향상에 도움을 줍니다. 반면 청색광(약 415nm)은 피부 표면층에 작용하여 여드름의 원인균인 '쿠티바테리움 아크네스(C. acnes)'를 박멸하는 항균 효과가 탁월합니다(American Academy of Dermatology).\n\n최신 홈 디바이스들은 이 두 파장을 결합하여 복합적인 피부 고민을 해결합니다. 다만, 안전한 사용을 위해 반드시 FDA 승인을 받은 기기를 선택해야 하며, 특히 망막 보호를 위해 전용 안대나 보호 안경을 착용하는 것이 필수적입니다.",
           en: "LED phototherapy is a non-invasive treatment that uses specific light wavelengths to help activate cells. The most widely used wavelengths are red light and blue light (Cleveland Clinic, NIH).\n\nRed light (approx. 630-660nm) penetrates deep into the dermal layer. It stimulates mitochondria to increase ATP (cellular energy) production and promotes collagen and elastin synthesis, helping improve fine lines and elasticity. In contrast, blue light (approx. 415nm) acts on the surface layer to eliminate 'Cutibacterium acnes' (C. acnes), offering powerful antibacterial effects against acne (American Academy of Dermatology).\n\nModern home devices often combine these wavelengths to address multiple skin concerns. For safety, always choose FDA-cleared devices and use eye protection to prevent retinal damage during use.",
@@ -676,9 +676,9 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
   },
   {
     id: "personal-color-interior-design",
-    title: { ko: "퍼스널 컬러와 인테리어: 나에게 어울리는 공간 컬러 팔레트", en: "Personal Colour and Interior Design: Finding Your Space Palette", zh: "个人色彩与室内设计：找到属于你的空间配色", ja: "パーソナルカラーとインテリア：自分に合う空間カラーパレット" },
+    title: { ko: "퍼스널 컬러와 인테리어, 나에게 어울리는 공간 컬러 팔레트", en: "Personal Colour and Interior Design, Finding Your Space Palette", zh: "个人色彩与室内设计，找到属于你的空间配色", ja: "パーソナルカラーとインテリア 自分に合う空間カラーパレット" },
     description: { ko: "퍼스널 컬러를 넘은 '컬러 하모니' 인테리어 가이드. 거주자의 피부 언더톤과 조화를 이루는 공간 컬러 설계법과 색채 심리학의 실제 사례를 소개합니다.", en: "Beyond Personal Colour: An Interior Colour Harmony Guide. Designing space colours that harmonise with the resident's skin undertone and actual examples of colour psychology.", zh: "超越个人色彩的'色彩和谐'室内设计指南。介绍与居住者肤色底调协调的空间色彩设计法及色彩心理学的实际案例。", ja: "パーソナルカラーを超えた「カラーハーモニー」インテリアガイド。居住者の肌のアンダートーンと調和する空間カラー設計法と色彩心理学の実例を紹介します。" },
-    metaTitle: { ko: "퍼스널 컬러 인테리어 가이드: 나에게 맞는 공간 색 | FINDCORE", en: "Personal Colour Interior Guide: Space Colours for You | FINDCORE", zh: "个人色彩室内设计指南：适合你的空间配色 | FINDCORE", ja: "パーソナルカラーインテリアガイド：自分に合う空間の色 | FINDCORE" },
+    metaTitle: { ko: "퍼스널 컬러 인테리어 가이드, 나에게 맞는 공간 색 | FINDCORE", en: "Personal Colour Interior Guide, Space Colours for You | FINDCORE", zh: "个人色彩室内设计指南，适合你的空间配色 | FINDCORE", ja: "パーソナルカラーインテリアガイド 自分に合う空間の色 | FINDCORE" },
     metaDescription: { ko: "퍼스널 컬러 진단 결과를 인테리어에 적용하는 방법. 봄웜·여름쿨·가을웜·겨울쿨 타입별 거실·침실 컬러 팔레트 가이드.", en: "How to apply personal colour diagnosis to interior design. Living room and bedroom colour palette guide by seasonal type.", zh: "将个人色彩诊断结果应用于室内设计的方法。按季型推荐客厅·卧室配色指南。", ja: "パーソナルカラー診断結果をインテリアに適用する方法。シーズンタイプ別リビング・寝室カラーパレットガイド。" },
     image: "/interior_color_palette_2026.png",
     category: { ko: "라이프스타일", en: "Lifestyle", zh: "生活方式", ja: "ライフスタイル" },
@@ -686,7 +686,7 @@ export const MAGAZINE_ARTICLES: MagazineArticle[] = [
     author: { ko: "FINDCORE 에디토리얼", en: "FINDCORE Editorial", zh: "FINDCORE 编辑部", ja: "FINDCORE エディトリアル" },
     content: [
       {
-        subtitle: { ko: "공간과 인체의 색채 조화: 언더톤 매칭", en: "Colour Harmony Between Space and Body: Undertone Matching", zh: "空间与人体的色彩和谐：底调匹配", ja: "空間と人体の色彩調和：アンダートーンマッチング" },
+        subtitle: { ko: "공간과 인체의 색채 조화, 언더톤 매칭", en: "Colour Harmony Between Space and Body, Undertone Matching", zh: "空间与人体的色彩和谐，底调匹配", ja: "空間と人体の色彩調和 アンダートーンマッチング" },
         text: {
           ko: "퍼스널 컬러는 패션에만 국한되지 않습니다. 인테리어 설계에서도 거주자의 피부 언더톤(Warm/Cool)과 공간의 베이스 컬러를 맞추는 것이 심리적 안정감에 큰 영향을 미칩니다(Research Trends Journal).\n\n웜톤 거주자가 차가운 파란색이나 회색 기반의 공간에 있으면 피부가 칙칙해 보이고 무의식적인 불편함을 느낄 수 있습니다. 반면 쿨톤 거주자가 노란기가 강한 조명이나 벽지 속에서 생활하면 피부가 누렇게 떠 보이는 현상이 발생합니다. 인테리어 전문 매체들은 이를 '스킨-스페이스 하모니'라 부르며, 거주자가 가장 매력적이고 편안하게 보일 수 있는 색상 팔레트 구성을 강조합니다.\n\n공간 연출에는 '60-30-10 법칙'을 활용하는 것이 좋습니다. 주조색(벽·바닥) 60%, 보조색(가구·커튼) 30%, 강조색(소품·액자) 10%의 비율로 색을 배분합니다. 웜톤 공간이라면 크림 화이트, 베이지, 테라코타를 베이스로 하고 오크 원목을 매치하면 따뜻한 조화를 이룹니다. 쿨톤 공간이라면 화이트, 그레이, 쿨 네이비를 베이스로 하고 실버나 크롬 소재를 활용하여 세련된 분위기를 연출할 수 있습니다(Architectural Digest, Swatchbox).",
           en: "Personal colour is not limited to fashion. In interior design, aligning the resident's skin undertone (Warm/Cool) with the space's base colours significantly affects psychological comfort (Research Trends Journal).\n\nA warm-toned individual in a space with cool blue or grey bases may appear dull and feel subconscious discomfort. Conversely, a cool-toned person living among strong yellow-toned lighting or wallpaper may experience a sallow, washed-out look. Interior media calls this 'Skin-Space Harmony,' emphasising colour palettes that make residents look and feel their best.\n\nFor spatial styling, use the '60-30-10 rule': 60% dominant colour (walls/floors), 30% secondary colour (furniture/curtains), and 10% accent colour (decor). A warm-toned space thrives on bases like cream white, beige, or terracotta matched with oak wood for a welcoming harmony. A cool-toned space benefits from white, grey, or cool navy bases paired with silver or chrome accents for a sophisticated atmosphere (Architectural Digest, Swatchbox).",
