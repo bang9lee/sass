@@ -810,7 +810,7 @@ function ColorTestContent() {
                             <h1 className={`text-4xl md:text-7xl font-extrabold text-white tracking-tighter leading-tight px-4 ${isKorean ? 'font-korean' : isEnglish ? 'font-cinzel' : ''}`}>
                                 {isShape ? t.shapeTitle : t.title}
                             </h1>
-                            <p className={`text-zinc-400 text-sm md:text-lg leading-relaxed max-w-[300px] md:max-w-md mx-auto ${isKorean ? 'font-korean break-keep' : ''}`}>
+                            <p className={`text-zinc-400 text-sm md:text-lg leading-relaxed max-w-75 md:max-w-md mx-auto ${isKorean ? 'font-korean break-keep' : ''}`}>
                                 {isShape ? t.shapeSubtitle : t.subtitle}
                             </p>
                         </div>
@@ -1082,7 +1082,7 @@ function ColorTestContent() {
                                     {[...Array(12)].map((_, i) => (
                                         <motion.div
                                             key={i}
-                                            className="absolute w-[2px] h-[2px] bg-white rounded-full shadow-[0_0_8px_white]"
+                                            className="absolute w-0.5 h-0.5 bg-white rounded-full shadow-[0_0_8px_white]"
                                             style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
                                             animate={{
                                                 opacity: [0, 0.8, 0],
@@ -1132,7 +1132,7 @@ function ColorTestContent() {
                             <div className="flex items-center justify-center gap-2">
                                 {[0, 1, 2, 3].map(i => (
                                     <div key={i} className="relative">
-                                        <div className={`h-[3px] rounded-full transition-all duration-700 ease-out overflow-hidden ${scanningStatus === i ? 'w-10 bg-white/20' : 'w-3 bg-white/5'}`}>
+                                        <div className={`h-0.75 rounded-full transition-all duration-700 ease-out overflow-hidden ${scanningStatus === i ? 'w-10 bg-white/20' : 'w-3 bg-white/5'}`}>
                                             {scanningStatus === i && (
                                                 <motion.div
                                                     className="h-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]"
@@ -1194,14 +1194,14 @@ function ColorTestContent() {
 
                 {/* Face image */}
                 <div className="flex-1 flex items-center justify-center relative z-10 px-4">
-                    <motion.div layout className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[440px] lg:h-[440px]">
+                    <motion.div layout className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-110 lg:h-110">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={croppedSrc || imageSrc || ''} alt="Face" className="w-full h-full object-contain drop-shadow-2xl" />
                     </motion.div>
                 </div>
 
                 {/* Bottom Panel */}
-                <div className="z-40 shrink-0 bg-[#121212] rounded-t-[32px] pt-6 pb-10 px-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/5">
+                <div className="z-40 shrink-0 bg-[#121212] rounded-t-4xl pt-6 pb-10 px-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/5">
                     <div className="max-w-lg mx-auto flex flex-col gap-6">
                         {/* Season Tabs */}
                         <div className="bg-[#1c1c1c] rounded-full p-2 flex gap-1 shadow-inner relative z-20">
@@ -1234,7 +1234,7 @@ function ColorTestContent() {
                         </div>
 
                         {/* Color Swatches Grid */}
-                        <div className="h-[72px] flex items-center w-full">
+                        <div className="h-18 flex items-center w-full">
                             {activeSeason ? (
                                 <motion.div
                                     ref={scrollContainerRef}
@@ -1264,7 +1264,7 @@ function ColorTestContent() {
                                                 {isSelected && (
                                                     <motion.div
                                                         layoutId="swatch-selection"
-                                                        className="absolute -inset-[3px] rounded-full border-2 border-white pointer-events-none"
+                                                        className="absolute -inset-0.75 rounded-full border-2 border-white pointer-events-none"
                                                         style={{ boxShadow: '0 0 10px rgba(255,255,255,0.3)' }}
                                                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                                                     />
@@ -1288,8 +1288,8 @@ function ColorTestContent() {
                                                 </motion.svg>
                                             ) : (
                                                 <div className="w-5 h-5 relative z-10">
-                                                    <div className="absolute inset-x-0 inset-y-2.5 h-[2px] bg-white rounded-full" />
-                                                    <div className="absolute inset-y-0 inset-x-2.5 w-[2px] bg-white rounded-full" />
+                                                    <div className="absolute inset-x-0 inset-y-2.5 h-0.5 bg-white rounded-full" />
+                                                    <div className="absolute inset-y-0 inset-x-2.5 w-0.5 bg-white rounded-full" />
                                                 </div>
                                             )}
                                             <input type="color" value={activeColor && !SEASON_SWATCHES[activeSeason].includes(activeColor) ? activeColor : '#ffffff'} onChange={(e) => setActiveColor(e.target.value)} className="absolute opacity-0 w-full h-full cursor-pointer" />
