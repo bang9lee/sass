@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { resolveSupportedLang } from "@/lib/site-content";
 import { CookieConsent } from "@/components/cookie-consent";
 import { GoogleAdSense } from "@/components/google-adsense";
+import { SecurityLayer } from "@/components/security-layer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -69,9 +70,11 @@ export default async function RootLayout({
         <main className="relative z-10 min-h-screen flex flex-col">
           <Suspense fallback={<div className="min-h-screen bg-black" />}>
             <LanguageProvider initialLang={initialLang}>
-              {children}
-              <CookieConsent />
-              <GoogleAdSense />
+              <SecurityLayer>
+                {children}
+                <CookieConsent />
+                <GoogleAdSense />
+              </SecurityLayer>
             </LanguageProvider>
           </Suspense>
         </main>
