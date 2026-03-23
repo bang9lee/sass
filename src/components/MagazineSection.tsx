@@ -55,7 +55,7 @@ export function MagazineSection() {
                                 <span className="w-0.5 h-0.5 rounded-full bg-zinc-700" />
                                 <span className="text-zinc-500">{featuredArticle.date}</span>
                             </div>
-                            <h3 className={`text-xl md:text-2xl font-bold text-white leading-tight group-hover:text-amber-500 transition-colors antialiased ${isKorean ? "font-korean" : "font-sans"}`}>
+                            <h3 className={`text-xl md:text-2xl font-bold text-white leading-tight group-hover:text-amber-500 transition-colors antialiased whitespace-pre-line ${isKorean ? "font-korean" : "font-sans"}`}>
                                 {featuredArticle.title[lang]}
                             </h3>
                             <p className="text-zinc-400 text-xs md:text-sm leading-relaxed line-clamp-2 antialiased">
@@ -99,7 +99,7 @@ export function MagazineSection() {
                                     <span>{article.date}</span>
                                 </div>
 
-                                <h4 className={`text-lg font-bold text-white group-hover:text-amber-500 transition-colors leading-tight line-clamp-2 antialiased ${isKorean ? "font-korean" : "font-sans"}`}>
+                                <h4 className={`text-lg font-bold text-white group-hover:text-amber-500 transition-colors leading-tight line-clamp-2 antialiased whitespace-pre-line ${isKorean ? "font-korean" : "font-sans"}`}>
                                     {article.title[lang]}
                                 </h4>
 

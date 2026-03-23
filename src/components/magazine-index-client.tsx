@@ -74,7 +74,7 @@ export function MagazineIndexClient({}: MagazineIndexClientProps) {
                                     <span className="w-0.5 h-0.5 rounded-full bg-zinc-700" />
                                     <span className="text-zinc-500">{featuredArticle.date}</span>
                                 </div>
-                                <h2 className={`text-2xl md:text-3xl font-bold text-white leading-tight group-hover:text-amber-500 transition-colors ${isKorean ? "font-korean break-keep" : "font-sans"}`}>
+                                <h2 className={`text-2xl md:text-3xl font-bold text-white leading-tight group-hover:text-amber-500 transition-colors whitespace-pre-line ${isKorean ? "font-korean break-keep" : "font-sans"}`}>
                                     {featuredArticle.title[lang]}
                                 </h2>
                                 <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3">
@@ -124,7 +124,7 @@ export function MagazineIndexClient({}: MagazineIndexClientProps) {
                                         <span>•</span>
                                         <span>{article.date}</span>
                                     </div>
-                                    <h4 className={`text-base font-bold text-white group-hover:text-amber-500 transition-colors leading-tight line-clamp-2 ${isKorean ? "font-korean" : "font-sans"}`}>
+                                    <h4 className={`text-base font-bold text-white group-hover:text-amber-500 transition-colors leading-tight line-clamp-2 whitespace-pre-line ${isKorean ? "font-korean" : "font-sans"}`}>
                                         {article.title[lang]}
                                     </h4>
                                     <p className="text-zinc-500 text-[11px] leading-relaxed line-clamp-2 font-medium">
